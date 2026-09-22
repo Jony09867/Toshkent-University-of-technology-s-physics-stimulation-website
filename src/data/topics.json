@@ -1,0 +1,1146 @@
+[
+    {
+        "number":  1,
+        "title":  "Mexanikadagi asosiy tushunchalar",
+        "kind":  "MATN",
+        "priority":  false,
+        "notes":  "- Trayektoriya, yo\u0027l, ko\u0027chish tushunchalari — formula yo\u0027q, ta\u0027rif asosida.",
+        "page":  null
+    },
+    {
+        "number":  2,
+        "title":  "To\u0027g\u0027ri chiziqli tekis harakat",
+        "kind":  "SIM",
+        "priority":  false,
+        "notes":  "- `x = x₀ + vt`\n- v — tezlik (const), x₀ — boshlang\u0027ich koordinata",
+        "page":  null
+    },
+    {
+        "number":  3,
+        "title":  "To\u0027g\u0027ri chiziqli tekis harakatni grafik tasvirlash",
+        "kind":  "QISM",
+        "priority":  false,
+        "notes":  "- x(t) — to\u0027g\u0027ri chiziq, v(t) — gorizontal chiziq. (#2 bilan birga ko\u0027rsatiladi)",
+        "page":  null
+    },
+    {
+        "number":  4,
+        "title":  "Harakatning nisbiyligi",
+        "kind":  "SIM",
+        "priority":  false,
+        "notes":  "- `v₁₃ = v₁₂ + v₂₃` (tezliklarni qo\u0027shish, klassik Galiley qonuni)\n- Masalan qayiq tezligi + oqim tezligi",
+        "page":  null
+    },
+    {
+        "number":  5,
+        "title":  "Notekis harakat",
+        "kind":  "QISM",
+        "priority":  false,
+        "notes":  "- `v_o\u0027rtacha = Δx/Δt` — o\u0027rtacha tezlik",
+        "page":  null
+    },
+    {
+        "number":  6,
+        "title":  "Tekis o\u0027zgaruvchan harakat. Tezlanish. Oniy tezlik",
+        "kind":  "SIM",
+        "priority":  false,
+        "notes":  "- `a = (v - v₀)/t`\n- `v = v₀ + at`",
+        "page":  null
+    },
+    {
+        "number":  7,
+        "title":  "Tekis o\u0027zgaruvchan harakatda ko\u0027chish",
+        "kind":  "SIM",
+        "priority":  false,
+        "notes":  "- `x = v₀t + at²/2`\n- `x = (v² - v₀²)/2a`\n- `x = (v₀+v)/2 · t`",
+        "page":  null
+    },
+    {
+        "number":  8,
+        "title":  "Ikki jismning harakati",
+        "kind":  "SIM",
+        "priority":  false,
+        "notes":  "- Uchrashish masalalari: `x₁(t) = x₀₁ + v₁t`, `x₂(t) = x₀₂ + v₂t`, kesishish nuqtasi",
+        "page":  null
+    },
+    {
+        "number":  9,
+        "title":  "Tekis o\u0027zgaruvchan harakatni grafik ravishda tasvirlash",
+        "kind":  "QISM",
+        "priority":  false,
+        "notes":  "- a(t), v(t), x(t) grafiklari — #6, #7 bilan birga",
+        "page":  null
+    },
+    {
+        "number":  10,
+        "title":  "Egri chiziqli harakat",
+        "kind":  "SIM",
+        "priority":  false,
+        "notes":  "- Vektor yig\u0027indisi orqali traektoriya, tezlik vektori har nuqtada traektoriyaga urinma",
+        "page":  null
+    },
+    {
+        "number":  11,
+        "title":  "Egri chiziqli harakatda tezlanish",
+        "kind":  "SIM",
+        "priority":  false,
+        "notes":  "- `a = a_tang + a_norm` (to\u0027liq tezlanish = tangensial + normal/markazga intilma)\n- `a_norm = v²/R`",
+        "page":  null
+    },
+    {
+        "number":  12,
+        "title":  "Aylanma harakatni uzatish",
+        "kind":  "SIM",
+        "priority":  false,
+        "notes":  "- `v = ωR`, tishli g\u0027ildiraklar/kasnaklar orasidagi uzatish nisbati `R₁ω₁ = R₂ω₂`",
+        "page":  null
+    },
+    {
+        "number":  13,
+        "title":  "Aylana bo\u0027ylab notekis harakat",
+        "kind":  "SIM",
+        "priority":  false,
+        "notes":  "- `ω = Δφ/Δt`, `T = 2π/ω`, `ν = 1/T`, `a_markazga = ω²R = v²/R`",
+        "page":  null
+    },
+    {
+        "number":  14,
+        "title":  "Kuch. Nyutonning birinchi qonuni",
+        "kind":  "MATN/SIM",
+        "priority":  false,
+        "notes":  "- Inersiya qonuni — kuchlar yig\u0027indisi 0 bo\u0027lsa jism tinch yoki tekis to\u0027g\u0027ri chiziqli harakatda qoladi (vizual demo mumkin)",
+        "page":  null
+    },
+    {
+        "number":  15,
+        "title":  "Massa. Zichlik",
+        "kind":  "QISM",
+        "priority":  false,
+        "notes":  "- `ρ = m/V`",
+        "page":  null
+    },
+    {
+        "number":  16,
+        "title":  "Nyutonning ikkinchi qonuni",
+        "kind":  "SIM",
+        "priority":  true,
+        "notes":  "- `F = ma`, `a = F/m`",
+        "page":  null
+    },
+    {
+        "number":  17,
+        "title":  "Nyutonning uchinchi qonuni",
+        "kind":  "SIM",
+        "priority":  false,
+        "notes":  "- `F₁₂ = -F₂₁` — ikki jism o\u0027zaro ta\u0027sir kuchlari, teng va qarama-qarshi",
+        "page":  null
+    },
+    {
+        "number":  18,
+        "title":  "Butun olam tortishish qonuni",
+        "kind":  "SIM",
+        "priority":  false,
+        "notes":  "- `F = G·m₁m₂/r²`, G = 6.67×10⁻¹¹ N·m²/kg²",
+        "page":  null
+    },
+    {
+        "number":  19,
+        "title":  "Og\u0027irlik kuchi",
+        "kind":  "QISM",
+        "priority":  false,
+        "notes":  "- `F_og\u0027 = mg`",
+        "page":  null
+    },
+    {
+        "number":  20,
+        "title":  "Elastiklik kuchi",
+        "kind":  "SIM",
+        "priority":  false,
+        "notes":  "- Guk qonuni: `F_elast = -kx`",
+        "page":  null
+    },
+    {
+        "number":  21,
+        "title":  "Vazn",
+        "kind":  "SIM",
+        "priority":  false,
+        "notes":  "- Tik tezlanishda: `P = m(g±a)` (liftda vazn o\u0027zgarishi — yaxshi vizual misol)",
+        "page":  null
+    },
+    {
+        "number":  22,
+        "title":  "Vaznsizlik",
+        "kind":  "QISM",
+        "priority":  false,
+        "notes":  "- `a = g` bo\u0027lganda `P = 0`",
+        "page":  null
+    },
+    {
+        "number":  23,
+        "title":  "Jismning og\u0027irlik kuchi ta\u0027siridagi vertikal harakati",
+        "kind":  "SIM",
+        "priority":  false,
+        "notes":  "- `h = v₀t - gt²/2`, `v = v₀ - gt` (erkin tushish/yuqoriga otilgan jism)",
+        "page":  null
+    },
+    {
+        "number":  24,
+        "title":  "Gorizontal otilgan jismning harakati",
+        "kind":  "SIM",
+        "priority":  true,
+        "notes":  "- `x = v₀t`, `y = gt²/2`, uchish vaqti `t = √(2h/g)`",
+        "page":  null
+    },
+    {
+        "number":  25,
+        "title":  "Gorizontga nisbatan burchak ostida otilgan jismning harakati",
+        "kind":  "SIM",
+        "priority":  true,
+        "notes":  "- `x = v₀cosα·t`, `y = v₀sinα·t - gt²/2`\n- Uchish masofasi: `L = v₀²sin2α/g`, maksimal balandlik: `H = v₀²sin²α/2g`",
+        "page":  null
+    },
+    {
+        "number":  26,
+        "title":  "Yerning sun\u0027iy yo\u0027ldoshlari",
+        "kind":  "SIM",
+        "priority":  false,
+        "notes":  "- Birinchi kosmik tezlik: `v₁ = √(gR)`, aylanish davri `T = 2π√(R³/GM)`",
+        "page":  null
+    },
+    {
+        "number":  27,
+        "title":  "Ishqalanish kuchi. Tinchlikdagi ishqalanish",
+        "kind":  "QISM",
+        "priority":  false,
+        "notes":  "- `F_tinchlik ≤ μN` (maksimal chegara)",
+        "page":  null
+    },
+    {
+        "number":  28,
+        "title":  "Sirpanish ishqalanish kuchi",
+        "kind":  "SIM",
+        "priority":  true,
+        "notes":  "- `F_ishq = μN`",
+        "page":  null
+    },
+    {
+        "number":  29,
+        "title":  "Bir necha kuch ta\u0027siridagi harakat",
+        "kind":  "SIM",
+        "priority":  false,
+        "notes":  "- `F_natija = ΣF = ma` (kuchlar yig\u0027indisi, vektor qo\u0027shish)",
+        "page":  null
+    },
+    {
+        "number":  30,
+        "title":  "Jismning og\u0027irlik markazi",
+        "kind":  "MATN",
+        "priority":  false,
+        "notes":  "- Geometrik/massa markazi ta\u0027rifi, formula: `x_c = Σ(mᵢxᵢ)/Σmᵢ`",
+        "page":  null
+    },
+    {
+        "number":  31,
+        "title":  "Muvozanat shartlari",
+        "kind":  "SIM",
+        "priority":  false,
+        "notes":  "- `ΣF = 0` va `ΣM = 0` (momentlar), richag qoidasi: `F₁l₁ = F₂l₂`",
+        "page":  null
+    },
+    {
+        "number":  32,
+        "title":  "Kuch va impuls",
+        "kind":  "SIM",
+        "priority":  false,
+        "notes":  "- `p = mv`, `Δp = FΔt` (impuls o\u0027zgarishi teoremasi)",
+        "page":  null
+    },
+    {
+        "number":  33,
+        "title":  "Impulsning saqlanish qonuni",
+        "kind":  "SIM",
+        "priority":  true,
+        "notes":  "- `m₁v₁ + m₂v₂ = m₁v₁\u0027 + m₂v₂\u0027` (to\u0027qnashuv — ajoyib vizual simulyatsiya)",
+        "page":  null
+    },
+    {
+        "number":  34,
+        "title":  "Mexanik ish",
+        "kind":  "SIM",
+        "priority":  false,
+        "notes":  "- `A = F·s·cosα`",
+        "page":  null
+    },
+    {
+        "number":  35,
+        "title":  "Kinetik energiya",
+        "kind":  "QISM",
+        "priority":  false,
+        "notes":  "- `E_k = mv²/2`",
+        "page":  null
+    },
+    {
+        "number":  36,
+        "title":  "Potensial energiya",
+        "kind":  "QISM",
+        "priority":  false,
+        "notes":  "- `E_p = mgh`",
+        "page":  null
+    },
+    {
+        "number":  37,
+        "title":  "Deformatsiyalangan prujinaning potensial energiyasi",
+        "kind":  "QISM",
+        "priority":  false,
+        "notes":  "- `E_p(prujina) = kx²/2`",
+        "page":  null
+    },
+    {
+        "number":  38,
+        "title":  "To\u0027liq mexanik energiyaning saqlanish qonuni",
+        "kind":  "SIM",
+        "priority":  true,
+        "notes":  "- `E_k + E_p = const`",
+        "page":  null
+    },
+    {
+        "number":  39,
+        "title":  "Jismga qo\u0027yilgan kuchlarning ishi. Mexanik energiyaning issiqlikka aylanishi",
+        "kind":  "SIM",
+        "priority":  false,
+        "notes":  "- `A_ishq = μmg·s` (ishqalanishga sarflangan ish issiqlikka aylanadi)",
+        "page":  null
+    },
+    {
+        "number":  40,
+        "title":  "Quvvat",
+        "kind":  "QISM",
+        "priority":  false,
+        "notes":  "- `N = A/t = F·v`",
+        "page":  null
+    },
+    {
+        "number":  41,
+        "title":  "Foydali ish koeffitsienti",
+        "kind":  "QISM",
+        "priority":  false,
+        "notes":  "- `η = A_foydali/A_sarflangan × 100%`",
+        "page":  null
+    },
+    {
+        "number":  42,
+        "title":  "Bosim. Paskal qonuni",
+        "kind":  "SIM",
+        "priority":  false,
+        "notes":  "- `p = F/S`, Paskal qonuni — bosim barcha yo\u0027nalishlarda bir xil uzatiladi",
+        "page":  null
+    },
+    {
+        "number":  43,
+        "title":  "Gidrostatik bosim",
+        "kind":  "SIM",
+        "priority":  false,
+        "notes":  "- `p = ρgh`",
+        "page":  null
+    },
+    {
+        "number":  44,
+        "title":  "Tutash idishlar",
+        "kind":  "SIM",
+        "priority":  false,
+        "notes":  "- Bir xil suyuqlikda sathlar tenglashadi; turli suyuqliklarda `ρ₁h₁ = ρ₂h₂`",
+        "page":  null
+    },
+    {
+        "number":  45,
+        "title":  "Atmosfera bosimi",
+        "kind":  "MATN",
+        "priority":  false,
+        "notes":  "- Normal atmosfera bosimi = 101325 Pa, balandlik bilan kamayishi (barometrik formula)",
+        "page":  null
+    },
+    {
+        "number":  46,
+        "title":  "Gidravlik press",
+        "kind":  "SIM",
+        "priority":  true,
+        "notes":  "- `F₁/S₁ = F₂/S₂` (Paskal qonuniga asoslangan kuch ko\u0027paytirish)",
+        "page":  null
+    },
+    {
+        "number":  47,
+        "title":  "Arximed kuchi",
+        "kind":  "SIM",
+        "priority":  true,
+        "notes":  "- `F_A = ρ_suyuqlik·g·V`",
+        "page":  null
+    },
+    {
+        "number":  48,
+        "title":  "Suyuqliklarning naydagi harakati. Bernulli qonuni",
+        "kind":  "SIM",
+        "priority":  false,
+        "notes":  "- Uzluksizlik tenglamasi: `S₁v₁ = S₂v₂`\n- Bernulli tenglamasi: `p + ρv²/2 + ρgh = const`",
+        "page":  null
+    },
+    {
+        "number":  49,
+        "title":  "Tebranma harakatni harakterlovchi asosiy tushunchalar",
+        "kind":  "MATN",
+        "priority":  false,
+        "notes":  "- Amplituda, davr, chastota, faza — `T = 1/ν`, `ω = 2π/T`",
+        "page":  null
+    },
+    {
+        "number":  50,
+        "title":  "Prujinali mayatnik",
+        "kind":  "SIM",
+        "priority":  true,
+        "notes":  "- `T = 2π√(m/k)`",
+        "page":  null
+    },
+    {
+        "number":  51,
+        "title":  "Matematik mayatnik",
+        "kind":  "SIM",
+        "priority":  true,
+        "notes":  "- `T = 2π√(l/g)`",
+        "page":  null
+    },
+    {
+        "number":  52,
+        "title":  "Garmonik tebranishlar tenglamasi",
+        "kind":  "SIM",
+        "priority":  false,
+        "notes":  "- `x(t) = A·cos(ωt + φ₀)` yoki `A·sin(ωt+φ₀)`",
+        "page":  null
+    },
+    {
+        "number":  53,
+        "title":  "Tebranma harakat qilayotgan jismning energiyasi",
+        "kind":  "QISM",
+        "priority":  false,
+        "notes":  "- `E = kA²/2 = mω²A²/2` (to\u0027liq energiya, doim const)",
+        "page":  null
+    },
+    {
+        "number":  54,
+        "title":  "Rezonans",
+        "kind":  "SIM",
+        "priority":  true,
+        "notes":  "- Amplituda-chastota bog\u0027liqligi, `ω_majburiy ≈ ω₀` da amplituda maksimal",
+        "page":  null
+    },
+    {
+        "number":  55,
+        "title":  "Mexanik to\u0027lqinlar",
+        "kind":  "SIM",
+        "priority":  false,
+        "notes":  "- `v = λν` (to\u0027lqin tezligi = uzunlik × chastota)",
+        "page":  null
+    },
+    {
+        "number":  56,
+        "title":  "Tovush to\u0027lqinlari",
+        "kind":  "SIM",
+        "priority":  false,
+        "notes":  "- `v = λν`, tovush tezligi muhitga bog\u0027liq (havoda ≈340 m/s)",
+        "page":  null
+    },
+    {
+        "number":  57,
+        "title":  "Modda tuzilishi va uning asosiy xossalari",
+        "kind":  "MATN",
+        "priority":  false,
+        "notes":  "- `N = νN_A` (zarrachalar soni), Avogadro soni N_A=6.02×10²³ 1/mol\n- `ν = m/M` (mol miqdori)",
+        "page":  null
+    },
+    {
+        "number":  58,
+        "title":  "Ideal gaz. Gaz MKN ning asosiy tenglamasi",
+        "kind":  "SIM",
+        "priority":  false,
+        "notes":  "- `p = (1/3)nm₀v²` (MKN asosiy tenglamasi)",
+        "page":  null
+    },
+    {
+        "number":  59,
+        "title":  "Absolut temperatura. Molekulalarning o\u0027rtacha kinetik energiyasi",
+        "kind":  "SIM",
+        "priority":  false,
+        "notes":  "- `E_k(o\u0027rtacha) = (3/2)kT`, k — Boltsman doimiysi",
+        "page":  null
+    },
+    {
+        "number":  60,
+        "title":  "Gaz molekulalarining o\u0027rtacha kvadratik tezligi",
+        "kind":  "QISM",
+        "priority":  false,
+        "notes":  "- `v_kv = √(3kT/m₀) = √(3RT/M)`",
+        "page":  null
+    },
+    {
+        "number":  61,
+        "title":  "Ideal gaz holatining tenglamasi",
+        "kind":  "SIM",
+        "priority":  true,
+        "notes":  "- `pV = νRT` (Klapeyron–Mendeleyev)",
+        "page":  null
+    },
+    {
+        "number":  62,
+        "title":  "Klapeyron tenglamasi",
+        "kind":  "QISM",
+        "priority":  false,
+        "notes":  "- `p₁V₁/T₁ = p₂V₂/T₂` (bir massa gaz uchun umumiy holat tenglamasi)",
+        "page":  null
+    },
+    {
+        "number":  63,
+        "title":  "Gaz massasining o\u0027zgarishi",
+        "kind":  "QISM",
+        "priority":  false,
+        "notes":  "- `pV = (m/M)RT`",
+        "page":  null
+    },
+    {
+        "number":  64,
+        "title":  "Izojarayonlar",
+        "kind":  "SIM",
+        "priority":  true,
+        "notes":  "- Izoterma (Boyl–Mariott): `pV = const` (T=const)\n- Izobara (Gey-Lyussak): `V/T = const` (p=const)\n- Izoxora (Sharl): `p/T = const` (V=const)",
+        "page":  null
+    },
+    {
+        "number":  65,
+        "title":  "Grafikli masalalar",
+        "kind":  "QISM",
+        "priority":  false,
+        "notes":  "- p-V, p-T, V-T grafiklari — #64 bilan birga vizualizatsiya",
+        "page":  null
+    },
+    {
+        "number":  66,
+        "title":  "To\u0027yingan bug\u0027. Kritik temperatura",
+        "kind":  "MATN",
+        "priority":  false,
+        "notes":  "- Kritik holat tushunchasi — formula kam, ko\u0027proq tushunchaviy",
+        "page":  null
+    },
+    {
+        "number":  67,
+        "title":  "Havoning namligi",
+        "kind":  "SIM",
+        "priority":  false,
+        "notes":  "- Nisbiy namlik: `φ = (p/p₀)×100%`",
+        "page":  null
+    },
+    {
+        "number":  68,
+        "title":  "Kapillarlik hodisalari. Sirt taranglik",
+        "kind":  "SIM",
+        "priority":  false,
+        "notes":  "- Sirt taranglik: `F = σ·l`\n- Kapillyar ko\u0027tarilish: `h = 2σ/(ρgr)`",
+        "page":  null
+    },
+    {
+        "number":  69,
+        "title":  "Qattiq jismning mexanik xossalari",
+        "kind":  "SIM",
+        "priority":  false,
+        "notes":  "- Guk qonuni (deformatsiya): `σ = Eε` (Yung moduli)",
+        "page":  null
+    },
+    {
+        "number":  70,
+        "title":  "Issiqlikdan kengayish",
+        "kind":  "SIM",
+        "priority":  false,
+        "notes":  "- Chiziqli kengayish: `l = l₀(1+αΔT)`\n- Hajmiy kengayish: `V = V₀(1+βΔT)`",
+        "page":  null
+    },
+    {
+        "number":  71,
+        "title":  "Ichki energiya",
+        "kind":  "QISM",
+        "priority":  false,
+        "notes":  "- Ideal bir atomli gaz uchun: `U = (3/2)νRT`",
+        "page":  null
+    },
+    {
+        "number":  72,
+        "title":  "Termodinamikada ish",
+        "kind":  "SIM",
+        "priority":  false,
+        "notes":  "- `A = pΔV` (izobarik jarayonda)",
+        "page":  null
+    },
+    {
+        "number":  73,
+        "title":  "Issiqlik miqdori",
+        "kind":  "SIM",
+        "priority":  false,
+        "notes":  "- `Q = cmΔT` (qizdirish/sovutish)\n- Faza o\u0027zgarishi: `Q = λm` (eritish), `Q = Lm` (bug\u0027lanish)",
+        "page":  null
+    },
+    {
+        "number":  74,
+        "title":  "Termodinamikaning birinchi qonuni",
+        "kind":  "SIM",
+        "priority":  true,
+        "notes":  "- `Q = ΔU + A`",
+        "page":  null
+    },
+    {
+        "number":  75,
+        "title":  "Adiabatik jarayon. Termodinamikaning II qonuni",
+        "kind":  "SIM",
+        "priority":  false,
+        "notes":  "- Adiabatik: `Q=0`, `ΔU = -A`\n- Puasson tenglamasi: `pV^γ = const`",
+        "page":  null
+    },
+    {
+        "number":  76,
+        "title":  "Issiqlik dvigatellari",
+        "kind":  "SIM",
+        "priority":  true,
+        "notes":  "- FIK: `η = (Q₁-Q₂)/Q₁ = A/Q₁`\n- Karno sikli maksimal FIK: `η_karno = (T₁-T₂)/T₁`",
+        "page":  null
+    },
+    {
+        "number":  77,
+        "title":  "Elektr zaryad. Zaryadning saqlanish qonuni",
+        "kind":  "MATN",
+        "priority":  false,
+        "notes":  "- `Σq = const` (izolyatsiyalangan tizimda)",
+        "page":  null
+    },
+    {
+        "number":  78,
+        "title":  "Kulon qonuni",
+        "kind":  "SIM",
+        "priority":  true,
+        "notes":  "- `F = kq₁q₂/r²`, k = 9×10⁹ N·m²/Kl²",
+        "page":  null
+    },
+    {
+        "number":  79,
+        "title":  "Elektr maydon. Maydon kuchlanganligi",
+        "kind":  "SIM",
+        "priority":  false,
+        "notes":  "- `E = F/q = kQ/r²`",
+        "page":  null
+    },
+    {
+        "number":  80,
+        "title":  "Elektr maydondagi o\u0027tkazgichlar. Zaryadlangan shar va tekislik maydonlari",
+        "kind":  "SIM",
+        "priority":  false,
+        "notes":  "- Tekislik maydoni: `E = σ/2ε₀ε`, shar tashqarisida: `E = kQ/r²`",
+        "page":  null
+    },
+    {
+        "number":  81,
+        "title":  "Elektr maydondagi dielektriklar",
+        "kind":  "QISM",
+        "priority":  false,
+        "notes":  "- `E = E₀/ε` (dielektrik kamaytirish koeffitsiyenti)",
+        "page":  null
+    },
+    {
+        "number":  82,
+        "title":  "Bir jinsli elektr maydonning ishi. Potensial",
+        "kind":  "SIM",
+        "priority":  false,
+        "notes":  "- `A = qEd = q(φ₁-φ₂)`",
+        "page":  null
+    },
+    {
+        "number":  83,
+        "title":  "Nuqtaviy zaryad va zaryadlangan sharning potensiali",
+        "kind":  "QISM",
+        "priority":  false,
+        "notes":  "- `φ = kQ/r`",
+        "page":  null
+    },
+    {
+        "number":  84,
+        "title":  "Ekvipotensial sirtlar",
+        "kind":  "SIM",
+        "priority":  false,
+        "notes":  "- `φ = const` sirtlar, E ga perpendikulyar — vizualizatsiya uchun juda mos",
+        "page":  null
+    },
+    {
+        "number":  85,
+        "title":  "E va φ orasidagi bog\u0027lanish",
+        "kind":  "QISM",
+        "priority":  false,
+        "notes":  "- `E = -Δφ/Δd` (bir jinsli maydonda: `E = U/d`)",
+        "page":  null
+    },
+    {
+        "number":  86,
+        "title":  "Elektr sig\u0027im. Kondensatorlar",
+        "kind":  "SIM",
+        "priority":  false,
+        "notes":  "- `C = q/U`, tekis kondensator: `C = ε₀εS/d`",
+        "page":  null
+    },
+    {
+        "number":  87,
+        "title":  "Kondensatorlarni parallel va ketma-ket ulash",
+        "kind":  "SIM",
+        "priority":  true,
+        "notes":  "- Parallel: `C = C₁+C₂+...`\n- Ketma-ket: `1/C = 1/C₁+1/C₂+...`",
+        "page":  null
+    },
+    {
+        "number":  88,
+        "title":  "Zaryadlangan kondensator energiyasi",
+        "kind":  "QISM",
+        "priority":  false,
+        "notes":  "- `W = CU²/2 = qU/2 = q²/2C`",
+        "page":  null
+    },
+    {
+        "number":  89,
+        "title":  "Elektr toki. Tok kuchi",
+        "kind":  "SIM",
+        "priority":  false,
+        "notes":  "- `I = q/t`",
+        "page":  null
+    },
+    {
+        "number":  90,
+        "title":  "Zanjirning bir qismi uchun Om qonuni. Qarshilik",
+        "kind":  "SIM",
+        "priority":  true,
+        "notes":  "- `I = U/R`, `R = ρl/S`",
+        "page":  null
+    },
+    {
+        "number":  91,
+        "title":  "Elektr zanjirlar. O\u0027tkazgichlarni ketma-ket va parallel ulash",
+        "kind":  "SIM",
+        "priority":  true,
+        "notes":  "- Ketma-ket: `R = R₁+R₂+...`, `I` bir xil\n- Parallel: `1/R = 1/R₁+1/R₂+...`, `U` bir xil",
+        "page":  null
+    },
+    {
+        "number":  92,
+        "title":  "Ampermetr va voltmetrga qo\u0027shimcha qarshilik ulash",
+        "kind":  "SIM",
+        "priority":  false,
+        "notes":  "- Shunt (ampermetr): `R_shunt = R_A/(n-1)`\n- Qo\u0027shimcha qarshilik (voltmetr): `R_qo\u0027sh = R_V(n-1)`",
+        "page":  null
+    },
+    {
+        "number":  93,
+        "title":  "O\u0027zgarmas tokning ishi va quvvati",
+        "kind":  "SIM",
+        "priority":  false,
+        "notes":  "- `A = UIt`, `N = UI = I²R = U²/R`",
+        "page":  null
+    },
+    {
+        "number":  94,
+        "title":  "Joul–Lens qonuni",
+        "kind":  "QISM",
+        "priority":  false,
+        "notes":  "- `Q = I²Rt`",
+        "page":  null
+    },
+    {
+        "number":  95,
+        "title":  "Lampalarni ketma-ket va parallel ulash",
+        "kind":  "SIM",
+        "priority":  false,
+        "notes":  "- #91 ning amaliy qo\u0027llanilishi — lampalar yorqinligi orqali vizualizatsiya",
+        "page":  null
+    },
+    {
+        "number":  96,
+        "title":  "To\u0027liq zanjir uchun Om qonuni",
+        "kind":  "SIM",
+        "priority":  true,
+        "notes":  "- `I = ε/(R+r)`",
+        "page":  null
+    },
+    {
+        "number":  97,
+        "title":  "Tok manbalarini ketma-ket va parallel ulash",
+        "kind":  "SIM",
+        "priority":  false,
+        "notes":  "- Ketma-ket: `ε = ε₁+ε₂+...`, `r = r₁+r₂+...`\n- Parallel (bir xil manbalar): `ε` bir xil, `r = r₁/n`",
+        "page":  null
+    },
+    {
+        "number":  98,
+        "title":  "Metallarda elektr toki",
+        "kind":  "SIM",
+        "priority":  false,
+        "notes":  "- `R = R₀(1+αΔT)` (haroratga bog\u0027liq qarshilik)",
+        "page":  null
+    },
+    {
+        "number":  99,
+        "title":  "Yarimo\u0027tkazgichlarda elektr toki",
+        "kind":  "MATN",
+        "priority":  false,
+        "notes":  "- p-n o\u0027tish, elektron-kovak o\u0027tkazuvchanligi — asosan tushunchaviy",
+        "page":  null
+    },
+    {
+        "number":  100,
+        "title":  "Vakuumdagi elektr toki",
+        "kind":  "MATN",
+        "priority":  false,
+        "notes":  "- Termoelektron emissiya, diod xarakteristikasi",
+        "page":  null
+    },
+    {
+        "number":  101,
+        "title":  "Suyuqliklarda elektr toki",
+        "kind":  "SIM",
+        "priority":  false,
+        "notes":  "- Faradey elektroliz qonuni: `m = kIt` (elektrokimyoviy ekvivalent)",
+        "page":  null
+    },
+    {
+        "number":  102,
+        "title":  "Gazlarda elektr toki",
+        "kind":  "MATN",
+        "priority":  false,
+        "notes":  "- Ionlanish, o\u0027z-o\u0027zidan va o\u0027zi-o\u0027zidan bo\u0027lmagan razryad — tushunchaviy",
+        "page":  null
+    },
+    {
+        "number":  103,
+        "title":  "Aralash masalalar",
+        "kind":  "QISM",
+        "priority":  false,
+        "notes":  "- Yuqoridagi bo\u0027limlar formulalari kombinatsiyasi",
+        "page":  null
+    },
+    {
+        "number":  104,
+        "title":  "Doimiy magnitlar. Magnit maydon. Toklarning magnit maydoni",
+        "kind":  "SIM",
+        "priority":  false,
+        "notes":  "- To\u0027g\u0027ri o\u0027tkazgich: `B = μμ₀I/2πr`\n- Halqa markazida: `B = μμ₀I/2R`",
+        "page":  null
+    },
+    {
+        "number":  105,
+        "title":  "Amper kuchi",
+        "kind":  "SIM",
+        "priority":  true,
+        "notes":  "- `F = BIl·sinα`",
+        "page":  null
+    },
+    {
+        "number":  106,
+        "title":  "Lorens kuchi",
+        "kind":  "SIM",
+        "priority":  true,
+        "notes":  "- `F = qvB·sinα`",
+        "page":  null
+    },
+    {
+        "number":  107,
+        "title":  "Moddaning magnit xossalari",
+        "kind":  "MATN",
+        "priority":  false,
+        "notes":  "- Dia-, para-, ferromagnitlar — tushunchaviy, magnit singdiruvchanlik μ",
+        "page":  null
+    },
+    {
+        "number":  108,
+        "title":  "Magnit oqimi",
+        "kind":  "QISM",
+        "priority":  false,
+        "notes":  "- `Φ = BS·cosα`",
+        "page":  null
+    },
+    {
+        "number":  109,
+        "title":  "Elektromagnit induksiya qonuni. Lens qoidasi",
+        "kind":  "SIM",
+        "priority":  true,
+        "notes":  "- `ε = -ΔΦ/Δt`",
+        "page":  null
+    },
+    {
+        "number":  110,
+        "title":  "O\u0027zinduksiya. Induktivlik",
+        "kind":  "SIM",
+        "priority":  false,
+        "notes":  "- `ε_o\u0027zind = -LΔI/Δt`, `Φ = LI`",
+        "page":  null
+    },
+    {
+        "number":  111,
+        "title":  "Tok magnit maydoni energiyasi",
+        "kind":  "QISM",
+        "priority":  false,
+        "notes":  "- `W = LI²/2`",
+        "page":  null
+    },
+    {
+        "number":  112,
+        "title":  "Tebranishlar konturida zaryad, kuchlanish va tok kuchi",
+        "kind":  "SIM",
+        "priority":  false,
+        "notes":  "- `q(t) = q₀cos(ωt)`, `I(t) = -Iₘsin(ωt)`",
+        "page":  null
+    },
+    {
+        "number":  113,
+        "title":  "Ideal tebranishlar konturi uchun Tomson formulasi",
+        "kind":  "SIM",
+        "priority":  true,
+        "notes":  "- `T = 2π√(LC)`",
+        "page":  null
+    },
+    {
+        "number":  114,
+        "title":  "Tebranishlar konturida energiya",
+        "kind":  "QISM",
+        "priority":  false,
+        "notes":  "- `W = LI²/2 + q²/2C = const`",
+        "page":  null
+    },
+    {
+        "number":  115,
+        "title":  "O\u0027zgaruvchan tok generatori",
+        "kind":  "SIM",
+        "priority":  false,
+        "notes":  "- `e(t) = e₀sin(ωt)` — magnit oqim o\u0027zgarishidan hosil bo\u0027lgan EYUK",
+        "page":  null
+    },
+    {
+        "number":  116,
+        "title":  "O\u0027zgaruvchan tok zanjirida aktiv qarshilik",
+        "kind":  "SIM",
+        "priority":  false,
+        "notes":  "- `I = U/R` (o\u0027zgaruvchan effektiv qiymatlar bilan)",
+        "page":  null
+    },
+    {
+        "number":  117,
+        "title":  "O\u0027zgaruvchan tok zanjirida kondensator",
+        "kind":  "SIM",
+        "priority":  false,
+        "notes":  "- Sig\u0027im qarshiligi: `X_C = 1/ωC`",
+        "page":  null
+    },
+    {
+        "number":  118,
+        "title":  "O\u0027zgaruvchan tok zanjirida induktiv g\u0027altak",
+        "kind":  "SIM",
+        "priority":  false,
+        "notes":  "- Induktiv qarshilik: `X_L = ωL`",
+        "page":  null
+    },
+    {
+        "number":  119,
+        "title":  "O\u0027zgaruvchan tok zanjirida aktiv qarshilik, kondensator va induktiv g\u0027altak",
+        "kind":  "SIM",
+        "priority":  true,
+        "notes":  "- To\u0027liq qarshilik (impedans): `Z = √(R² + (X_L-X_C)²)`",
+        "page":  null
+    },
+    {
+        "number":  120,
+        "title":  "Transformator",
+        "kind":  "SIM",
+        "priority":  true,
+        "notes":  "- `U₁/U₂ = N₁/N₂ = I₂/I₁`",
+        "page":  null
+    },
+    {
+        "number":  121,
+        "title":  "Elektromagnit to\u0027lqinlar",
+        "kind":  "QISM",
+        "priority":  false,
+        "notes":  "- `c = λν` (yorug\u0027lik tezligi = to\u0027lqin uzunligi × chastota)",
+        "page":  null
+    },
+    {
+        "number":  122,
+        "title":  "Radioaloqa. Radiolokatsiya",
+        "kind":  "MATN",
+        "priority":  false,
+        "notes":  "- Modulyatsiya tushunchasi, radar: `s = ct/2` (masofa)",
+        "page":  null
+    },
+    {
+        "number":  123,
+        "title":  "Yorug\u0027likning qaytishi",
+        "kind":  "SIM",
+        "priority":  false,
+        "notes":  "- Qaytish qonuni: `∠tushish = ∠qaytish`",
+        "page":  null
+    },
+    {
+        "number":  124,
+        "title":  "Yorug\u0027likning sinishi",
+        "kind":  "SIM",
+        "priority":  true,
+        "notes":  "- Snellius qonuni: `sin α/sin β = n₂/n₁ = v₁/v₂`",
+        "page":  null
+    },
+    {
+        "number":  125,
+        "title":  "Yorug\u0027likning to\u0027lqin tabiati",
+        "kind":  "QISM",
+        "priority":  false,
+        "notes":  "- `c = λν`, `n = c/v`",
+        "page":  null
+    },
+    {
+        "number":  126,
+        "title":  "To\u0027la ichki qaytish",
+        "kind":  "SIM",
+        "priority":  false,
+        "notes":  "- Chegaraviy burchak: `sin α_chegara = n₂/n₁` (n₁\u003en₂)",
+        "page":  null
+    },
+    {
+        "number":  127,
+        "title":  "Linzalar",
+        "kind":  "SIM",
+        "priority":  false,
+        "notes":  "- Optik kuch: `D = 1/F`",
+        "page":  null
+    },
+    {
+        "number":  129,
+        "title":  "Linza formulasi",
+        "kind":  "SIM",
+        "priority":  true,
+        "notes":  "- `1/F = 1/d + 1/f`\n- Kattalashtirish: `Γ = f/d = H/h`",
+        "page":  null
+    },
+    {
+        "number":  130,
+        "title":  "Optik asboblar",
+        "kind":  "QISM",
+        "priority":  false,
+        "notes":  "- Mikroskop/teleskop kattalashtirishi — linza formulalari kombinatsiyasi",
+        "page":  null
+    },
+    {
+        "number":  132,
+        "title":  "Interferensiya",
+        "kind":  "SIM",
+        "priority":  true,
+        "notes":  "- Yorqin polosalar sharti: `Δ = kλ`\n- Yung tajribasi: `Δx = λL/d`",
+        "page":  null
+    },
+    {
+        "number":  133,
+        "title":  "Difraksiya",
+        "kind":  "SIM",
+        "priority":  false,
+        "notes":  "- Difraksion panjara: `d·sinφ = kλ`",
+        "page":  null
+    },
+    {
+        "number":  134,
+        "title":  "Qutblanish",
+        "kind":  "SIM",
+        "priority":  false,
+        "notes":  "- Malyus qonuni: `I = I₀cos²α`",
+        "page":  null
+    },
+    {
+        "number":  135,
+        "title":  "Nisbiylik nazariyasi elementlari",
+        "kind":  "SIM",
+        "priority":  false,
+        "notes":  "- Vaqt dilatatsiyasi: `t = t₀/√(1-v²/c²)`\n- Uzunlik qisqarishi: `l = l₀√(1-v²/c²)`",
+        "page":  null
+    },
+    {
+        "number":  136,
+        "title":  "Massa va energiya orasidagi bog\u0027lanish",
+        "kind":  "SIM",
+        "priority":  true,
+        "notes":  "- `E = mc²`",
+        "page":  null
+    },
+    {
+        "number":  137,
+        "title":  "Nurlanish va yutilish spektrlari",
+        "kind":  "MATN",
+        "priority":  false,
+        "notes":  "- Chiziqli/uzluksiz spektrlar — tushunchaviy",
+        "page":  null
+    },
+    {
+        "number":  138,
+        "title":  "Yorug\u0027lik kvantlari. Fotonlar",
+        "kind":  "SIM",
+        "priority":  false,
+        "notes":  "- `E = hν = hc/λ`, foton impulsi: `p = h/λ`",
+        "page":  null
+    },
+    {
+        "number":  139,
+        "title":  "Rentgen nurlari",
+        "kind":  "MATN",
+        "priority":  false,
+        "notes":  "- Yuqori chastotali elektromagnit nurlanish — tushunchaviy",
+        "page":  null
+    },
+    {
+        "number":  140,
+        "title":  "Fotoeffekt",
+        "kind":  "SIM",
+        "priority":  true,
+        "notes":  "- Eynshteyn tenglamasi: `hν = A_chiqish + E_k(max)`\n- To\u0027xtatuvchi kuchlanish: `eU₀ = E_k(max)`",
+        "page":  null
+    },
+    {
+        "number":  141,
+        "title":  "Rezerford tajribasi. Bor postulatlari",
+        "kind":  "SIM",
+        "priority":  false,
+        "notes":  "- Bor radiusi: `r_n = n²r₁`\n- Energiya sathlari: `E_n = -E₁/n²`",
+        "page":  null
+    },
+    {
+        "number":  142,
+        "title":  "Atom yadrosining tuzilishi. Radioaktivlik",
+        "kind":  "MATN",
+        "priority":  false,
+        "notes":  "- `A = Z + N` (massa soni = proton + neytron)",
+        "page":  null
+    },
+    {
+        "number":  143,
+        "title":  "Radioaktiv yemirilish qonuni",
+        "kind":  "SIM",
+        "priority":  true,
+        "notes":  "- `N = N₀·2^(-t/T)` yoki `N = N₀e^(-λt)`",
+        "page":  null
+    },
+    {
+        "number":  144,
+        "title":  "Yadroning bog\u0027lanish energiyasi",
+        "kind":  "SIM",
+        "priority":  false,
+        "notes":  "- `E_bog\u0027 = Δmc²` (massa defekti orqali)",
+        "page":  null
+    },
+    {
+        "number":  145,
+        "title":  "Yadro reaksiyalari",
+        "kind":  "MATN",
+        "priority":  false,
+        "notes":  "- Reaksiya balansi: `Σ(massa/zaryad) chapda = Σ(massa/zaryad) o\u0027ngda` — saqlanish qonunlari",
+        "page":  null
+    }
+]
