@@ -1,0 +1,38 @@
+const paths = {
+  arrow: "M5 12h14m-6-6 6 6-6 6",
+  search: "m21 21-5-5m2-6a8 8 0 1 1-16 0 8 8 0 0 1 16 0",
+  play: "m8 5 11 7-11 7z",
+  pause: "M9 5v14M15 5v14",
+  reset: "M3 10a9 9 0 1 1 1 7M3 4v6h6",
+  check: "m5 12 4 4L19 6",
+  chevron: "m9 5 7 7-7 7",
+  grid: "M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h7v7h-7z",
+  menu: "M4 6h16M4 12h16M4 18h16",
+  close: "m6 6 12 12M6 18 18 6",
+  book: "M12 5c-3-3-7-2-9-1v15c3-1 6-2 9 1 3-3 6-2 9-1V4c-3-1-6-2-9 1Zm0 0v15",
+  clock: "M12 7v5l3 2m6-2a9 9 0 1 1-18 0 9 9 0 0 1 18 0",
+  help: "M9 9a3 3 0 1 1 5 2c-2 1-2 2-2 3m0 3h.01M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0",
+  motion: "M3 18h18M4 13h10l3-5h4M3 9h7m-5-4h8",
+  force: "M4 10h8v9H4zm9 3h9m-4-4 4 4-4 4M8 4v4",
+  fall: "M4 4h5v16h12M12 5c0 7 3 12 9 12m-4-4 4 4-5 2",
+  projectile: "M3 20h18M4 17C8-1 16-1 20 17m-5-3 5 3 1-5",
+  friction: "M5 8h10v8H5zM2 20h20M17 12h5m-3-3 3 3-3 3",
+  balance: "M12 3v18M4 7h16M5 7l-3 7h6zm14 0-3 7h6zM8 21h8",
+  energy: "m13 2-9 12h7l-1 8 10-13h-7z",
+  fluid:
+    "M3 10v11h18V10M3 16q3-4 6 0t6 0t6 0M12 2s-4 5-4 7a4 4 0 0 0 8 0c0-2-4-7-4-7Z",
+  wave: "M2 12c4-16 6 16 10 0s6 16 10 0",
+  spring: "M6 2h12M12 2v3l-4 2 8 3-8 3 8 3-4 2v2M8 20h8v3H8z",
+  atom: "M12 2c8 0 8 20 0 20s-8-20 0-20Zm-9 5c4-7 22 3 18 10S-1 14 3 7Zm0 10C-1 10 17 0 21 7S7 24 3 17Z",
+  heat: "M10 4a2 2 0 0 1 4 0v10a5 5 0 1 1-4 0Zm2 5v8",
+  charge: "M7 5v6m-3-3h6m5 9h6M2 2h11v12H2zm10 10h10v10H12z",
+  circuit: "M3 8h6l1-3 2 6 2-6 1 3h6v12h-7m-4 0H3zm7 9v6m4-5v4",
+  material: "M4 4h16v16H4zM8 4v16M16 4v16M4 8h16M4 16h16",
+  magnet: "M4 3h5v11a3 3 0 0 0 6 0V3h5v11a8 8 0 0 1-16 0Zm0 5h5m6 0h5",
+  signal:
+    "M3 8a13 13 0 0 1 18 0M6 12a9 9 0 0 1 12 0m-9 4a4 4 0 0 1 6 0m-3 4h.01",
+  lens: "M12 2c-6 5-6 15 0 20 6-5 6-15 0-20ZM2 12h20M2 5l20 14M2 19 22 5",
+  nucleus: "M12 3a9 9 0 1 1-9 9M5 2l2 5-5-2M8 10h8v5H8zm3-3h3v11h-3",
+};
+export const icon = (name, cls = "") =>
+  `<svg class="icon ${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${paths[name] || paths.atom}"/></svg>`;
