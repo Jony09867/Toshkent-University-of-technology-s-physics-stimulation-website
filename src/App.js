@@ -8,7 +8,7 @@ import { levelTabs } from "./components/LevelTabs.js";
 import { resultCard, format } from "./components/ResultCard.js";
 import { SimulationCanvas } from "./components/SimulationCanvas.js";
 import { LiveChart } from "./components/LiveChart.js";
-import { mountBorderGlow } from "./components/BorderGlow.js";
+import { attachBorderGlow } from "./components/BorderGlow.js";
 
 const app = document.querySelector("#app");
 const escape = (s) =>
@@ -595,6 +595,19 @@ async function route() {
       simPage(module.simulationConfig);
     } else planned(-1);
   } else planned(-1);
+  setTimeout(() => {
+    document.querySelectorAll('.sim-card, .hero-experiment, .learning-card, .result-card').forEach((el) => {
+      attachBorderGlow(el, {
+        edgeSensitivity: 30,
+        glowColor: "14 88 55",
+        backgroundColor: el.classList.contains('learning-card') || el.classList.contains('result-card') ? "#f7f8fa" : "#ffffff",
+        borderRadius: 18,
+        glowRadius: 35,
+        glowIntensity: 1.0,
+        colors: ['#F1592A', '#3883d9', '#19a378'],
+      });
+    });
+  }, 50);
   window.scrollTo(0, 0);
   document.title =
     (path === "/"
