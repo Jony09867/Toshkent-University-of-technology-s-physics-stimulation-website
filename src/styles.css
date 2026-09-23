@@ -213,39 +213,53 @@ b {
 .brand {
   display: flex;
   align-items: center;
-  gap: 13px;
+  gap: 12px;
   flex-shrink: 0;
+  text-decoration: none;
 }
-.tt-mark {
-  font-size: 51px;
-  font-weight: 950;
-  line-height: 1;
-  color: var(--brand);
-  letter-spacing: -9px;
-  margin-right: 7px;
-  transform: skew(-5deg);
+.tt-logo-mark {
+  height: 38px;
+  width: auto;
+  flex-shrink: 0;
 }
 .brand-name {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 3px;
 }
-.brand-name b {
-  font-size: 10px;
-  letter-spacing: 0.02em;
-  line-height: 1.35;
-  font-weight: 800;
+.brand-logo-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1;
+  font-family: Inter, "Arial Black", "Montserrat", sans-serif;
+  font-weight: 900;
+  font-size: 13.5px;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
 }
-.brand-name em {
+.brand-logo-text .line-1,
+.brand-logo-text .line-2 {
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+}
+.brand-logo-text .solid {
   color: var(--brand);
+  font-weight: 900;
 }
-.brand-name small {
-  font-size: 8px;
-  letter-spacing: 0.27em;
-  font-weight: 700;
+.brand-logo-text .outline {
+  color: transparent;
+  -webkit-text-stroke: 1.2px var(--brand);
+  font-weight: 900;
+}
+.brand-sub {
+  font-size: 7.5px;
+  letter-spacing: 0.28em;
+  font-weight: 800;
   color: var(--muted);
   border-top: 1px solid var(--line);
-  padding-top: 4px;
+  padding-top: 3px;
+  margin-top: 1px;
 }
 .nav {
   display: flex;
@@ -862,10 +876,7 @@ footer {
   color: #b3c2cd;
   padding: 45px 0 0;
 }
-footer .brand-name b {
-  color: #e0e7ec;
-}
-footer .brand-name small {
+footer .brand-sub {
   border-color: #ffffff15;
   color: #829cac;
 }
