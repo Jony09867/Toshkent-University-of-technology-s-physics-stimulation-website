@@ -34,6 +34,10 @@ const audit = [],
   scenes = [];
 for (const c of allConfigs) {
   await page.goto(base + "/#/sim/" + c.id);
+  await page.waitForFunction(
+    (title) => document.querySelector("h1")?.textContent.trim() === title,
+    c.title,
+  );
   await page.waitForSelector("#sim-canvas");
   if (
     await page.getByRole("button", { name: "Tushunarli", exact: true }).count()

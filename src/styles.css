@@ -2045,6 +2045,9 @@ footer a:hover {
   }
 }
 @media (max-width: 680px) {
+  .border-glow-card {
+    --glow-padding: 16px !important;
+  }
   .container {
     width: calc(100% - 36px);
   }
@@ -2602,6 +2605,13 @@ footer a:hover {
   }
 }
 @media (max-width: 370px) {
+  .border-glow-card {
+    --glow-padding: 12px !important;
+  }
+  .header-search-toggle,
+  .header-lab {
+    display: none;
+  }
   .container {
     width: calc(100% - 28px);
   }
@@ -2804,4 +2814,3 @@ footer a:hover {
   overflow: auto;
   z-index: 1;
 }
-
