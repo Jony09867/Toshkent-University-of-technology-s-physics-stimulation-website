@@ -1,0 +1,5 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "pnpm --filter @workspace/tt-physics-lab run build",
+  "outputDirectory": "artifacts/tt-physics-lab/dist/public"
+}
