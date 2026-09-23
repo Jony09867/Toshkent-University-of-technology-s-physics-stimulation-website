@@ -213,30 +213,32 @@ b {
 .brand {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   flex-shrink: 0;
   text-decoration: none;
 }
 .tt-logo-mark {
-  height: 38px;
+  height: 32px;
   width: auto;
   flex-shrink: 0;
 }
 .brand-name {
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: 2px;
 }
 .brand-logo-text {
   display: flex;
   flex-direction: column;
-  line-height: 1;
-  font-family: Inter, "Arial Black", "Montserrat", sans-serif;
+  line-height: 1.05;
+  font-family: 'Arial Black', Inter, 'Montserrat', sans-serif;
   font-weight: 900;
-  font-size: 13.5px;
-  letter-spacing: 0.03em;
+  font-size: 11.5px;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
+  gap: 1px;
 }
+.brand-line-main,
 .brand-logo-text .line-1,
 .brand-logo-text .line-2 {
   display: flex;
@@ -249,16 +251,16 @@ b {
 }
 .brand-logo-text .outline {
   color: transparent;
-  -webkit-text-stroke: 1.2px var(--brand);
+  -webkit-text-stroke: 1.1px var(--brand);
   font-weight: 900;
 }
 .brand-sub {
-  font-size: 7.5px;
-  letter-spacing: 0.28em;
-  font-weight: 800;
+  font-size: 7px;
+  letter-spacing: 0.22em;
+  font-weight: 700;
   color: var(--muted);
   border-top: 1px solid var(--line);
-  padding-top: 3px;
+  padding-top: 2px;
   margin-top: 1px;
 }
 .nav {
