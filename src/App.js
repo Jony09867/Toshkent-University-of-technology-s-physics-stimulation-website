@@ -8,6 +8,7 @@ import { levelTabs } from "./components/LevelTabs.js";
 import { resultCard, format } from "./components/ResultCard.js";
 import { SimulationCanvas } from "./components/SimulationCanvas.js";
 import { LiveChart } from "./components/LiveChart.js";
+import { mountBorderGlow } from "./components/BorderGlow.js";
 
 const app = document.querySelector("#app");
 const escape = (s) =>
@@ -42,6 +43,7 @@ function write(key, value) {
 }
 let completed = new Set(read("tt-completed", [])),
   cleanup = () => {},
+  cleanupGlow = () => {},
   currentRoute = "",
   routeGeneration = 0;
 const topics = await fetch(new URL("./data/topics.json", import.meta.url)).then(
@@ -168,6 +170,7 @@ function footer() {
   return `<footer><div class="container footer-top"><div>${brand()}<p>${uz.footerText}</p></div><div><span class="eyebrow">PHYSICS LAB</span><a href="#/topics">${uz.browse}</a><a href="#/about">${uz.nav[4]}</a></div><div><span class="eyebrow">TASHKENT TECH</span><a href="https://tashkenttech-edu.uz/" target="_blank" rel="noopener">${uz.university} ↗</a><a href="mailto:info@tashkenttech-edu.uz">info@tashkenttech-edu.uz</a></div></div><div class="container footer-bottom"><span>© ${new Date().getFullYear()} ${uz.footerSub}</span><span>${uz.source}</span></div></footer>`;
 }
 function shell(body, active = "home") {
+  cleanupGlow();
   app.innerHTML =
     header(active) + `<main id="main" tabindex="-1">${body}</main>` + footer();
   const menu = document.querySelector(".menu-button");
@@ -176,6 +179,7 @@ function shell(body, active = "home") {
     menu.setAttribute("aria-expanded", open);
   };
   setupHeaderSearch();
+  cleanupGlow = mountBorderGlow(app);
 }
 function artwork(key) {
   let art = "";

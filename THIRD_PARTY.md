@@ -5,3 +5,5 @@
 - **Inter Variable** — SIL Open Font License 1.1. `public/vendor/inter-latin.woff2`; full license in `public/vendor/licenses/Inter.txt`. Source: https://github.com/rsms/inter
 
 SVG illustrations, the CSS TT wordmark, and Canvas scenes are created in this repository. The supplied Innova catalog and original project brief are user-provided source documents; no rights to the full textbook are implied.
+
+The BorderGlow interaction is adapted from the user-provided React Bits JavaScript/CSS example into a framework-free implementation (`src/components/BorderGlow.js` and `.css`). Credit: [React Bits](https://reactbits.dev). The adaptation uses the TT palette, no intro sweep, reduced-motion support, keyboard focus feedback, and no touch tracking.
