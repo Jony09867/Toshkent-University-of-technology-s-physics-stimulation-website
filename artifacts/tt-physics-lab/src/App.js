@@ -255,12 +255,18 @@ function home() {
     last = 0,
     frame;
   const update = () =>
-    canvas.update({ config: newton, p, s: newton.calculate(p, time), t: time });
+    canvas.update({
+      config: newton,
+      p,
+      s: newton.calculate(p, time),
+      t: time,
+      hero: true,
+    });
   const loop = (now) => {
     if (last && !document.hidden && !reduceMotion)
       time += Math.min((now - last) / 1000, 0.1);
     last = now;
-    if (time > 5) time = 0;
+    if (time > 4.2) time = 0;
     update();
     frame = requestAnimationFrame(loop);
   };

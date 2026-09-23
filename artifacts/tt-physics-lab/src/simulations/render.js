@@ -96,7 +96,8 @@ function measure(c, x1, y1, x2, y2, label) {
   line(c, x1, y1, x2, y2, "#9caebb", 1, [4, 4]);
   text(c, label, (x1 + x2) / 2, (y1 + y2) / 2 - 8, muted, 12, "center");
 }
-function cart(c, p, s, key) {
+function cart(c, p, s, key, hero = false) {
+  const heroMode = hero && key === "newton";
   const end =
     key === "newton"
       ? Math.max(10, Math.abs(s.a) * 18)
@@ -132,6 +133,22 @@ function cart(c, p, s, key) {
     c.restore();
   } else {
     floor(c);
+    if (heroMode) {
+      const trailLength = clamp(14 + s.v * 2.2, 14, 82);
+      c.save();
+      for (let i = 4; i >= 1; i--) {
+        const progress = i / 4;
+        c.globalAlpha = 0.08 + (1 - progress) * 0.1;
+        circle(
+          c,
+          x - trailLength * progress,
+          331,
+          4 - progress * 0.55,
+          orange,
+        );
+      }
+      c.restore();
+    }
     block(
       c,
       x,
@@ -140,7 +157,16 @@ function cart(c, p, s, key) {
       key === "newton" ? `${p.m} kg` : key === "friction" ? `${p.m} kg` : "TT",
     );
     if (key === "newton") {
-      arrow(c, x + size / 2, 342 - size / 2, p.force * 1.2, 0, red, "F");
+      const pulse = heroMode ? 1 + Math.sin(s.t * 7) * 0.08 : 1;
+      arrow(
+        c,
+        x + size / 2,
+        342 - size / 2,
+        p.force * 1.2 * pulse,
+        0,
+        red,
+        "F",
+      );
       if (s.friction)
         arrow(
           c,
@@ -157,7 +183,10 @@ function cart(c, p, s, key) {
         circle(c, 40 + i * 10, 350 + (i % 3) * 6, 1 + p.mu * 2, "#a5aeb7");
       arrow(c, x - size / 2, 320, -Math.min(100, s.f * 2), 0, red, "Fᶠ");
     }
-    arrow(c, x, 235, clamp(s.v * 4, -120, 120), 0, blue, "v");
+    const velocityPulse = heroMode
+      ? 1 + Math.sin(s.t * 7 + 0.8) * 0.08
+      : 1;
+    arrow(c, x, 235, clamp(s.v * 4 * velocityPulse, -120, 120), 0, blue, "v");
     arrow(c, x, 185, clamp(s.a * 10, -100, 100), 0, green, "a");
   }
   text(c, `x = ${format(s.x)} m`, 60, 420, ink, 17);
@@ -591,14 +620,14 @@ function optics(c, p, s) {
   );
 }
 export function renderSimulation(ctx, state) {
-  const { config, p, s, t, trails = [] } = state;
+  const { config, p, s, t, trails = [], hero = false } = state;
   grid(ctx);
   ctx.save();
   switch (config.key) {
     case "motion":
     case "newton":
     case "friction":
-      cart(ctx, p, s, config.key);
+      cart(ctx, p, { ...s, t }, config.key, hero);
       break;
     case "fall":
     case "projectile":

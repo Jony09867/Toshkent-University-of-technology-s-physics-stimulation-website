@@ -22,12 +22,15 @@
   opacity: var(--border-glow-idle);
 }
 
-/* Retain the original rounded content while allowing the glow outside the card. */
-.border-glow.sim-card .sim-card-visual {
-  border-radius: 11px 11px 0 0;
+/* Retain rounded content while allowing the glow to extend outside the card. */
+.border-glow-card.sim-card .sim-card-visual {
+  border-radius: var(--border-radius) var(--border-radius) 0 0;
 }
-.border-glow.hero-experiment .preview-top {
-  border-radius: 13px 13px 0 0;
+.border-glow-card.sim-card .sim-card-body {
+  border-radius: 0 0 var(--border-radius) var(--border-radius);
+}
+.border-glow-card.hero-experiment .preview-top {
+  border-radius: var(--border-radius) var(--border-radius) 0 0;
 }
 
 .border-glow-ring,
