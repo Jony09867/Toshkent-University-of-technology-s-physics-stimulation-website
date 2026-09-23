@@ -6,4 +6,4 @@
 
 SVG illustrations, the CSS TT wordmark, and Canvas scenes are created in this repository. The supplied Innova catalog and original project brief are user-provided source documents; no rights to the full textbook are implied.
 
-The BorderGlow interaction is adapted from the user-provided React Bits JavaScript/CSS example into a framework-free implementation (`src/components/BorderGlow.js` and `.css`). Credit: [React Bits](https://reactbits.dev). The adaptation uses the TT palette, no intro sweep, reduced-motion support, keyboard focus feedback, and no touch tracking.
+The BorderGlow interaction is adapted from the user-provided React Bits JavaScript/CSS example into a framework-free implementation (`src/components/BorderGlow.js` and `.css`). Credit: [React Bits](https://reactbits.dev). The adaptation uses the TT palette, a subtle idle border, stronger directional hover lighting, no intro sweep, and keyboard focus feedback. Touch devices and reduced-motion preferences receive stationary lighting without pointer tracking.

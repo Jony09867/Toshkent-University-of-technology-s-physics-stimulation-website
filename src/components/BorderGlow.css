@@ -2,9 +2,24 @@
 .border-glow {
   --border-glow-strength: 0;
   --border-glow-angle: 45deg;
+  --border-glow-idle: 0.32;
   position: relative;
   isolation: isolate;
   overflow: visible;
+}
+.border-glow.hero-experiment {
+  --border-glow-idle: 0.5;
+}
+.border-glow::after {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  pointer-events: none;
+  z-index: 2;
+  border: 1px solid rgb(241 89 42 / 45%);
+  box-shadow: 0 0 12px rgb(241 89 42 / 9%);
+  opacity: var(--border-glow-idle);
 }
 
 /* Retain the original rounded content while allowing the glow outside the card. */
@@ -23,7 +38,7 @@
   pointer-events: none;
   user-select: none;
   z-index: 3;
-  opacity: calc(var(--border-glow-strength) * 0.65);
+  opacity: calc(var(--border-glow-idle) + var(--border-glow-strength) * 0.68);
   transition: opacity 220ms ease-out;
   mask-image: conic-gradient(
     from var(--border-glow-angle),
@@ -37,7 +52,7 @@
   position: absolute;
   inset: 0;
   border-radius: inherit;
-  padding: 1.5px;
+  padding: 2px;
   background:
     radial-gradient(at 85% 10%, #ffb276, transparent 55%),
     radial-gradient(at 10% 85%, #f39546, transparent 55%), #f1592a;
@@ -48,7 +63,9 @@
 }
 .border-glow-halo {
   inset: -18px;
-  opacity: calc(var(--border-glow-strength) * 0.5);
+  opacity: calc(
+    var(--border-glow-idle) * 0.4 + var(--border-glow-strength) * 0.85
+  );
 }
 .border-glow-halo::before {
   content: "";
@@ -56,11 +73,11 @@
   inset: 18px;
   border-radius: inherit;
   box-shadow:
-    inset 0 0 0 1px #ffad78b3,
-    inset 0 0 8px #f1592a18,
-    0 0 3px #f1592a80,
-    0 0 12px #f1592a40,
-    0 0 24px #ff9b5625;
+    inset 0 0 0 1px #ffad78cc,
+    inset 0 0 12px #f1592a25,
+    0 0 4px #f1592ab3,
+    0 0 14px #f1592a70,
+    0 0 28px #ff9b5645;
 }
 
 /* Keyboard users get a stationary full border as well as the native focus outline. */
@@ -81,9 +98,13 @@
   }
 }
 @media (hover: none), (pointer: coarse) {
-  .border-glow-ring,
+  .border-glow-ring {
+    opacity: 0.45;
+    mask-image: none;
+  }
   .border-glow-halo {
-    display: none;
+    opacity: 0.2;
+    mask-image: none;
   }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -91,8 +112,12 @@
   .border-glow-halo {
     transition: none;
   }
-  .border-glow:hover > .border-glow-ring {
-    opacity: 0.5;
+  .border-glow-ring {
+    opacity: 0.45;
+    mask-image: none;
+  }
+  .border-glow-halo {
+    opacity: 0.2;
     mask-image: none;
   }
 }

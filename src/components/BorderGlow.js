@@ -40,8 +40,8 @@ export function mountBorderGlow(root) {
       const x = (m.d * dx - m.c * dy) / determinant;
       const y = (-m.b * dx + m.a * dy) / determinant;
       const edge = Math.min(1, Math.max(Math.abs(x / cx), Math.abs(y / cy)));
-      // Only the outer 35% of the surface activates the light.
-      const strength = Math.max(0, (edge - 0.65) / 0.35);
+      // Start the interactive glow sooner; the CSS keeps a gentle idle border.
+      const strength = Math.max(0, (edge - 0.3) / 0.7);
       const angle = ((Math.atan2(y, x) * 180) / Math.PI + 450) % 360;
       card.style.setProperty("--border-glow-strength", strength.toFixed(3));
       card.style.setProperty("--border-glow-angle", `${angle.toFixed(2)}deg`);
