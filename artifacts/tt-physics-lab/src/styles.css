@@ -414,6 +414,9 @@ b {
     0 0 0 65px #ffffff03,
     0 0 0 130px #ffffff02;
 }
+.hero-galaxy + .hero-grid {
+  z-index: 1;
+}
 .hero-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;

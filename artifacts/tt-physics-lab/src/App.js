@@ -9,7 +9,9 @@ import { resultCard, format } from "./components/ResultCard.js";
 import { SimulationCanvas } from "./components/SimulationCanvas.js";
 import { LiveChart } from "./components/LiveChart.js";
 import { attachBorderGlow } from "./components/BorderGlow.js";
+import { mountGalaxy } from "./components/Galaxy.js";
 import "./components/BorderGlow.css";
+import "./components/Galaxy.css";
 
 const app = document.querySelector("#app");
 const escape = (s) =>
@@ -230,7 +232,7 @@ function sectionCards() {
 function home() {
   const newton = allConfigs.find((c) => c.key === "newton");
   shell(
-    `<section class="hero"><div class="container hero-grid"><div class="hero-copy"><span class="eyebrow"><i></i>${uz.heroTag}</span><h1>${uz.heroTitle}<br><em>${uz.heroAccent}</em></h1><p>${uz.heroText}</p><div class="hero-buttons"><a class="button primary" href="${simLink(newton)}">${uz.start}${icon("arrow")}</a><a class="button ghost" href="#/topics">${icon("grid")}${uz.browse}</a></div><div class="hero-proof"><span class="proof-symbol">∑</span><span>${uz.proofTop}<br><strong>${uz.proofBottom}</strong></span></div></div><div class="hero-experiment"><div class="preview-top"><span class="live-label"><i></i>${uz.live}</span><span>01 — NYUTON II</span></div><div class="preview-formula">${formula("F=m\\cdot a")}<span>${uz.previewSentence}</span></div><canvas id="hero-canvas" aria-label="${uz.previewAria}" role="img"></canvas><div class="preview-controls"><label for="hero-force">${uz.force} <b><span id="hero-force-value">20</span> N</b></label><input type="range" id="hero-force" min="0" max="100" value="20" step="1" style="--fill:20%"><span class="preview-result">a = <b id="hero-accel">4.00</b> m/s²</span></div><div class="preview-bottom">${icon("help")} ${uz.previewText}<span>m = 5 kg</span></div></div></div></section><section class="stat-strip"><div class="container stats"><div><b>15</b><span>${uz.simulations}</span></div><div><b>143</b><span>${uz.topics}</span></div><div><b>15</b><span>${uz.sections}</span></div><div><b>3</b><span>${uz.learningLevels}</span></div></div></section><section class="container section-space"><div class="section-heading"><div><span class="eyebrow orange">${uz.featuredTag}</span><h2>${uz.featured}</h2><p>${uz.featuredText}</p></div><a class="text-link" href="#/topics?ready=1">${uz.allSims}${icon("arrow")}</a></div><div class="sim-grid">${[
+    `<section class="hero"><div class="hero-galaxy" aria-hidden="true"></div><div class="container hero-grid"><div class="hero-copy"><span class="eyebrow"><i></i>${uz.heroTag}</span><h1>${uz.heroTitle}<br><em>${uz.heroAccent}</em></h1><p>${uz.heroText}</p><div class="hero-buttons"><a class="button primary" href="${simLink(newton)}">${uz.start}${icon("arrow")}</a><a class="button ghost" href="#/topics">${icon("grid")}${uz.browse}</a></div><div class="hero-proof"><span class="proof-symbol">∑</span><span>${uz.proofTop}<br><strong>${uz.proofBottom}</strong></span></div></div><div class="hero-experiment"><div class="preview-top"><span class="live-label"><i></i>${uz.live}</span><span>01 — NYUTON II</span></div><div class="preview-formula">${formula("F=m\\cdot a")}<span>${uz.previewSentence}</span></div><canvas id="hero-canvas" aria-label="${uz.previewAria}" role="img"></canvas><div class="preview-controls"><label for="hero-force">${uz.force} <b><span id="hero-force-value">20</span> N</b></label><input type="range" id="hero-force" min="0" max="100" value="20" step="1" style="--fill:20%"><span class="preview-result">a = <b id="hero-accel">4.00</b> m/s²</span></div><div class="preview-bottom">${icon("help")} ${uz.previewText}<span>m = 5 kg</span></div></div></div></section><section class="stat-strip"><div class="container stats"><div><b>15</b><span>${uz.simulations}</span></div><div><b>143</b><span>${uz.topics}</span></div><div><b>15</b><span>${uz.sections}</span></div><div><b>3</b><span>${uz.learningLevels}</span></div></div></section><section class="container section-space"><div class="section-heading"><div><span class="eyebrow orange">${uz.featuredTag}</span><h2>${uz.featured}</h2><p>${uz.featuredText}</p></div><a class="text-link" href="#/topics?ready=1">${uz.allSims}${icon("arrow")}</a></div><div class="sim-grid">${[
       "newton",
       "projectile",
       "spring",
@@ -248,6 +250,9 @@ function home() {
         "",
       )}</div></section><section class="sections-band"><div class="container section-space"><div class="section-heading"><div><span class="eyebrow orange">${uz.mapLabel}</span><h2>${uz.sectionsTitle}</h2><p>${uz.sectionsText}</p></div><span class="count-label">15 ${uz.sections}</span></div><div class="sections-grid">${sectionCards()}</div></div></section><section class="container how section-space"><div><span class="eyebrow orange">${uz.howLabel}</span><h2>${uz.howTitle}</h2><p>${uz.howText}</p><a class="text-link" href="${simLink(newton)}">${uz.start}${icon("arrow")}</a></div><div class="how-steps">${uz.how.map(([n, title, body]) => `<div><span>${n}</span><section><h3>${title}</h3><p>${body}</p></section></div>`).join("")}</div></section>`,
   );
+  const galaxyCleanup = mountGalaxy(document.querySelector(".hero-galaxy"), {
+    disableAnimation: matchMedia("(prefers-reduced-motion: reduce)").matches,
+  });
   const canvas = new SimulationCanvas(document.querySelector("#hero-canvas"));
   const p = defaults(newton);
   const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -282,6 +287,7 @@ function home() {
     update();
   };
   cleanup = () => {
+    galaxyCleanup();
     cancelAnimationFrame(frame);
     canvas.destroy();
   };

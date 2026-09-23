@@ -1,0 +1,66 @@
+.hero-galaxy {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.46;
+  mix-blend-mode: screen;
+}
+
+.hero-galaxy::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 76% 42%, transparent 0 19%, #1a263455 66%),
+    linear-gradient(90deg, #1a2634c9 0%, transparent 52%, #2b3c4e45 100%);
+}
+
+.hero-galaxy.galaxy-fallback::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0.62;
+  background:
+    radial-gradient(circle at 8% 22%, #ffffff 0 1px, transparent 2px),
+    radial-gradient(circle at 16% 72%, #ffb58e 0 1px, transparent 2px),
+    radial-gradient(circle at 24% 38%, #ffffff 0 1px, transparent 2px),
+    radial-gradient(circle at 31% 84%, #9ecbff 0 1px, transparent 2px),
+    radial-gradient(circle at 39% 19%, #ffffff 0 1px, transparent 2px),
+    radial-gradient(circle at 48% 63%, #ffb58e 0 1px, transparent 2px),
+    radial-gradient(circle at 57% 28%, #ffffff 0 1px, transparent 2px),
+    radial-gradient(circle at 66% 78%, #9ecbff 0 1px, transparent 2px),
+    radial-gradient(circle at 73% 14%, #ffffff 0 1px, transparent 2px),
+    radial-gradient(circle at 82% 52%, #ffb58e 0 1px, transparent 2px),
+    radial-gradient(circle at 91% 27%, #ffffff 0 1px, transparent 2px),
+    radial-gradient(circle at 94% 86%, #9ecbff 0 1px, transparent 2px);
+  animation: galaxy-fallback-drift 18s linear infinite;
+}
+
+@keyframes galaxy-fallback-drift {
+  from {
+    transform: translate3d(-1%, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(1%, -1%, 0) scale(1.03);
+  }
+  to {
+    transform: translate3d(-1%, 0, 0) scale(1);
+  }
+}
+
+@media (max-width: 680px) {
+  .hero-galaxy {
+    opacity: 0.3;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-galaxy {
+    opacity: 0.22;
+  }
+
+  .hero-galaxy.galaxy-fallback::before {
+    animation: none;
+  }
+}
