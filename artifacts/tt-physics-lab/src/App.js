@@ -59,7 +59,7 @@ topics.forEach((t) => {
   t.sim = allConfigs.find((s) => s.topicNumbers.includes(t.number));
 });
 const brand = () =>
-  `<a class="brand" href="#/" aria-label="${uz.homeBrand}"><svg class="tt-logo-mark" viewBox="0 0 84 56" aria-hidden="true"><path d="M8 0h27l6 12.5H25.5V56H13.5V12.5H0L8 0z" fill="#F1592A"/><path d="M50 0h27l6 12.5H67.5V56H55.5V12.5H42L50 0z" fill="#F1592A"/></svg></a>`;
+  `<a class="brand" href="#/" aria-label="${uz.homeBrand}"><svg class="tt-logo-mark" viewBox="11 10 53 37" aria-hidden="true"><path d="M11 10h27l-3 9h-6v28h-9V19h-9V10zM42 10h22l-4 9h-5v28H45V19h-6l3-9z" fill="#E54519"/></svg><span class="brand-name"><span class="brand-logo-text"><span class="line-1"><span class="solid">TASHKENT</span><span class="space">&nbsp;</span><span class="outline">UNIVERSITY</span></span><span class="line-2"><span class="outline">OF</span><span class="space">&nbsp;</span><span class="solid">TECH</span><span class="outline">NOLOGY</span></span></span><small class="brand-sub">PHYSICS LAB</small></span></a>`;
 const sectionName = (id) => sections.find((s) => s.id === id)?.title || "";
 const simLink = (c) => `#/sim/${c.id}`;
 function legendFor(c) {
