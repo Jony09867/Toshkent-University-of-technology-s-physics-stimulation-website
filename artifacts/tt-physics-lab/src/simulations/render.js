@@ -18,8 +18,9 @@ function line(c, x1, y1, x2, y2, color = ink, width = 2, dash = []) {
   c.setLineDash([]);
 }
 function text(c, s, x, y, color = muted, size = 13, align = "left") {
+  const readableSize = c.compactMode ? Math.min(size * 1.16, size + 3) : size;
   c.fillStyle = color;
-  c.font = `${size >= 20 ? "600" : "500"} ${size}px Inter, Segoe UI, sans-serif`;
+  c.font = `${readableSize >= 20 ? "600" : "500"} ${readableSize}px Inter, Segoe UI, sans-serif`;
   c.textAlign = align;
   c.fillText(s, x, y);
 }
@@ -105,7 +106,8 @@ function cart(c, p, s, key, hero = false) {
         ? Math.max(30, Number.isFinite(s.distance) ? s.distance : 80)
         : Math.max(80, Math.abs(p.v0 * 8 + p.a * 32));
   const scale = 550 / end;
-  const x = clamp(130 + s.x * scale, 65, 725),
+  const rawX = 130 + s.x * scale,
+    x = clamp(rawX, 65, 725),
     size = key === "newton" ? 36 + p.m * 2 : 62;
   if (key === "newton" && p.slope) {
     const q = clamp(s.x * scale * 0.35, -155, 155);
@@ -188,6 +190,16 @@ function cart(c, p, s, key, hero = false) {
       : 1;
     arrow(c, x, 235, clamp(s.v * 4 * velocityPulse, -120, 120), 0, blue, "v");
     arrow(c, x, 185, clamp(s.a * 10, -100, 100), 0, green, "a");
+    if (rawX < 65 || rawX > 725)
+      text(
+        c,
+        `Jism sahnadan ${rawX > 725 ? "o‘ngda" : "chapda"}`,
+        rawX > 725 ? 745 : 55,
+        120,
+        orange,
+        13,
+        rawX > 725 ? "right" : "left",
+      );
   }
   text(c, `x = ${format(s.x)} m`, 60, 420, ink, 17);
   text(c, `v = ${format(s.v)} m/s`, 320, 420, blue, 17);
@@ -313,7 +325,8 @@ function springDraw(c, p, s) {
   text(c, `x = ${format(s.x)} m`, 610, 170, blue, 18, "center");
 }
 function bridge(c, p, s, t) {
-  const disp = s.x * Math.min(65, 85 / s.amplitude);
+  const rawDisp = s.x * 55,
+    disp = clamp(rawDisp, -95, 95);
   line(c, 110, 390, 110, 150, "#7890a1", 15);
   line(c, 690, 390, 690, 150, "#7890a1", 15);
   c.beginPath();
@@ -353,6 +366,8 @@ function bridge(c, p, s, t) {
     "center",
   );
   text(c, `A = ${format(s.amplitude)} m`, 400, 95, orange, 18, "center");
+  if (Math.abs(rawDisp) > 95)
+    text(c, "Vizual chegara: ±95 px", 400, 120, red, 12, "center");
   arrow(c, 750, 270, 0, Math.cos(p.frequency * t) * 50, red, "F");
 }
 function water(c, p, s) {
@@ -378,9 +393,11 @@ function water(c, p, s) {
   text(c, `${p.rho}`, x, y + 5, "white", 14, "center");
   arrow(c, x + 50, y, 0, -Math.min(105, (s.force / s.weight) * 65), blue, "Fₐ");
   arrow(c, x - 50, y, 0, 65, red, "mg");
+  if (s.normal > 0) arrow(c, x, y + 36, 0, -55, green, "N");
   text(c, uz.floating[s.status], 630, 210, ink, 24, "center");
   text(c, `Fₐ = ${format(s.force)} N`, 630, 250, blue, 17, "center");
   text(c, uz.waterline, 170, waterY - 14);
+  if (s.onBottom) text(c, "Jism tubda", 630, 285, green, 15, "center");
 }
 const particleSeeds = Array.from({ length: 100 }, (_, i) => ({
   x: ((i * 37 + 13) % 101) / 101,
@@ -447,6 +464,7 @@ function charges(c, p, s) {
     arrow(c, x2 + 35 * sign, y, len * sign, 0, red, "F");
   }
   measure(c, x1, 140, x2, 140, `r = ${p.r} m`);
+  text(c, "Strelka: logarifmik masshtab", 400, 420, muted, 12, "center");
   text(
     c,
     s.force === 0 ? uz.zeroForce : s.signed > 0 ? uz.repel : uz.attract,
@@ -622,6 +640,7 @@ function optics(c, p, s) {
 export function renderSimulation(ctx, state) {
   const { config, p, s, t, trails = [], hero = false } = state;
   grid(ctx);
+  ctx.compactMode = Boolean(state.compact);
   ctx.save();
   switch (config.key) {
     case "motion":

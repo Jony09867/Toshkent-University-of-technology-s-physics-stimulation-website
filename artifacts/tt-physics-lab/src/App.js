@@ -48,6 +48,7 @@ let completed = new Set(read("tt-completed", [])),
   cleanup = () => {},
   currentRoute = "",
   routeGeneration = 0;
+const simSessions = new Map();
 const topics = await fetch(new URL("./data/topics.json", import.meta.url)).then(
   (r) => {
     if (!r.ok) throw new Error(uz.catalogError);
@@ -340,43 +341,79 @@ function catalog(query) {
   render();
 }
 function simPage(config, level = 0) {
-  let p = defaults(config, level),
-    state = config.calculate(p, 0),
-    t = 0,
-    speed = 1,
-    playing = !matchMedia("(prefers-reduced-motion: reduce)").matches,
+  const restored = simSessions.get(config.id);
+  let p = { ...defaults(config, level), ...(restored?.p || {}) },
+    t = restored?.t || 0,
+    state = config.calculate(p, t),
+    speed = restored?.speed || 1,
+    playing = config.static
+      ? false
+      : (restored?.playing ??
+        !matchMedia("(prefers-reduced-motion: reduce)").matches),
     frame,
     last = 0,
-    trails = [];
+    trails = restored?.trails ? restored.trails.map((trail) => ({ ...trail })) : [],
+    disposed = false,
+    levelSwitching = false;
   const c = config,
     params = c.params.filter((p) => p.level <= level),
     index = allConfigs.indexOf(allConfigs.find((s) => s.id === c.id));
   const extras =
     c.key === "friction"
-      ? `<label class="select-label">${uz.surface}<select id="surface"><option value="0.03">${uz.surfaces[0]}</option><option value="0.2" selected>${uz.surfaces[1]}</option><option value="0.7">${uz.surfaces[2]}</option></select></label>`
+      ? `<label class="select-label">${uz.surface}<select id="surface"><option value="0.03">${uz.surfaces[0]}</option><option value="0.2">${uz.surfaces[1]}</option><option value="0.7">${uz.surfaces[2]}</option><option value="custom">${uz.currentSurface}</option></select></label>`
       : c.key === "buoyancy"
-        ? `<label class="select-label">${uz.fluid}<select id="fluid-choice"><option value="1000">${uz.fluids[0]}</option><option value="900">${uz.fluids[1]}</option><option value="13600">${uz.fluids[2]}</option></select></label>`
+        ? `<label class="select-label">${uz.fluid}<select id="fluid-choice"><option value="1000">${uz.fluids[0]}</option><option value="900">${uz.fluids[1]}</option><option value="13600">${uz.fluids[2]}</option><option value="custom">${uz.currentSurface}</option></select></label>`
         : c.key === "energy"
           ? `<label class="toggle-label"><input id="friction-toggle" type="checkbox">${uz.frictionToggle}</label>`
           : "";
   const chartVisible =
     level > 0 || ["motion", "spring", "energy"].includes(c.key);
+  const transport = c.static
+    ? `<div class="static-model-note">${icon("help")}<span>${uz.staticModel}</span></div>`
+    : `<div class="transport"><div><button class="icon-button" id="play" aria-label="${playing ? uz.pause : uz.play}">${icon(playing ? "pause" : "play")}</button><button class="icon-button" id="reset" aria-label="${uz.reset}">${icon("reset")}</button><span class="time-display">t = <b id="sim-time">${t.toFixed(2)}</b> s</span></div><div>${c.key === "projectile" ? `<button id="save-trail" class="subtle-button">+ ${uz.saveTrail}</button><button id="clear-trail" class="icon-button" aria-label="${uz.clearTrail}">${icon("close")}</button>` : ""}<label class="speed-control"><span>${uz.speed}</span><select id="sim-speed" aria-label="${uz.animationSpeed}"><option value="0.25">0.25×</option><option value="0.5">0.5×</option><option value="1">1×</option><option value="2">2×</option></select></label></div></div><label class="time-scrubber"><span>${uz.timeline}</span><input id="timeline" type="range" min="0" max="${c.duration}" step="any" value="${t}" aria-label="${uz.timeline}"></label>`;
   shell(
-    `<div class="container sim-page"><div class="breadcrumb"><a href="#/topics">${uz.nav[1]}</a><span>/</span><a href="#/topics?section=${c.section}">${sectionName(c.section)}</a><span>/</span><span>${c.title}</span></div><div class="sim-title-row"><div><span class="eyebrow orange">${uz.experimentLabel} ${String(index + 1).padStart(2, "0")} / ${sectionName(c.section).toUpperCase()}</span><h1>${c.title}</h1><p>${c.description}</p></div><button class="icon-button help-button" aria-label="${uz.help}">${icon("help")}</button></div><div class="formula-banner"><div id="main-formula">${formula(c.formulaLatex, true)}</div><span>SI · ${uz.levels[level]}</span></div>${levelTabs(level)}<div id="experiment-panel" role="tabpanel" aria-labelledby="level-${level}"><div class="experiment-layout"><section class="experiment-card"><div class="panel-header"><h2>${icon("grid")}${uz.experiment}</h2><span class="live-label"><i></i>${uz.live}</span></div><canvas id="sim-canvas" role="img" aria-label="${uz.canvasLabel}: ${c.title}"></canvas><div class="transport"><div><button class="icon-button" id="play" aria-label="${playing ? uz.pause : uz.play}">${icon(playing ? "pause" : "play")}</button><button class="icon-button" id="reset" aria-label="${uz.reset}">${icon("reset")}</button><span class="time-display">t = <b id="sim-time">0.00</b> s</span></div><div>${c.key === "projectile" ? `<button id="save-trail" class="subtle-button">+ ${uz.saveTrail}</button><button id="clear-trail" class="icon-button" aria-label="${uz.clearTrail}">${icon("close")}</button>` : ""}<label class="speed-control"><span>${uz.speed}</span><select id="sim-speed" aria-label="${uz.animationSpeed}"><option value="0.25">0.25×</option><option value="0.5">0.5×</option><option value="1" selected>1×</option><option value="2">2×</option></select></label></div></div><div class="vector-legend">${legendFor(c)}<span id="sim-notice" role="status"></span></div></section><aside class="controls-card"><div class="panel-header"><h2>${uz.parameters}</h2><span>${params.length}</span></div>${extras}<div class="parameter-stack">${params.map((param) => parameterSlider(param, p[param.key])).join("")}</div><div class="controls-note">${icon("help")}<span>${uz.previewText}</span></div></aside></div><section class="results-section"><div class="minor-heading"><h2>${uz.results}</h2><span>SI</span></div><div class="result-grid">${c.results.map((r) => resultCard(r, state[r.key])).join("")}</div><p id="result-status" class="result-status" role="status"></p></section>${chartVisible ? `<section class="chart-section"><div class="minor-heading"><h2>${uz.chart}</h2><span>${["coulomb", "lens", "ohm", "circuit", "gas", "resonance"].includes(c.key) ? uz.relationsLabel : uz.timeRelationsLabel}</span></div><div id="charts" class="charts-grid"></div></section>` : ""}<div class="learning-grid"><section class="learning-card"><span class="section-icon">${icon("book")}</span><h2>${level === 2 ? uz.derivation : uz.explanation}</h2>${level === 2 ? `<ol class="derivation">${c.hard.map((s) => `<li>${formula(s, true)}</li>`).join("")}</ol>` : `<p>${level === 0 ? c.easy : c.medium}</p>`}</section><section class="learning-card engineering"><span class="section-icon">${icon("force")}</span><span class="eyebrow">${uz.engineeringLabel}</span><h2>${uz.engineering}</h2><p>${c.engineering}</p></section></div><details class="model-note"><summary>${uz.model}</summary><p>${c.model}</p></details></div><div class="sim-navigation"><a class="button secondary" href="${simLink(allConfigs[(index - 1 + allConfigs.length) % allConfigs.length])}">← ${uz.previous}</a><button id="complete" class="button ${completed.has(c.id) ? "completed" : "primary"}">${icon("check")}${completed.has(c.id) ? uz.completed : uz.complete}</button><a class="button secondary" href="${simLink(allConfigs[(index + 1) % allConfigs.length])}">${uz.next} →</a></div><a class="text-link back-link" href="#/topics">${icon("grid")}${uz.back}</a></div>`,
+    `<div class="container sim-page"><div class="breadcrumb"><a href="#/topics">${uz.nav[1]}</a><span>/</span><a href="#/topics?section=${c.section}">${sectionName(c.section)}</a><span>/</span><span>${c.title}</span></div><div class="sim-title-row"><div><span class="eyebrow orange">${uz.experimentLabel} ${String(index + 1).padStart(2, "0")} / ${sectionName(c.section).toUpperCase()}</span><h1>${c.title}</h1><p>${c.description}</p></div><button class="icon-button help-button" aria-label="${uz.help}">${icon("help")}</button></div><div class="formula-banner"><div id="main-formula">${formula(c.formulaLatex, true)}</div><span>SI · ${uz.levels[level]}</span></div>${levelTabs(level)}<div id="experiment-panel" role="tabpanel" aria-labelledby="level-${level}"><div class="experiment-layout"><section class="experiment-card"><div class="panel-header"><h2>${icon("grid")}${uz.experiment}</h2><span class="live-label"><i></i>${uz.live}</span></div><canvas id="sim-canvas" role="img" aria-label="${uz.canvasLabel}: ${c.title}"></canvas>${transport}<div class="vector-legend">${legendFor(c)}<span id="sim-notice" role="status"></span></div></section><aside class="controls-card"><div class="panel-header"><h2>${uz.parameters}</h2><span>${params.length}</span></div>${extras}<div class="parameter-stack">${params.map((param) => parameterSlider(param, p[param.key])).join("")}</div><div class="controls-note">${icon("help")}<span>${uz.previewText}</span></div></aside></div><section class="results-section"><div class="minor-heading"><h2>${uz.results}</h2><span>SI</span></div><div class="result-grid">${c.results.map((r) => resultCard(r, state[r.key])).join("")}</div><p id="result-status" class="result-status" role="status"></p></section>${chartVisible ? `<section class="chart-section"><div class="minor-heading"><h2>${uz.chart}</h2><span>${["coulomb", "lens", "ohm", "circuit", "gas", "resonance"].includes(c.key) ? uz.relationsLabel : uz.timeRelationsLabel}</span></div><div id="charts" class="charts-grid"></div></section>` : ""}<div class="learning-grid"><section class="learning-card"><span class="section-icon">${icon("book")}</span><h2>${level === 2 ? uz.derivation : uz.explanation}</h2>${level === 2 ? `<ol class="derivation">${c.hard.map((s) => `<li>${formula(s, true)}</li>`).join("")}</ol>` : `<p>${level === 0 ? c.easy : c.medium}</p>`}</section><section class="learning-card engineering"><span class="section-icon">${icon("force")}</span><span class="eyebrow">${uz.engineeringLabel}</span><h2>${uz.engineering}</h2><p>${c.engineering}</p></section></div><details class="model-note"><summary>${uz.model}</summary><p>${c.model}</p></details></div><div class="sim-navigation"><a class="button secondary" href="${simLink(allConfigs[(index - 1 + allConfigs.length) % allConfigs.length])}">← ${uz.previous}</a><button id="complete" class="button ${completed.has(c.id) ? "completed" : "primary"}">${icon("check")}${completed.has(c.id) ? uz.completed : uz.complete}</button><a class="button secondary" href="${simLink(allConfigs[(index + 1) % allConfigs.length])}">${uz.next} →</a></div><a class="text-link back-link" href="#/topics">${icon("grid")}${uz.back}</a></div>`,
     "topics",
   );
   const canvas = new SimulationCanvas(document.querySelector("#sim-canvas")),
     chart = chartVisible
       ? new LiveChart(document.querySelector("#charts"), c, p)
       : null;
+  const endTime = () => {
+    let end = c.duration;
+    if (["fall", "projectile"].includes(c.key)) end = state.duration;
+    if (["motion", "friction"].includes(c.key) && Number.isFinite(state.stop))
+      end = Math.min(end, state.stop);
+    if (c.key === "spring" && Number.isFinite(state.period)) {
+      const cycles = Math.max(1, Math.floor(c.duration / state.period));
+      end = cycles * state.period;
+    }
+    return Math.max(0.01, end);
+  };
+  const setPlayState = (next) => {
+    playing = next;
+    const button = document.querySelector("#play");
+    if (!button) return;
+    button.innerHTML = icon(playing ? "pause" : "play");
+    button.setAttribute("aria-label", playing ? uz.pause : uz.play);
+  };
   const update = (force) => {
+    if (disposed || !document.querySelector("#sim-canvas")) return;
     state = c.calculate(p, t);
     canvas.update({ config: c, p, s: state, t, trails, level });
-    for (const r of c.results)
-      document.querySelector(`[data-result="${r.key}"]`).textContent = format(
-        state[r.key] * r.scale,
-      );
-    document.querySelector("#sim-time").textContent = t.toFixed(2);
+    for (const r of c.results) {
+      const output = document.querySelector(`[data-result="${r.key}"]`);
+      if (output) output.textContent = format(state[r.key] * r.scale);
+    }
+    const timeOutput = document.querySelector("#sim-time"),
+      timeline = document.querySelector("#timeline"),
+      end = endTime();
+    if (timeOutput) timeOutput.textContent = t.toFixed(2);
+    if (timeline) {
+      timeline.max = end;
+      timeline.value = Math.min(t, end);
+      timeline.style.setProperty("--fill", `${(Math.min(t, end) / end) * 100}%`);
+    }
     if (c.key === "lens")
       document.querySelector("#result-status").textContent = state.atFocus
         ? uz.focus
@@ -390,24 +427,43 @@ function simPage(config, level = 0) {
   };
   const restart = () => {
     t = 0;
+    document.querySelector("#sim-notice")?.replaceChildren();
     chart?.reset(p);
     update(true);
   };
+  const decimals = (step) => (String(step).split(".")[1] || "").length;
+  const normalizeValue = (input, raw) => {
+    const min = Number(input.min),
+      max = Number(input.max),
+      step = Number(input.step) || 1,
+      clamped = Math.max(min, Math.min(max, Number(raw)));
+    return Number((min + Math.round((clamped - min) / step) * step).toFixed(decimals(step) + 2));
+  };
+  const syncPreset = (key, value) => {
+    const select = document.querySelector(key === "mu" ? "#surface" : "#fluid-choice");
+    if (!select) return;
+    const match = [...select.options].find(
+      (option) => option.value !== "custom" && Math.abs(Number(option.value) - value) < 1e-9,
+    );
+    select.value = match?.value || "custom";
+  };
   function sync(key, value) {
-    p[key] = value;
     const range = document.querySelector(`[data-param="${key}"]`),
       number = document.querySelector(`[data-number="${key}"]`);
+    const normalized = range ? normalizeValue(range, value) : value;
+    p[key] = normalized;
     if (range) {
-      range.value = value;
+      range.value = normalized;
       range.style.setProperty(
         "--fill",
-        ((value - Number(range.min)) /
+        ((normalized - Number(range.min)) /
           (Number(range.max) - Number(range.min))) *
           100 +
           "%",
       );
-      number.value = value;
+      number.value = normalized;
     }
+    if (key === "mu" || key === "fluid") syncPreset(key, normalized);
     restart();
   }
   document
@@ -434,24 +490,39 @@ function simPage(config, level = 0) {
     };
   });
   const play = document.querySelector("#play");
-  if (c.static) {
-    play.disabled = true;
-    document.querySelector("#sim-speed").disabled = true;
+  if (play)
+    play.onclick = () => {
+      if (!playing && t >= endTime() - 1e-6) restart();
+      setPlayState(!playing);
+    };
+  const reset = document.querySelector("#reset"),
+    speedInput = document.querySelector("#sim-speed"),
+    timeline = document.querySelector("#timeline");
+  if (reset) reset.onclick = restart;
+  if (speedInput) {
+    speedInput.value = String(speed);
+    speedInput.onchange = (e) => (speed = Number(e.target.value));
   }
-  play.onclick = () => {
-    playing = !playing;
-    play.innerHTML = icon(playing ? "pause" : "play");
-    play.setAttribute("aria-label", playing ? uz.pause : uz.play);
-  };
-  document.querySelector("#reset").onclick = restart;
-  document.querySelector("#sim-speed").onchange = (e) =>
-    (speed = Number(e.target.value));
+  if (timeline)
+    timeline.oninput = (e) => {
+      setPlayState(false);
+      const value = Number(e.target.value),
+        max = Number(e.target.max);
+      t = value >= max - 1e-6 ? max : value;
+      update(true);
+    };
+  syncPreset("mu", p.mu);
+  syncPreset("fluid", p.fluid);
   document
     .querySelector("#surface")
-    ?.addEventListener("change", (e) => sync("mu", Number(e.target.value)));
+    ?.addEventListener("change", (e) => {
+      if (e.target.value !== "custom") sync("mu", Number(e.target.value));
+    });
   document
     .querySelector("#fluid-choice")
-    ?.addEventListener("change", (e) => sync("fluid", Number(e.target.value)));
+    ?.addEventListener("change", (e) => {
+      if (e.target.value !== "custom") sync("fluid", Number(e.target.value));
+    });
   document
     .querySelector("#friction-toggle")
     ?.addEventListener("change", (e) => {
@@ -477,6 +548,8 @@ function simPage(config, level = 0) {
   document.querySelectorAll("[data-level]").forEach(
     (button) =>
       (button.onclick = () => {
+        if (levelSwitching || Number(button.dataset.level) === level) return;
+        levelSwitching = true;
         const scroll = window.scrollY;
         cleanup();
         simPage(c, Number(button.dataset.level));
@@ -521,15 +594,15 @@ function simPage(config, level = 0) {
   document.querySelector(".help-button").onclick = onboarding;
   if (!read("tt-onboarded", false)) onboarding();
   const loop = (now) => {
+    if (disposed) return;
     if (last && playing && !c.static && !document.hidden) {
-      t += Math.min((now - last) / 1000, 0.1) * speed;
-      let end = c.duration;
-      if (["fall", "projectile"].includes(c.key)) end = state.duration + 1;
-      if (["motion", "friction"].includes(c.key) && Number.isFinite(state.stop))
-        end = Math.min(end, state.stop + 1);
-      if (t > end) {
-        t = 0;
-        chart?.reset(p);
+      t += Math.min((now - last) / 1000, 0.25) * speed;
+      const end = endTime();
+      if (t >= end) {
+        t = end;
+        setPlayState(false);
+        const notice = document.querySelector("#sim-notice");
+        if (notice) notice.textContent = uz.finished;
       }
       update(false);
     }
@@ -539,9 +612,18 @@ function simPage(config, level = 0) {
   update(true);
   frame = requestAnimationFrame(loop);
   cleanup = () => {
+    if (disposed) return;
+    disposed = true;
+    simSessions.set(c.id, {
+      p: { ...p },
+      t,
+      speed,
+      playing,
+      trails: trails.map((trail) => ({ ...trail })),
+    });
     cancelAnimationFrame(frame);
-    canvas.destroy();
     chart?.destroy();
+    canvas.destroy();
   };
 }
 function progress() {
@@ -606,6 +688,7 @@ async function route() {
     } else planned(-1);
   } else planned(-1);
   setTimeout(() => {
+    if (generation !== routeGeneration) return;
     document.querySelectorAll('.sim-card, .hero-experiment, .learning-card, .result-card').forEach((el) => {
       attachBorderGlow(el, {
         edgeSensitivity: 30,

@@ -1,5 +1,7 @@
 import { G, COULOMB, GAS, TAU } from "./constants.js";
 export const clamp = (x, lo, hi) => Math.max(lo, Math.min(hi, x));
+let energyCache = null,
+  buoyancyCache = null;
 const positive = (x, name) => {
   if (!Number.isFinite(x) || x <= 0)
     throw new RangeError(name + " musbat bo‘lishi kerak.");
@@ -21,12 +23,16 @@ export function projectile(p, t = 0) {
     vx = p.v0 * Math.cos(angle),
     vy = p.v0 * Math.sin(angle);
   const duration = (vy + Math.sqrt(vy * vy + 2 * g * p.h)) / g,
-    time = clamp(t, 0, duration);
+    time = clamp(t, 0, duration),
+    landed = t >= duration;
   return {
     x: vx * time,
     y: Math.max(0, p.h + vy * time - (g * time * time) / 2),
-    vx,
-    vy: vy - g * time,
+    vx: landed ? 0 : vx,
+    vy: landed ? 0 : vy - g * time,
+    impactVx: vx,
+    impactVy: vy - g * duration,
+    landed,
     duration,
     range: vx * duration,
     height: p.h + (vy * vy) / (2 * g),
@@ -55,14 +61,17 @@ export function friction(p, t = 0) {
   const f = p.mu * p.normal,
     a = f / p.m,
     stop = a > 0 ? p.v0 / a : Infinity,
-    time = Math.min(t, stop);
+    time = Math.min(t, stop),
+    stopped = Number.isFinite(stop) && t >= stop;
   return {
-    f,
-    a: -a,
-    v: Math.max(0, p.v0 - a * time),
+    f: stopped ? 0 : f,
+    maxFriction: f,
+    a: stopped ? 0 : -a,
+    v: stopped ? 0 : Math.max(0, p.v0 - a * time),
     x: p.v0 * time - (a * time * time) / 2,
     stop,
     distance: a > 0 ? (p.v0 * p.v0) / (2 * a) : Infinity,
+    stopped,
   };
 }
 export function energy(p, t = 0) {
@@ -70,10 +79,15 @@ export function energy(p, t = 0) {
   const radius = 12,
     beta = p.friction ? 0.36 : 0;
   // Exact constrained particle: y=q²/(2R); metric accounts for the actual track speed.
-  let q = Math.sqrt(2 * radius * p.h),
-    u = 0;
-  const steps = Math.ceil(t / 0.02),
-    dt = steps ? t / steps : 0;
+  const target = Math.max(0, t),
+    cacheKey = `${p.h}|${Boolean(p.friction)}`,
+    reusable = energyCache?.key === cacheKey && energyCache.t <= target;
+  let q = reusable ? energyCache.q : Math.sqrt(2 * radius * p.h),
+    u = reusable ? energyCache.u : 0,
+    elapsed = reusable ? energyCache.t : 0;
+  const delta = target - elapsed,
+    steps = Math.ceil(delta / 0.02),
+    dt = steps ? delta / steps : 0;
   const accel = (x, v) =>
     ((-G * x) / radius - (x * v * v) / (radius * radius)) /
       (1 + (x * x) / (radius * radius)) -
@@ -89,6 +103,7 @@ export function energy(p, t = 0) {
     q += (dt * (u + 2 * u2 + 2 * u3 + u4)) / 6;
     u += (dt * (a1 + 2 * a2 + 2 * a3 + a4)) / 6;
   }
+  energyCache = { key: cacheKey, t: target, q, u };
   const v = u * Math.sqrt(1 + (q * q) / (radius * radius)),
     height = (q * q) / (2 * radius);
   const kinetic = (p.m * v * v) / 2,
@@ -149,15 +164,23 @@ export function buoyancy(p, t = 0) {
     mass = p.rho * volume,
     weight = mass * G;
   // Center depth relative to waterline; released fully submerged. Linear fluid drag.
-  let depth = side * 1.2,
-    v = 0;
-  const steps = Math.ceil(Math.min(t, 15) / 0.005),
-    dt = steps ? Math.min(t, 15) / steps : 0;
-  const acceleration = (d, speed) =>
-    (weight -
-      p.fluid * G * volume * clamp(d / side + 0.5, 0, 1) -
-      mass * 4 * speed) /
-    mass;
+  const target = Math.min(Math.max(t, 0), 15),
+    cacheKey = `${p.rho}|${p.fluid}|${p.volume}`,
+    reusable = buoyancyCache?.key === cacheKey && buoyancyCache.t <= target;
+  let depth = reusable ? buoyancyCache.depth : side * 1.2,
+    v = reusable ? buoyancyCache.v : 0,
+    elapsed = reusable ? buoyancyCache.t : 0;
+  const delta = target - elapsed,
+    steps = Math.ceil(delta / 0.005),
+    dt = steps ? delta / steps : 0;
+  const immersedFraction = (d) => clamp(d / side + 0.5, 0, 1);
+  const acceleration = (d, speed) => {
+    const fraction = immersedFraction(d);
+    return (
+      (weight - p.fluid * G * volume * fraction - mass * 4 * speed * fraction) /
+      mass
+    );
+  };
   for (let i = 0; i < steps; i++) {
     // RK4 handles partial immersion continuously.
     const a1 = acceleration(depth, v),
@@ -174,9 +197,13 @@ export function buoyancy(p, t = 0) {
       v = 0;
     }
   }
-  const immersed = volume * clamp(depth / side + 0.5, 0, 1);
+  buoyancyCache = { key: cacheKey, t: target, depth, v };
+  const immersed = volume * immersedFraction(depth),
+    force = p.fluid * G * immersed,
+    onBottom = depth >= side * 3 - 1e-9,
+    normal = onBottom ? Math.max(0, weight - force) : 0;
   return {
-    force: p.fluid * G * immersed,
+    force,
     maxForce: p.fluid * G * volume,
     weight,
     depth,
@@ -184,6 +211,8 @@ export function buoyancy(p, t = 0) {
     immersed,
     mass,
     v,
+    normal,
+    onBottom,
     status: p.rho < p.fluid ? "float" : p.rho === p.fluid ? "neutral" : "sink",
   };
 }

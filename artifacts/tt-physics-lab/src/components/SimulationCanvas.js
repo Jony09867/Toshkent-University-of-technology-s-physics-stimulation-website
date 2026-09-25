@@ -7,11 +7,12 @@ export class SimulationCanvas {
     this.resize.observe(canvas);
   }
   update(state) {
+    if (!this.canvas?.isConnected) return;
     this.state = state;
     this.draw();
   }
   draw() {
-    if (!this.state) return;
+    if (!this.state || !this.canvas?.isConnected) return;
     const dpr = Math.min(window.devicePixelRatio || 1, 2),
       width = Math.max(1, this.canvas.clientWidth),
       height = (width * 460) / 800;
@@ -27,6 +28,7 @@ export class SimulationCanvas {
       0,
       0,
     );
+    this.state.compact = width < 520;
     const level = ["easy", "medium", "hard"][this.state.level ?? 0];
     (this.state.config.levels[level]?.render || renderSimulation)(
       this.ctx,
@@ -35,5 +37,8 @@ export class SimulationCanvas {
   }
   destroy() {
     this.resize.disconnect();
+    this.state = null;
+    this.canvas = null;
+    this.ctx = null;
   }
 }

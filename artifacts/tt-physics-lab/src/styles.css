@@ -1423,6 +1423,34 @@ footer a:hover {
   width: 33px;
   height: 33px;
 }
+.time-scrubber {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 13px;
+  padding: 0 15px 13px;
+  color: #8192a1;
+  font-size: 9px;
+}
+.time-scrubber input {
+  width: 100%;
+}
+.static-model-note {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 13px 16px;
+  border-top: 1px solid var(--line);
+  color: #687c8d;
+  background: #f8fafb;
+  font-size: 10px;
+  line-height: 1.5;
+}
+.static-model-note .icon {
+  width: 16px;
+  color: var(--brand);
+  flex: 0 0 auto;
+}
 .time-display {
   font-size: 10px;
   color: #8192a1;
@@ -2440,12 +2468,16 @@ footer a:hover {
     font-size: 7px;
   }
   .experiment-card canvas {
-    min-height: 218px;
+    min-height: 0;
     aspect-ratio: 800/460;
   }
   .transport {
     padding: 10px;
     gap: 8px;
+  }
+  .time-scrubber {
+    padding: 2px 11px 13px;
+    font-size: 9px;
   }
   .transport .icon-button {
     width: 44px;
@@ -2512,16 +2544,25 @@ footer a:hover {
     font-size: 11px;
   }
   .onboarding {
-    display: block;
-    margin: 16px;
+    display: grid;
+    grid-template-columns: 18px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 8px;
+    margin: 12px;
+    padding: 12px;
+  }
+  .onboarding > .icon {
+    margin: 0;
   }
   .onboarding p {
-    font-size: 11px;
-    margin-top: 8px;
+    font-size: 9px;
+    line-height: 1.55;
   }
   .onboarding .button {
-    margin-top: 12px;
-    min-height: 44px;
+    margin: 0;
+    min-height: 36px;
+    padding: 7px 9px;
+    font-size: 9px;
   }
   .result-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -2608,6 +2649,32 @@ footer a:hover {
   }
   .header-actions .icon-button {
     min-width: 34px;
+  }
+}
+@media (max-width: 430px) {
+  .header-inner {
+    gap: 8px;
+  }
+  .header-actions {
+    gap: 5px;
+    flex: 0 0 auto;
+  }
+  .header-lab {
+    display: none;
+  }
+  .brand {
+    min-width: 0;
+    gap: 8px;
+  }
+  .tt-logo-mark {
+    height: 36px;
+  }
+  .brand-logo-text {
+    font-size: 10.5px;
+  }
+  .brand-sub {
+    font-size: 6.5px;
+    letter-spacing: 0.2em;
   }
 }
 @media (max-width: 370px) {

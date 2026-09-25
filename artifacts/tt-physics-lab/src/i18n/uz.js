@@ -100,6 +100,9 @@ export const uz = {
   play: "Davom ettirish",
   pause: "Pauza",
   reset: "Qayta boshlash",
+  finished: "Tajriba yakunlandi",
+  timeline: "Vaqt shkalasi",
+  staticModel: "Statik model — parametrlar o‘zgartirilganda natija darhol yangilanadi.",
   time: "Vaqt",
   speed: "Tezlik",
   saveTrail: "Izni saqlash",
@@ -223,6 +226,7 @@ export const resultNames = {
   height: "Maksimal balandlik",
   net: "Natijaviy kuch",
   f: "Ishqalanish kuchi",
+  maxFriction: "Sirpanishdagi μN kuchi",
   distance: "To‘xtash masofasi",
   stop: "To‘xtash vaqti",
   kinetic: "Kinetik energiya",
@@ -238,6 +242,7 @@ export const resultNames = {
   force: "Kuch",
   weight: "Og‘irlik kuchi",
   immersed: "Botgan hajm",
+  normal: "Tayanch kuchi",
   pressure: "Bosim",
   rms: "O‘rtacha kvadratik tezlik",
   current: "Tok kuchi",
@@ -411,7 +416,7 @@ export const content = {
     engineering:
       "Kema, ponton va suvosti apparatlarining ko‘tarish qobiliyatini hisoblashda qo‘llanadi. Yuk ortganda jismning suvga botgan hajmi ham ortadi.",
     model:
-      "Kub avval to‘liq botgan holda qo‘yib yuboriladi. Suyuqlikning chiziqli qarshiligi mavjud, idish tubi jismni to‘xtatadi. Hajm slayderi litrda, hisoblash m³ da.",
+      "Kub avval to‘liq botgan holda qo‘yib yuboriladi. Qarshilik faqat botgan qismga ta’sir qiladi; jism tubga tegsa, tayanch kuchi qolgan og‘irlikni muvozanatlaydi. Hajm slayderi litrda, hisoblash m³ da.",
   },
   gas: {
     title: "Ideal gaz holat tenglamasi",
@@ -447,7 +452,7 @@ export const content = {
     engineering:
       "Elektrostatik sensorlar, chang tutgichlar va izolyatsiya tizimlarini tushunishda kerak. Kuch yo‘nalishi zaryad ishorasi orqali aniqlanadi.",
     model:
-      "Vakuumdagi qo‘zg‘almas nuqtaviy zaryadlar. Zaryad μC da, hisoblash C da. Strelkalar kuchni ko‘rsatadi, zaryadlar erkin qo‘yib yuborilmagan.",
+      "Vakuumdagi qo‘zg‘almas nuqtaviy zaryadlar. Zaryad μC da, hisoblash C da. Strelkalar juda katta kuch diapazonini sig‘dirish uchun logarifmik masshtabda; zaryadlar erkin qo‘yib yuborilmagan.",
   },
   ohm: {
     title: "Zanjir qismi uchun Om qonuni",

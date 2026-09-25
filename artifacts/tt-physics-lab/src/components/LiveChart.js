@@ -5,6 +5,7 @@ export class LiveChart {
     this.config = config;
     this.charts = [];
     this.last = -1;
+    this.destroyed = false;
     this.static = [
       "coulomb",
       "lens",
@@ -62,7 +63,7 @@ export class LiveChart {
               display: series.length > 1,
               labels: { boxWidth: 12, usePointStyle: true },
             },
-            tooltip: { mode: "index", intersect: false },
+            tooltip: { mode: "nearest", intersect: false },
           },
           scales: {
             x: {
@@ -90,6 +91,7 @@ export class LiveChart {
     if (this.static) this.curve(p);
   }
   curve(p) {
+    if (this.destroyed) return;
     const key = this.config.key;
     let param, min, max, label;
     if (key === "coulomb") {
@@ -126,7 +128,7 @@ export class LiveChart {
     for (const chart of this.charts) {
       chart.options.scales.x.title.text = label;
       chart.data.datasets = chart.data.datasets.filter(
-        (ds) => !ds.currentMarker,
+        (ds) => !ds.currentMarker && !ds.focusGuide,
       );
       for (const ds of chart.data.datasets) {
         ds.data = Array.from({ length: 181 }, (_, i) => {
@@ -147,6 +149,21 @@ export class LiveChart {
           chart.options.scales.y.title.text = ds.label;
         }
       }
+      if (key === "lens") {
+        chart.data.datasets.push({
+          label: "Fokus",
+          focusGuide: true,
+          data: [
+            { x: p.focal, y: -20 },
+            { x: p.focal, y: 20 },
+          ],
+          borderColor: "#e05757",
+          borderDash: [5, 5],
+          borderWidth: 1.5,
+          pointRadius: 0,
+          fill: false,
+        });
+      }
       const ds = chart.data.datasets[0],
         r = this.config.calculate(p, 0),
         value = (key === "resonance" ? r.amplitude : r[ds.key]) * ds.scale;
@@ -166,19 +183,20 @@ export class LiveChart {
     }
   }
   add(t, state, force = false) {
-    if (this.static) return;
+    if (this.static || this.destroyed) return;
     if (!force && t - this.last < 0.09) return;
     this.last = t;
     for (const ch of this.charts) {
       for (const ds of ch.data.datasets) {
         const y = state[ds.key] * ds.scale;
         ds.data.push({ x: t, y: Number.isFinite(y) ? y : null });
-        if (ds.data.length > 220) ds.data.shift();
+        if (ds.data.length > 1200) ds.data.shift();
       }
       ch.update("none");
     }
   }
   reset(p) {
+    if (this.destroyed) return;
     this.last = -1;
     if (this.static) {
       this.curve(p);
@@ -190,6 +208,8 @@ export class LiveChart {
     }
   }
   destroy() {
+    this.destroyed = true;
     this.charts.forEach((ch) => ch.destroy());
+    this.charts = [];
   }
 }

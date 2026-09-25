@@ -84,7 +84,12 @@ const configs = {
       P("v0", 1, 20, 0.5, 8, "m/s", 1),
       P("m", 0.5, 20, 0.5, 5, "kg", 2),
     ],
-    results: [R("f", "N"), R("distance", "m"), R("stop", "s")],
+    results: [
+      R("f", "N"),
+      R("maxFriction", "N"),
+      R("distance", "m"),
+      R("stop", "s"),
+    ],
     series: [
       ["v", "m/s"],
       ["x", "m"],
@@ -176,7 +181,12 @@ const configs = {
       P("fluid", 700, 13600, 50, 1000, "kg/m³"),
       P("volume", 0.5, 10, 0.5, 3, "L", 1),
     ],
-    results: [R("force", "N"), R("weight", "N"), R("immersed", "L", 1000)],
+    results: [
+      R("force", "N"),
+      R("weight", "N"),
+      R("normal", "N"),
+      R("immersed", "L", 1000),
+    ],
     series: [
       ["force", "N"],
       ["weight", "N"],
