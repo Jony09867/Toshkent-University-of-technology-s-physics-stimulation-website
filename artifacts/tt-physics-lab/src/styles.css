@@ -3230,6 +3230,77 @@ footer a:hover {
     font-size: 29px;
   }
 }
+
+/* The main message itself is the particle composition. */
+.hero-stage {
+  position: relative;
+  z-index: 2;
+  min-height: 620px;
+  padding-block: 58px 46px;
+}
+.hero-stage > .eyebrow {
+  color: #657583;
+  font-family: "Courier New", monospace;
+  font-size: 9px;
+}
+.particle-headline {
+  width: 100%;
+  height: 285px;
+  min-height: 0;
+  margin-top: 14px;
+}
+.hero-bottom {
+  display: grid;
+  grid-template-columns: minmax(0, 0.95fr) minmax(380px, 1.05fr);
+  gap: clamp(40px, 8vw, 120px);
+  align-items: end;
+}
+.hero-bottom .hero-copy p {
+  margin-top: 0;
+}
+.hero-formula-panel {
+  position: relative;
+  height: 126px;
+  border-top: 1px solid #f1592a70;
+  border-bottom: 1px solid #f1592a70;
+  background: linear-gradient(90deg, transparent, #f1592a08, transparent);
+}
+.hero-formula-panel .hero-visual-top {
+  top: 16px;
+}
+.hero-formula-panel .hero-formula-chips {
+  bottom: 22px;
+}
+
+@media (max-width: 800px) {
+  .hero-stage {
+    min-height: 0;
+    padding-block: 46px 34px;
+  }
+  .particle-headline {
+    height: 230px;
+  }
+  .hero-bottom {
+    grid-template-columns: 1fr;
+    gap: 28px;
+  }
+  .hero-formula-panel {
+    height: 112px;
+  }
+}
+
+@media (max-width: 520px) {
+  .particle-headline {
+    height: 185px;
+    margin-top: 10px;
+  }
+  .hero-bottom {
+    gap: 22px;
+  }
+  .hero-formula-panel {
+    height: 104px;
+  }
+}
 @media (prefers-reduced-motion: reduce) {
   .electric-card::after {
     animation: none;

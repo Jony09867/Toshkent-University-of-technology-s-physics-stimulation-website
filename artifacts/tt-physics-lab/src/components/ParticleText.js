@@ -11,6 +11,13 @@ export function mountParticleText(container, options = {}) {
     particleSize = 1.7,
     scatter = 125,
     duration = 1350,
+    align = "center",
+    maxFontSize = 142,
+    fontWeight = 800,
+    lineHeight = 0.98,
+    accentLine = -1,
+    italicLine = -1,
+    maxParticles = 2600,
   } = options;
   const canvas = document.createElement("canvas"),
     accessible = document.createElement("span"),
@@ -55,39 +62,62 @@ export function mountParticleText(container, options = {}) {
     await document.fonts?.ready;
     if (disposed) return;
 
-    const fontSize = clamp(width * 0.205, 62, 142),
+    const lines = text.split("\n"),
       offscreen = document.createElement("canvas"),
       offCtx = offscreen.getContext("2d", { willReadFrequently: true });
     if (!offCtx) return;
-    const font = `800 ${fontSize}px Inter, Arial, sans-serif`;
-    offCtx.font = font;
-    const metrics = offCtx.measureText(text),
-      padding = Math.ceil(fontSize * 0.12),
-      textWidth = Math.ceil(metrics.width),
-      textHeight = Math.ceil(fontSize * 1.15);
+    const testSize = 100,
+      fontForLine = (size, index) =>
+        `${index === italicLine ? "italic " : ""}${fontWeight} ${size}px Inter, Arial, sans-serif`,
+      widestAtTest = Math.max(
+        ...lines.map((line, index) => {
+          offCtx.font = fontForLine(testSize, index);
+          return offCtx.measureText(line).width;
+        }),
+      ),
+      widthBasedSize = (width * 0.96 * testSize) / Math.max(1, widestAtTest),
+      heightBasedSize = (height * 0.88) / Math.max(1, lines.length * lineHeight),
+      fontSize = clamp(Math.min(widthBasedSize, heightBasedSize, maxFontSize), 18, maxFontSize),
+      lineHeightPx = fontSize * lineHeight,
+      measuredWidths = lines.map((line, index) => {
+        offCtx.font = fontForLine(fontSize, index);
+        return offCtx.measureText(line).width;
+      }),
+      padding = Math.ceil(fontSize * 0.16),
+      textWidth = Math.ceil(Math.max(...measuredWidths)),
+      textHeight = Math.ceil(lineHeightPx * lines.length);
     offscreen.width = textWidth + padding * 2;
     offscreen.height = textHeight + padding * 2;
-    offCtx.font = font;
-    offCtx.textAlign = "center";
+    offCtx.textAlign = align === "left" ? "left" : "center";
     offCtx.textBaseline = "middle";
     offCtx.fillStyle = "#fff";
-    offCtx.fillText(text, offscreen.width / 2, offscreen.height / 2);
+    lines.forEach((line, index) => {
+      offCtx.font = fontForLine(fontSize, index);
+      offCtx.fillText(
+        line,
+        align === "left" ? padding : offscreen.width / 2,
+        padding + lineHeightPx * (index + 0.5),
+      );
+    });
     const data = offCtx.getImageData(0, 0, offscreen.width, offscreen.height).data,
       targets = [];
     for (let y = 0; y < offscreen.height; y += density)
       for (let x = 0; x < offscreen.width; x += density)
         if (data[(y * offscreen.width + x) * 4 + 3] > 80)
           targets.push({
-            x: width / 2 - offscreen.width / 2 + x,
+            x: align === "left" ? x : width / 2 - offscreen.width / 2 + x,
             y: height / 2 - offscreen.height / 2 + y,
+            line: clamp(Math.floor((y - padding) / lineHeightPx), 0, lines.length - 1),
           });
 
-    const stride = Math.max(1, Math.ceil(targets.length / 2600));
+    const stride = Math.max(1, Math.ceil(targets.length / maxParticles));
     particles = targets.filter((_, index) => index % stride === 0).map((target, index) => {
       const seed = ((index * 9301 + 49297) % 233280) / 233280,
         angle = seed * Math.PI * 2,
         distance = reducedMotion.matches ? 0 : scatter * (0.45 + seed * 0.65),
-        accentMix = clamp(target.x / width + (seed - 0.5) * 0.35, 0, 1);
+        accentMix = target.line === accentLine
+          ? 0.92
+          : clamp(target.x / width * 0.28 + (seed - 0.5) * 0.12, 0, 0.28);
       return {
         x: target.x + Math.cos(angle) * distance,
         y: target.y + Math.sin(angle) * distance,
@@ -131,8 +161,8 @@ export function mountParticleText(container, options = {}) {
           y += (dy / distance) * force;
         }
       }
-      particle.x += (x - particle.x) * (reducedMotion.matches ? 1 : 0.2);
-      particle.y += (y - particle.y) * (reducedMotion.matches ? 1 : 0.2);
+      particle.x = x;
+      particle.y = y;
       ctx.globalAlpha = 0.42 + progress * 0.58;
       ctx.fillStyle = particle.color;
       ctx.fillRect(particle.x, particle.y, particle.size, particle.size);

@@ -233,7 +233,7 @@ function sectionCards() {
 function home() {
   const newton = allConfigs.find((c) => c.key === "newton");
   shell(
-    `<section class="hero"><div class="hero-grid-lines" aria-hidden="true"></div><div class="container hero-grid"><div class="hero-copy"><span class="eyebrow"><i></i>${uz.heroTag}</span><h1>${uz.heroTitle}<br><em>${uz.heroAccent}</em></h1><p>${uz.heroText}</p><div class="hero-buttons"><a class="button primary specular-button" href="${simLink(newton)}"><span>${uz.start}</span>${icon("arrow")}</a><a class="button ghost" href="#/topics">${icon("grid")}${uz.browse}</a></div><div class="hero-proof"><span class="proof-symbol">∑</span><span>${uz.proofTop}<br><strong>${uz.proofBottom}</strong></span></div></div><div class="hero-visual"><div class="hero-visual-top"><span>TT / PHYSICS LAB</span><span>01 — 15</span></div><div id="particle-text" class="particle-text" aria-label="FIZIKA"></div><div class="hero-formula-chips" aria-hidden="true"><span>F = ma</span><span>E = mc²</span><span>pV = nRT</span></div></div></div></section><section class="stat-strip"><div class="container stats"><div><b>15</b><span>${uz.simulations}</span></div><div><b>143</b><span>${uz.topics}</span></div><div><b>15</b><span>${uz.sections}</span></div><div><b>3</b><span>${uz.learningLevels}</span></div></div></section><section class="container section-space"><div class="section-heading"><div><span class="eyebrow orange">${uz.featuredTag}</span><h2>${uz.featured}</h2><p>${uz.featuredText}</p></div><a class="text-link" href="#/topics?ready=1">${uz.allSims}${icon("arrow")}</a></div><div class="sim-grid">${[
+    `<section class="hero"><div class="hero-grid-lines" aria-hidden="true"></div><div class="container hero-stage"><span class="eyebrow"><i></i>${uz.heroTag}</span><div id="particle-text" class="particle-text particle-headline" role="heading" aria-level="1"></div><div class="hero-bottom"><div class="hero-copy"><p>${uz.heroText}</p><div class="hero-buttons"><a class="button primary specular-button" href="${simLink(newton)}"><span>${uz.start}</span>${icon("arrow")}</a><a class="button ghost" href="#/topics">${icon("grid")}${uz.browse}</a></div><div class="hero-proof"><span class="proof-symbol">∑</span><span>${uz.proofTop}<br><strong>${uz.proofBottom}</strong></span></div></div><div class="hero-formula-panel" aria-label="Asosiy fizika formulalari"><div class="hero-visual-top"><span>TT / PHYSICS LAB</span><span>01 — 15</span></div><div class="hero-formula-chips"><span>F = ma</span><span>E = mc²</span><span>pV = nRT</span></div></div></div></div></section><section class="stat-strip"><div class="container stats"><div><b>15</b><span>${uz.simulations}</span></div><div><b>143</b><span>${uz.topics}</span></div><div><b>15</b><span>${uz.sections}</span></div><div><b>3</b><span>${uz.learningLevels}</span></div></div></section><section class="container section-space"><div class="section-heading"><div><span class="eyebrow orange">${uz.featuredTag}</span><h2>${uz.featured}</h2><p>${uz.featuredText}</p></div><a class="text-link" href="#/topics?ready=1">${uz.allSims}${icon("arrow")}</a></div><div class="sim-grid">${[
       "newton",
       "projectile",
       "spring",
@@ -253,9 +253,20 @@ function home() {
       )}</div></section><section class="sections-band"><div class="container section-space"><div class="section-heading"><div><span class="eyebrow orange">${uz.mapLabel}</span><h2>${uz.sectionsTitle}</h2><p>${uz.sectionsText}</p></div><span class="count-label">15 ${uz.sections}</span></div><div class="sections-grid">${sectionCards()}</div></div></section><section class="container how section-space"><div><span class="eyebrow orange">${uz.howLabel}</span><h2>${uz.howTitle}</h2><p>${uz.howText}</p><a class="text-link" href="${simLink(newton)}">${uz.start}${icon("arrow")}</a></div><div class="how-steps">${uz.how.map(([n, title, body]) => `<div><span>${n}</span><section><h3>${title}</h3><p>${body}</p></section></div>`).join("")}</div></section>`,
   );
   const particleCleanup = mountParticleText(document.querySelector("#particle-text"), {
-    text: "FIZIKA",
-    color: "#cfd4d8",
+    text: `${uz.heroTitle}\n${uz.heroAccent}`,
+    color: "#111820",
     highlightColor: "#f1592a",
+    align: "left",
+    maxFontSize: 112,
+    fontWeight: 760,
+    lineHeight: 1.08,
+    accentLine: 1,
+    italicLine: 1,
+    density: 2,
+    particleSize: 2.45,
+    maxParticles: 8000,
+    duration: 1000,
+    scatter: 90,
   });
   cleanup = particleCleanup;
 }
