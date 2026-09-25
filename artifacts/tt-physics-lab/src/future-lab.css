@@ -22,6 +22,16 @@
   --radius-sm: 10px;
   --radius-md: 16px;
   --radius-lg: 22px;
+  --canvas-surface: #0a1015;
+  --canvas-grid: #1b2733;
+  --canvas-ink: #dbe4ec;
+  --canvas-muted: #8b9aa8;
+  --canvas-line: #3a4a5a;
+  --canvas-floor: #151f29;
+  --canvas-hatch: #24323f;
+  --chart-surface: #111820;
+  --chart-grid: #1b2733;
+  --chart-line: #2a3642;
   --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.3);
   --shadow-sm: 0 10px 28px rgba(0, 0, 0, 0.35);
   --shadow-md: 0 22px 55px rgba(0, 0, 0, 0.45);
@@ -826,6 +836,124 @@ footer .footer-bottom { color: #6a7a88; border-top-color: rgba(255, 255, 255, 0.
 .dark-hero .hero-buttons .button .icon { width: 17px; height: 17px; transition: transform 0.2s ease; }
 .dark-hero .hero-buttons .button:hover .icon { transform: translateX(2px); }
 .dark-hero .hero-buttons .button.ghost .icon { color: #ffb38a; }
+
+/* Legacy light-mode overrides -------------------------------------------- */
+/* The base stylesheet still contains light surfaces for these components.
+   They are re-stated here with dark values so no page regresses to white. */
+.skip {
+  color: #0a0f16;
+  background: #f0f3f7;
+}
+
+.learning-card.engineering {
+  background:
+    linear-gradient(120deg, rgba(241, 91, 43, 0.07), transparent 45%),
+    var(--surface);
+  border-color: rgba(241, 91, 43, 0.28);
+  color: var(--ink);
+}
+
+.engineering .section-icon,
+.learning-card.engineering .section-icon {
+  color: var(--brand);
+  background: var(--brand-soft);
+  border-color: rgba(241, 91, 43, 0.3);
+}
+
+.engineering > .eyebrow,
+.learning-card.engineering > .eyebrow {
+  color: #d99a7c;
+}
+
+.source-notes code {
+  color: #cfe0ee;
+  background: #0d131a;
+  border: 1px solid #1e2a36;
+}
+
+.model-note {
+  background: #0d131a;
+  border-color: #1e2a36;
+}
+
+.model-note summary {
+  color: var(--muted);
+}
+
+.model-note p {
+  color: var(--ink-soft);
+}
+
+.derivation li {
+  color: var(--brand);
+}
+
+.derivation .katex-display {
+  color: var(--ink);
+}
+
+.onboarding {
+  background: #0d131a;
+  border-color: #1e2a36;
+  color: var(--ink-soft);
+}
+
+.onboarding p {
+  color: var(--ink-soft);
+}
+
+.completed {
+  color: #2dd4a3;
+  background: rgba(45, 212, 163, 0.12);
+  border-color: rgba(45, 212, 163, 0.28);
+}
+
+.subtle-button {
+  color: var(--brand);
+  background: var(--brand-soft);
+}
+
+.engineering .text-link,
+.learning-card.engineering .text-link {
+  color: var(--brand);
+}
+
+.header-search-panel {
+  background: rgba(13, 19, 26, 0.97);
+  border-color: var(--line);
+  color: var(--ink);
+}
+
+.header-search-panel .search-field {
+  background: var(--surface);
+  border-color: var(--line);
+}
+
+.header-search-panel input {
+  color: var(--ink);
+}
+
+.header-search-results a {
+  color: var(--ink);
+  border-top-color: #1e2a36;
+}
+
+.header-search-results a:hover {
+  background: var(--surface-soft);
+  color: var(--brand);
+}
+
+.header-search-results small {
+  color: var(--muted);
+}
+
+.header-search-results p {
+  color: var(--muted);
+}
+
+.empty-state .icon {
+  color: #4a5b6b;
+}
 
 /* Responsive refinements ------------------------------------------------ */
 @media (max-width: 1150px) {

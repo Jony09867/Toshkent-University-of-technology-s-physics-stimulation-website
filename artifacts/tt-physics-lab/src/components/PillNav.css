@@ -152,7 +152,7 @@
   transform: translateY(-2px);
 }
 
-.home-dark .pill-nav-link.is-active {
+.pill-nav-link.is-active {
   color: #fff;
   background:
     linear-gradient(135deg, rgba(241, 91, 43, 0.55) 0%, rgba(217, 72, 32, 0.45) 100%),

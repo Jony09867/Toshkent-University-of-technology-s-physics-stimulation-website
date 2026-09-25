@@ -1,5 +1,20 @@
 import { uz, resultNames } from "../i18n/uz.js";
 const colors = ["#F1592A", "#3883d9", "#b18b4d", "#53697a"];
+
+// Chart.js draws into a canvas, so the axis and grid colors are read from the
+// same CSS custom properties the rest of the theme uses.
+const readToken = (name, fallback) => {
+  if (typeof getComputedStyle !== "function") return fallback;
+  const value = getComputedStyle(document.documentElement)
+    .getPropertyValue(name)
+    .trim();
+  return value || fallback;
+};
+const grid = () => readToken("--chart-grid", "#1b2733");
+const line = () => readToken("--chart-line", "#2a3642");
+const muted = () => readToken("--canvas-muted", "#8b9aa8");
+const surface = () => readToken("--chart-surface", "#111820");
+
 export class LiveChart {
   constructor(container, config, p) {
     this.config = config;
@@ -34,6 +49,9 @@ export class LiveChart {
       );
       wrap.append(canvas);
       container.append(wrap);
+      const axisMuted = muted();
+      const gridColor = grid();
+      const lineColor = line();
       let ch;
       try {
         ch = new Chart(canvas, {
@@ -64,16 +82,29 @@ export class LiveChart {
           plugins: {
             legend: {
               display: series.length > 1,
-              labels: { boxWidth: 12, usePointStyle: true },
+              labels: {
+                boxWidth: 12,
+                usePointStyle: true,
+                color: axisMuted,
+              },
             },
-            tooltip: { mode: "nearest", intersect: false },
+            tooltip: {
+              mode: "nearest",
+              intersect: false,
+              backgroundColor: surface(),
+              titleColor: axisMuted,
+              bodyColor: axisMuted,
+              borderColor: lineColor,
+              borderWidth: 1,
+            },
           },
           scales: {
             x: {
               type: "linear",
-              title: { display: true, text: uz.unitTime },
-              grid: { color: "#eef1f4" },
-              ticks: { maxTicksLimit: 6 },
+              title: { display: true, text: uz.unitTime, color: axisMuted },
+              grid: { color: gridColor },
+              ticks: { maxTicksLimit: 6, color: axisMuted },
+              border: { color: lineColor },
             },
             y: {
               title: {
@@ -82,9 +113,11 @@ export class LiveChart {
                   series.length > 1
                     ? series[0][1]
                     : `${resultNames[series[0][0]] || series[0][0]} (${series[0][1]})`,
+                color: axisMuted,
               },
-              grid: { color: "#eef1f4" },
-              ticks: { maxTicksLimit: 5 },
+              grid: { color: gridColor },
+              ticks: { maxTicksLimit: 5, color: axisMuted },
+              border: { color: lineColor },
             },
           },
         },

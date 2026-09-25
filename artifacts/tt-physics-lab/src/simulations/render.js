@@ -1,12 +1,54 @@
 import { clamp, projectile, resonance } from "../physics/engine.js";
 import { uz } from "../i18n/uz.js";
 import { format } from "../components/ResultCard.js";
+
+/**
+ * Canvas is drawn imperatively, so its palette cannot come from a stylesheet
+ * rule. Reading the resolved CSS custom properties keeps the simulation
+ * surface in the same dark/light theme as the rest of the page instead of
+ * painting a hardcoded light rectangle.
+ */
+const theme = {
+  surface: "#0a1015",
+  grid: "#1b2733",
+  ink: "#dbe4ec",
+  muted: "#8b9aa8",
+  line: "#3a4a5a",
+  floor: "#151f29",
+  hatch: "#24323f",
+};
+
+// Shared text colors. These are refreshed from the CSS custom properties by
+// readCanvasTheme() so the whole canvas repaints in the active theme.
+let ink = theme.ink;
+let muted = theme.muted;
+
+export function readCanvasTheme(root = document.documentElement) {
+  if (typeof getComputedStyle === "function" && root) {
+    const styles = getComputedStyle(root);
+    const read = (name, fallback) => {
+      const value = styles.getPropertyValue(name).trim();
+      return value || fallback;
+    };
+    theme.surface = read("--canvas-surface", theme.surface);
+    theme.grid = read("--canvas-grid", theme.grid);
+    theme.line = read("--canvas-line", theme.line);
+    theme.floor = read("--canvas-floor", theme.floor);
+    theme.hatch = read("--canvas-hatch", theme.hatch);
+    ink = read("--canvas-ink", theme.ink);
+    muted = read("--canvas-muted", theme.muted);
+    theme.ink = ink;
+    theme.muted = muted;
+  }
+  return theme;
+}
+
 const orange = "#F1592A",
-  ink = "#233444",
-  muted = "#7b8b9c",
   blue = "#3883d9",
   green = "#19a378",
   red = "#e05757";
+
+
 function line(c, x1, y1, x2, y2, color = ink, width = 2, dash = []) {
   c.beginPath();
   c.strokeStyle = color;
@@ -89,22 +131,22 @@ function block(c, x, y, size, label) {
   rect(c, x - size / 2 + 4, y - size + 4, size - 8, 7, "#ffac8055", 3);
   text(c, label, x, y - size / 2 + 5, "white", 15, "center");
 }
-function grid(c) {
+function grid(c, palette = theme) {
   c.clearRect(0, 0, 800, 460);
-  c.fillStyle = "#f8fafb";
+  c.fillStyle = palette.surface;
   c.fillRect(0, 0, 800, 460);
   for (let x = 20; x < 800; x += 24)
-    for (let y = 18; y < 460; y += 24) circle(c, x, y, 0.7, "#dce3e9");
+    for (let y = 18; y < 460; y += 24) circle(c, x, y, 0.7, palette.grid);
 }
-function floor(c, y = 342) {
-  rect(c, 34, y, 732, 36, "#eef1f4", 0);
-  line(c, 34, y, 766, y, "#abb8c3", 2);
+function floor(c, y = 342, palette = theme) {
+  rect(c, 34, y, 732, 36, palette.floor, 0);
+  line(c, 34, y, 766, y, palette.line, 2);
   for (let x = 40; x < 760; x += 24)
-    line(c, x, y + 5, x - 10, y + 16, "#ccd5dd", 1);
+    line(c, x, y + 5, x - 10, y + 16, palette.hatch, 1);
 }
-function measure(c, x1, y1, x2, y2, label) {
-  line(c, x1, y1, x2, y2, "#9caebb", 1, [4, 4]);
-  text(c, label, (x1 + x2) / 2, (y1 + y2) / 2 - 8, muted, 12, "center");
+function measure(c, x1, y1, x2, y2, label, palette = theme) {
+  line(c, x1, y1, x2, y2, palette.line, 1, [4, 4]);
+  text(c, label, (x1 + x2) / 2, (y1 + y2) / 2 - 8, palette.muted, 12, "center");
 }
 function cart(c, p, s, key, hero = false) {
   const heroMode = hero && key === "newton";
@@ -123,10 +165,10 @@ function cart(c, p, s, key, hero = false) {
     c.save();
     c.translate(400, 275);
     c.rotate((-p.slope * Math.PI) / 180);
-    rect(c, -300, 0, 600, 22, "#e4ebf0", 0);
-    line(c, -300, 0, 300, 0, "#9bb0bf", 3);
+    rect(c, -300, 0, 600, 22, theme.floor, 0);
+    line(c, -300, 0, 300, 0, theme.line, 3);
     for (let i = -290; i < 300; i += 25)
-      line(c, i, 4, i - 10, 16, "#c3d1db", 1);
+      line(c, i, 4, i - 10, 16, theme.hatch, 1);
     block(c, q, 0, size, `${p.m} kg`);
     arrow(c, q + size / 2, -size / 2, p.force, 0, red, "F");
     if (s.friction)
@@ -226,7 +268,7 @@ function flight(c, p, s, key, trails = []) {
     ox = 65,
     oy = 365;
   floor(c, oy);
-  line(c, ox, oy, ox, 50, "#a3b2bf");
+  line(c, ox, oy, ox, 50, theme.line);
   text(c, "y (m)", ox, 35);
   text(c, "x (m)", 740, oy + 24);
   for (let i = 1; i < 5; i++) {
@@ -252,7 +294,7 @@ function flight(c, p, s, key, trails = []) {
     trace(tr, ["#a0b5cc", "#b0bb9a", "#b5a1c6"][i % 3], [5, 5]),
   );
   trace(p, "#f3b09a", [5, 5]);
-  if (p.h) rect(c, 38, oy - p.h * scale, 25, p.h * scale, "#d7e0e6", 2);
+  if (p.h) rect(c, 38, oy - p.h * scale, 25, p.h * scale, theme.hatch, 2);
   const x = ox + s.x * scale,
     y = oy - s.y * scale;
   ball(c, x, y);
@@ -283,22 +325,22 @@ function track(c, p, s) {
   };
   path();
   c.lineWidth = 8;
-  c.strokeStyle = "#dbe3e9";
+  c.strokeStyle = theme.floor;
   c.stroke();
   path();
   c.lineWidth = 2;
-  c.strokeStyle = "#7e94a3";
+  c.strokeStyle = theme.line;
   c.stroke();
   for (let q = -8; q <= 8; q += 2) {
     let x = ox + q * scale,
       y = oy - ((q * q) / 24) * scale;
-    line(c, x, y + 8, x, 395, "#d2dce3", 3);
+    line(c, x, y + 8, x, 395, theme.hatch, 3);
   }
   ball(c, ox + s.q * scale, oy - s.height * scale - 18, 18);
   const values = [s.kinetic, s.potential, s.heat];
   values.forEach((v, i) => {
     const x = 55 + i * 245;
-    rect(c, x, 45, 205, 8, "#e3e9ee", 4);
+    rect(c, x, 45, 205, 8, theme.grid, 4);
     rect(c, x, 45, (205 * v) / s.initial, 8, [orange, blue, "#c79745"][i], 4);
     text(c, `${uz.energyLabels[i]}  ${format(v)} J`, x, 30, ink, 13);
   });
@@ -354,7 +396,7 @@ function bridge(c, p, s, t) {
       y,
       x,
       150 + 100 * Math.sin(((x - 110) / 580) * Math.PI),
-      "#9eb1bd",
+      theme.line,
       1.5,
     );
   }
@@ -362,7 +404,7 @@ function bridge(c, p, s, t) {
   c.moveTo(110, 150);
   c.quadraticCurveTo(400, 365, 690, 150);
   c.lineWidth = 3;
-  c.strokeStyle = "#7f97a7";
+  c.strokeStyle = theme.hatch;
   c.stroke();
   line(c, 40, 395, 760, 395, "#b4c9d6", 3);
   text(
@@ -419,11 +461,11 @@ function gasDraw(c, p, s, t) {
     x = (800 - w) / 2,
     y = 100,
     h = 245;
-  rect(c, x, y, w, h, "#edf3f6", 5);
-  c.strokeStyle = "#7f96a8";
+  rect(c, x, y, w, h, theme.floor, 5);
+  c.strokeStyle = theme.line;
   c.lineWidth = 3;
   c.strokeRect(x, y, w, h);
-  rect(c, x + w - 8, y - 8, 16, h + 16, "#9eafbd", 3);
+  rect(c, x + w - 8, y - 8, 16, h + 16, theme.hatch, 3);
   const count = Math.round(30 + Math.min(3, p.moles) * 20),
     vel = 38 * Math.sqrt(p.temperature / 300) * Math.sqrt(0.028 / p.molarMass);
   const bounce = (v, max) => {
@@ -458,7 +500,7 @@ function charges(c, p, s) {
     x2 = 400 + d / 2,
     y = 235;
   const charge = (x, q) => {
-    circle(c, x, y, 45, q > 0 ? "#f1592a14" : q < 0 ? "#3883d915" : "#d9e1e8");
+    circle(c, x, y, 45, q > 0 ? "#f1592a14" : q < 0 ? "#3883d915" : theme.grid);
     circle(c, x, y, 30, q > 0 ? orange : q < 0 ? blue : muted);
     text(c, q > 0 ? "+" : q < 0 ? "−" : "0", x, y + 9, "white", 30, "center");
     text(c, `${q} μC`, x, y + 80, ink, 17, "center");
@@ -506,7 +548,7 @@ function electrical(c, p, s, key, t) {
     17,
     "right",
   );
-  rect(c, 335, y - 15, 110, 30, "#f8fafb", 0);
+  rect(c, 335, y - 15, 110, 30, theme.surface, 0);
   line(c, 335, y, 345, y, ink, 2);
   for (let i = 0; i < 8; i++)
     line(
@@ -553,7 +595,7 @@ function electrical(c, p, s, key, t) {
       circle(c, px, py, 3.5, orange);
     }
   if (key === "circuit") {
-    rect(c, 240, 322, 60, 35, "#fbe7df", 3);
+    rect(c, 240, 322, 60, 35, "#f1592a1f", 3);
     text(c, `r=${p.internal} Ω`, 270, 345, orange, 13, "center");
   }
   text(c, `I = ${format(s.current)} A`, 400, 410, ink, 22, "center");
@@ -563,7 +605,7 @@ function magnet(c, p, s, t) {
   for (let i = 0; i < 9; i++) {
     c.beginPath();
     c.ellipse(coilX + i * 10, 215, 13, 60, 0, 0, Math.PI * 2);
-    c.strokeStyle = i % 2 ? "#bb713f" : "#dba772";
+    c.strokeStyle = i % 2 ? "#a85c2c" : "#b87a45";
     c.lineWidth = 4;
     c.stroke();
   }
@@ -574,7 +616,7 @@ function magnet(c, p, s, t) {
   text(c, "S", mx + 30, 221, "white", 19, "center");
   line(c, 405, 274, 405, 345, muted, 2);
   line(c, 485, 274, 485, 345, muted, 2);
-  circle(c, 445, 345, 36, "#fff");
+  circle(c, 445, 345, 36, theme.floor);
   c.beginPath();
   c.arc(445, 345, 36, 0, Math.PI * 2);
   c.strokeStyle = muted;
@@ -600,7 +642,7 @@ function optics(c, p, s) {
     h = p.height * scale * 2,
     ix = s.image * scale,
     ih = -s.magnification * h;
-  line(c, 35, oy, 765, oy, "#91a3b0", 1);
+  line(c, 35, oy, 765, oy, theme.line, 1);
   c.beginPath();
   c.ellipse(ox, oy, 15, 155, 0, 0, Math.PI * 2);
   c.fillStyle = "#87b9e326";
@@ -648,7 +690,8 @@ function optics(c, p, s) {
 }
 export function renderSimulation(ctx, state) {
   const { config, p, s, t, trails = [], hero = false } = state;
-  grid(ctx);
+  const palette = readCanvasTheme();
+  grid(ctx, palette);
   ctx.compactMode = Boolean(state.compact);
   ctx.save();
   switch (config.key) {

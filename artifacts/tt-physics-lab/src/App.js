@@ -236,17 +236,16 @@ function shell(body, active = "home") {
   pillCleanup = () => {};
   app.innerHTML =
     header(active) + `<main id="main" tabindex="-1">${body}</main>` + footer();
-  const dark = document.body.classList.contains("home-dark");
   try {
     pillCleanup = mountPillNav(document.querySelector("[data-pill-nav]"), {
       items: primaryNav,
       activeHref: navHref(active),
       className: "site-pill-nav",
       ariaLabel: uz.mainNav,
-      baseColor: dark ? "#141a22" : "#ffffff",
-      pillColor: dark ? "#202b37" : "#f1f4f7",
-      hoveredPillTextColor: dark ? "#ffffff" : "#1e2a38",
-      pillTextColor: dark ? "#d7e0e8" : "#1e2a38",
+      baseColor: "#141a22",
+      pillColor: "#202b37",
+      hoveredPillTextColor: "#ffffff",
+      pillTextColor: "#d7e0e8",
     });
   } catch (error) {
     console.error("Pill navigation failed to mount:", error);
