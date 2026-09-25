@@ -887,12 +887,13 @@ async function route() {
   } else planned(-1);
   setTimeout(() => {
     if (generation !== routeGeneration) return;
-    document.querySelectorAll('.sim-card, .learning-card, .result-card').forEach((el) => {
+    document.querySelectorAll('.sim-card, .section-card, .learning-card, .result-card').forEach((el) => {
+      const isSection = el.classList.contains('section-card');
       attachBorderGlow(el, {
         edgeSensitivity: 30,
         glowColor: "14 88 55",
-        backgroundColor: path === "/" ? "#111820" : el.classList.contains('learning-card') || el.classList.contains('result-card') ? "#f7f8fa" : "#ffffff",
-        borderRadius: 18,
+        backgroundColor: isSection || path === "/" ? "#111820" : el.classList.contains('learning-card') || el.classList.contains('result-card') ? "#f7f8fa" : "#ffffff",
+        borderRadius: isSection ? 16 : 18,
         glowRadius: 35,
         glowIntensity: 1.0,
         colors: ['#F1592A', '#3883d9', '#19a378'],
