@@ -18,6 +18,7 @@ export function mountParticleText(container, options = {}) {
     accentLine = -1,
     italicLine = -1,
     maxParticles = 2600,
+    replayOnHover = true,
   } = options;
   const canvas = document.createElement("canvas"),
     accessible = document.createElement("span"),
@@ -192,7 +193,7 @@ export function mountParticleText(container, options = {}) {
   });
   canvas.addEventListener("pointermove", move);
   canvas.addEventListener("pointerleave", leave);
-  canvas.addEventListener("pointerenter", replay);
+  if (replayOnHover) canvas.addEventListener("pointerenter", replay);
   reducedMotion.addEventListener?.("change", build);
   resize.observe(container);
   build();
@@ -205,7 +206,7 @@ export function mountParticleText(container, options = {}) {
     cancelAnimationFrame(resizeFrame);
     canvas.removeEventListener("pointermove", move);
     canvas.removeEventListener("pointerleave", leave);
-    canvas.removeEventListener("pointerenter", replay);
+    if (replayOnHover) canvas.removeEventListener("pointerenter", replay);
     reducedMotion.removeEventListener?.("change", build);
   };
 }

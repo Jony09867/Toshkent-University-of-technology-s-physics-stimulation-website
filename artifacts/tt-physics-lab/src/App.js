@@ -235,7 +235,7 @@ function sectionCards() {
 function home() {
   const newton = allConfigs.find((c) => c.key === "newton");
   shell(
-    `<section class="hero dark-hero"><div id="floating-lines" class="floating-lines" aria-hidden="true"></div><div class="dark-hero-grid" aria-hidden="true"></div><div class="container dark-hero-content"><span class="hero-kicker"><b>YANGI</b>${uz.heroTag}</span><div id="particle-text" class="particle-text particle-headline" role="heading" aria-level="1"></div><p>${uz.heroText}</p><div class="hero-buttons"><a class="button primary specular-button" href="${simLink(newton)}"><span>${uz.start}</span>${icon("arrow")}</a><a class="button ghost" href="#/topics">${icon("grid")}${uz.browse}</a></div><div class="dark-hero-meta"><div class="hero-proof"><span class="proof-symbol">∑</span><span>${uz.proofTop}<br><strong>${uz.proofBottom}</strong></span></div><div class="hero-formula-chips" aria-label="Asosiy fizika formulalari"><span>F = ma</span><span>E = mc²</span><span>pV = nRT</span></div></div></div></section><section class="stat-strip"><div class="container stats"><div><b>15</b><span>${uz.simulations}</span></div><div><b>143</b><span>${uz.topics}</span></div><div><b>15</b><span>${uz.sections}</span></div><div><b>3</b><span>${uz.learningLevels}</span></div></div></section><section class="container section-space"><div class="section-heading"><div><span class="eyebrow orange">${uz.featuredTag}</span><h2>${uz.featured}</h2><p>${uz.featuredText}</p></div><a class="text-link" href="#/topics?ready=1">${uz.allSims}${icon("arrow")}</a></div><div class="sim-grid">${[
+    `<section class="hero dark-hero"><div id="floating-lines" class="floating-lines" aria-hidden="true"></div><div class="dark-hero-grid" aria-hidden="true"></div><div class="container dark-hero-content"><div id="particle-text" class="particle-text particle-headline" role="heading" aria-level="1"></div><p>${uz.heroText}</p><div class="hero-buttons"><a class="button primary specular-button" href="${simLink(newton)}"><span>${uz.start}</span>${icon("arrow")}</a><a class="button ghost" href="#/topics">${icon("grid")}<span>${uz.browse}</span></a></div><div class="dark-hero-meta"><div class="hero-proof"><span class="proof-symbol">∑</span><span>${uz.proofTop}<br><strong>${uz.proofBottom}</strong></span></div><div class="hero-formula-chips" aria-label="Asosiy fizika formulalari"><span>F = ma</span><span>E = mc²</span><span>pV = nRT</span></div></div></div></section><section class="stat-strip"><div class="container stats"><div><b>15</b><span>${uz.simulations}</span></div><div><b>143</b><span>${uz.topics}</span></div><div><b>15</b><span>${uz.sections}</span></div><div><b>3</b><span>${uz.learningLevels}</span></div></div></section><section class="container section-space"><div class="section-heading"><div><span class="eyebrow orange">${uz.featuredTag}</span><h2>${uz.featured}</h2><p>${uz.featuredText}</p></div><a class="text-link" href="#/topics?ready=1">${uz.allSims}${icon("arrow")}</a></div><div class="sim-grid">${[
       "newton",
       "projectile",
       "spring",
@@ -264,11 +264,12 @@ function home() {
     lineHeight: 1.08,
     accentLine: 1,
     italicLine: 1,
-    density: 2,
-    particleSize: 2.45,
-    maxParticles: 8000,
+    density: 4,
+    particleSize: 1.65,
+    maxParticles: 3600,
     duration: 1000,
     scatter: 90,
+    replayOnHover: false,
   });
   const linesCleanup = mountFloatingLines(document.querySelector("#floating-lines"));
   cleanup = () => {
@@ -677,7 +678,7 @@ async function route() {
       attachBorderGlow(el, {
         edgeSensitivity: 30,
         glowColor: "14 88 55",
-        backgroundColor: el.classList.contains('learning-card') || el.classList.contains('result-card') ? "#f7f8fa" : "#ffffff",
+        backgroundColor: path === "/" ? "#111820" : el.classList.contains('learning-card') || el.classList.contains('result-card') ? "#f7f8fa" : "#ffffff",
         borderRadius: 18,
         glowRadius: 35,
         glowIntensity: 1.0,
