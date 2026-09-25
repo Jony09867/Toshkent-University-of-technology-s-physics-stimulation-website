@@ -3433,7 +3433,7 @@ footer a:hover {
 .dark-hero .particle-headline {
   width: min(1040px, 100%);
   max-width: 860px;
-  height: 215px;
+  height: 250px;
   min-height: 0;
   margin: 12px auto 0;
 }
