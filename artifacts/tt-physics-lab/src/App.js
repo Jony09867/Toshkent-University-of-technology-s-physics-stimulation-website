@@ -9,9 +9,11 @@ import { resultCard, formatResult, NO_VALUE } from "./components/ResultCard.js";
 import { SimulationCanvas } from "./components/SimulationCanvas.js";
 import { LiveChart } from "./components/LiveChart.js";
 import { attachBorderGlow } from "./components/BorderGlow.js";
+import { mountPillNav } from "./components/PillNav.js";
 import { mountParticleText } from "./components/ParticleText.js";
 import { mountFloatingLines } from "./components/FloatingLines.js";
 import "./components/BorderGlow.css";
+import "./components/PillNav.css";
 import "./components/ParticleText.css";
 import "./components/FloatingLines.css";
 
@@ -86,6 +88,7 @@ function write(key, value) {
 }
 let completed = new Set(read("tt-completed", [])),
   cleanup = () => {},
+  pillCleanup = () => {},
   currentRoute = "",
   routeGeneration = 0,
   firstRoute = true,
@@ -110,6 +113,14 @@ const brand = () =>
   `<a class="brand" href="#/" aria-label="${uz.homeBrand}"><svg class="tt-logo-mark" viewBox="11 10 53 37" aria-hidden="true"><path d="M11 10h27l-3 9h-6v28h-9V19h-9V10zM42 10h22l-4 9h-5v28H45V19h-6l3-9z" fill="#E54519"/></svg><span class="brand-name"><span class="brand-logo-text"><span class="line-1"><span class="solid">TASHKENT</span><span class="space">&nbsp;</span><span class="outline">UNIVERSITY</span></span><span class="line-2"><span class="outline">OF</span><span class="space">&nbsp;</span><span class="solid">TECH</span><span class="outline">NOLOGY</span></span></span><small class="brand-sub">PHYSICS LAB</small></span></a>`;
 const sectionName = (id) => sections.find((s) => s.id === id)?.title || "";
 const simLink = (c) => `#/sim/${c.id}`;
+const primaryNav = [
+  { label: uz.nav[0], href: "#/" },
+  { label: uz.nav[1], href: "#/topics" },
+  { label: uz.nav[2], href: "#/sections" },
+  { label: uz.nav[3], href: "#/progress" },
+  { label: uz.nav[4], href: "#/about" },
+];
+const navHref = (active) => `#/${active === "home" ? "" : active}`;
 function legendFor(c) {
   const red = "#e05757",
     blue = "#3883d9",
@@ -214,19 +225,31 @@ function setupHeaderSearch() {
   };
 }
 function header(active = "home") {
-  return `<div class="topbar"><div class="container"><span>${uz.brand}</span><a href="https://tashkenttech-edu.uz/" target="_blank" rel="noopener">${uz.university} ↗</a></div></div><header class="header"><div class="container header-inner">${brand()}<nav class="nav" aria-label="${uz.mainNav}">${["home", "topics", "sections", "progress", "about"].map((id, i) => `<a href="#/${id === "home" ? "" : id}" class="${active === id ? "active" : ""}" ${active === id ? 'aria-current="page"' : ""}>${uz.nav[i]}</a>`).join("")}</nav><div class="header-actions"><button type="button" class="icon-button header-search-toggle" aria-label="${uz.searchLabel}" aria-expanded="false">${icon("search")}</button><span class="language" lang="uz">UZ</span><a class="header-lab" href="${simLink(allConfigs.find((c) => c.key === "newton"))}">${icon("arrow")}</a><button type="button" class="menu-button icon-button" aria-label="${uz.openMenu}" aria-expanded="false">${icon("menu")}</button></div></div></header>`;
+  return `<div class="topbar"><div class="container"><span>${uz.brand}</span><a href="https://tashkenttech-edu.uz/" target="_blank" rel="noopener">${uz.university} ↗</a></div></div><header class="header"><div class="container header-inner">${brand()}<div class="pill-nav-slot" data-pill-nav></div><div class="header-actions"><button type="button" class="icon-button header-search-toggle" aria-label="${uz.searchLabel}" aria-expanded="false">${icon("search")}</button><span class="language" lang="uz">UZ</span><a class="header-lab" href="${simLink(allConfigs.find((c) => c.key === "newton"))}">${icon("arrow")}</a></div></div></header>`;
 }
 function footer() {
   return `<footer><div class="container footer-top"><div>${brand()}<p>${uz.footerText}</p></div><div><span class="eyebrow">PHYSICS LAB</span><a href="#/topics">${uz.browse}</a><a href="#/about">${uz.nav[4]}</a></div><div><span class="eyebrow">TASHKENT TECH</span><a href="https://tashkenttech-edu.uz/" target="_blank" rel="noopener">${uz.university} ↗</a><a href="mailto:info@tashkenttech-edu.uz">info@tashkenttech-edu.uz</a></div></div><div class="container footer-bottom"><span>© ${new Date().getFullYear()} ${uz.footerSub}</span><span>${uz.source}</span></div></footer>`;
 }
 function shell(body, active = "home") {
+  pillCleanup();
+  pillCleanup = () => {};
   app.innerHTML =
     header(active) + `<main id="main" tabindex="-1">${body}</main>` + footer();
-  const menu = document.querySelector(".menu-button");
-  menu.onclick = () => {
-    const open = document.querySelector(".nav").classList.toggle("open");
-    menu.setAttribute("aria-expanded", open);
-  };
+  const dark = document.body.classList.contains("home-dark");
+  try {
+    pillCleanup = mountPillNav(document.querySelector("[data-pill-nav]"), {
+      items: primaryNav,
+      activeHref: navHref(active),
+      className: "site-pill-nav",
+      ariaLabel: uz.mainNav,
+      baseColor: dark ? "#141a22" : "#ffffff",
+      pillColor: dark ? "#ffffff" : "#f1f4f7",
+      hoveredPillTextColor: "#ffffff",
+      pillTextColor: dark ? "#141a22" : "#1e2a38",
+    });
+  } catch (error) {
+    console.error("Pill navigation failed to mount:", error);
+  }
   setupHeaderSearch();
 }
 function artwork(key) {
