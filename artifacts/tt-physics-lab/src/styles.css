@@ -3657,22 +3657,48 @@ body.home-dark,
   border-top: 1px solid #ffffff10;
   background: #05080c;
 }
+.dark-hero .hero-buttons {
+  gap: 12px;
+}
 .dark-hero .hero-buttons .button {
-  width: 192px;
-  min-width: 192px;
-  min-height: 50px;
-  padding-inline: 18px;
-  border: 1px solid #f1592a;
-  border-radius: 11px;
+  width: auto;
+  min-width: 0;
+  min-height: 48px;
+  padding: 0 20px;
+  border-radius: 12px;
   font-size: 12px;
+  font-weight: 650;
+  letter-spacing: 0.01em;
+}
+.dark-hero .hero-buttons .button.primary {
+  color: #fff;
+  border: 1px solid #ff8c6b80;
+  background: linear-gradient(135deg, #f1592a 0%, #df4d20 100%);
+  box-shadow: 0 12px 28px #f1592a2b, inset 0 1px 0 #ffffff35;
+}
+.dark-hero .hero-buttons .button.primary:hover {
+  background: linear-gradient(135deg, #ff6a3d 0%, #e85425 100%);
+  box-shadow: 0 16px 34px #f1592a3d, inset 0 1px 0 #ffffff45;
 }
 .dark-hero .hero-buttons .button.ghost {
-  color: #ffb093;
-  background: #f1592a0c;
+  color: #e5ebf0;
+  border: 1px solid #ffffff24;
+  background: #ffffff0a;
+  box-shadow: inset 0 1px 0 #ffffff0d;
+  backdrop-filter: blur(12px);
 }
 .dark-hero .hero-buttons .button.ghost:hover {
   color: #fff;
-  background: #f1592a22;
+  border-color: #f1592a80;
+  background: #f1592a16;
+  box-shadow: 0 10px 24px #00000024, inset 0 1px 0 #ffffff12;
+}
+.dark-hero .hero-buttons .button .icon {
+  width: 17px;
+  height: 17px;
+}
+.dark-hero .hero-buttons .button.ghost .icon {
+  color: #ff9a76;
 }
 
 @media (max-width: 680px) {
