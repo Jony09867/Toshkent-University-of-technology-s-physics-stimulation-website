@@ -5,7 +5,7 @@ import { icon } from "./components/icons.js";
 import { formula } from "./components/FormulaDisplay.js";
 import { parameterSlider } from "./components/ParameterSlider.js";
 import { levelTabs } from "./components/LevelTabs.js";
-import { resultCard, format } from "./components/ResultCard.js";
+import { resultCard, formatResult, NO_VALUE } from "./components/ResultCard.js";
 import { SimulationCanvas } from "./components/SimulationCanvas.js";
 import { LiveChart } from "./components/LiveChart.js";
 import { attachBorderGlow } from "./components/BorderGlow.js";
@@ -16,6 +16,44 @@ import "./components/ParticleText.css";
 import "./components/FloatingLines.css";
 
 const app = document.querySelector("#app");
+/**
+ * Moves keyboard focus without yanking the viewport around. Used for the skip
+ * link and for every client side route change so focus is never left on a
+ * removed node.
+ */
+const focusTarget = (selector) => {
+  const target =
+    (selector && document.querySelector(selector)) || document.querySelector("#main");
+  if (!target || typeof target.focus !== "function") return false;
+  if (target.id === "main" && !target.hasAttribute("tabindex"))
+    target.setAttribute("tabindex", "-1");
+  target.focus({ preventScroll: true });
+  return document.activeElement === target;
+};
+const replaceHash = (hash) => {
+  try {
+    history.replaceState(null, "", hash);
+  } catch {
+    location.hash = hash;
+  }
+};
+/**
+ * The skip link lives outside #app, so it survives every render. It targets the
+ * router-managed #main element, which is not a route: without this the browser
+ * would turn "#main" into a hash route and unmount the current page.
+ */
+function setupSkipLink() {
+  const skip = document.querySelector(".skip");
+  if (!skip || skip.dataset.ttSkipBound) return;
+  skip.dataset.ttSkipBound = "1";
+  skip.addEventListener("click", (event) => {
+    if (!document.querySelector("#main")) return;
+    event.preventDefault();
+    focusTarget("#main");
+    window.scrollTo(0, 0);
+  });
+}
+setupSkipLink();
 const escape = (s) =>
   String(s).replace(
     /[&<>"']/g,
@@ -49,14 +87,21 @@ function write(key, value) {
 let completed = new Set(read("tt-completed", [])),
   cleanup = () => {},
   currentRoute = "",
-  routeGeneration = 0;
+  routeGeneration = 0,
+  firstRoute = true,
+  pendingRouteFocus = "#main";
 const simSessions = new Map();
-const topics = await fetch(new URL("./data/topics.json", import.meta.url)).then(
-  (r) => {
+let catalogFailed = false;
+const topics = await fetch(new URL("./data/topics.json", import.meta.url))
+  .then((r) => {
     if (!r.ok) throw new Error(uz.catalogError);
     return r.json();
-  },
-);
+  })
+  .catch((error) => {
+    catalogFailed = true;
+    console.error("Catalog load failed:", error);
+    return [];
+  });
 topics.forEach((t) => {
   t.section = sectionFor(t.number);
   t.sim = allConfigs.find((s) => s.topicNumbers.includes(t.number));
@@ -169,7 +214,7 @@ function setupHeaderSearch() {
   };
 }
 function header(active = "home") {
-  return `<div class="topbar"><div class="container"><span>${uz.brand}</span><a href="https://tashkenttech-edu.uz/" target="_blank" rel="noopener">${uz.university} ↗</a></div></div><header class="header"><div class="container header-inner">${brand()}<nav class="nav" aria-label="${uz.mainNav}">${["home", "topics", "sections", "progress", "about"].map((id, i) => `<a href="#/${id === "home" ? "" : id}" class="${active === id ? "active" : ""}" ${active === id ? 'aria-current="page"' : ""}>${uz.nav[i]}</a>`).join("")}</nav><div class="header-actions"><button class="icon-button header-search-toggle" aria-label="${uz.searchLabel}" aria-expanded="false">${icon("search")}</button><span class="language" lang="uz">UZ</span><a class="header-lab" href="${simLink(allConfigs.find((c) => c.key === "newton"))}">${icon("arrow")}</a><button class="menu-button icon-button" aria-label="${uz.openMenu}" aria-expanded="false">${icon("menu")}</button></div></div></header>`;
+  return `<div class="topbar"><div class="container"><span>${uz.brand}</span><a href="https://tashkenttech-edu.uz/" target="_blank" rel="noopener">${uz.university} ↗</a></div></div><header class="header"><div class="container header-inner">${brand()}<nav class="nav" aria-label="${uz.mainNav}">${["home", "topics", "sections", "progress", "about"].map((id, i) => `<a href="#/${id === "home" ? "" : id}" class="${active === id ? "active" : ""}" ${active === id ? 'aria-current="page"' : ""}>${uz.nav[i]}</a>`).join("")}</nav><div class="header-actions"><button type="button" class="icon-button header-search-toggle" aria-label="${uz.searchLabel}" aria-expanded="false">${icon("search")}</button><span class="language" lang="uz">UZ</span><a class="header-lab" href="${simLink(allConfigs.find((c) => c.key === "newton"))}">${icon("arrow")}</a><button type="button" class="menu-button icon-button" aria-label="${uz.openMenu}" aria-expanded="false">${icon("menu")}</button></div></div></header>`;
 }
 function footer() {
   return `<footer><div class="container footer-top"><div>${brand()}<p>${uz.footerText}</p></div><div><span class="eyebrow">PHYSICS LAB</span><a href="#/topics">${uz.browse}</a><a href="#/about">${uz.nav[4]}</a></div><div><span class="eyebrow">TASHKENT TECH</span><a href="https://tashkenttech-edu.uz/" target="_blank" rel="noopener">${uz.university} ↗</a><a href="mailto:info@tashkenttech-edu.uz">info@tashkenttech-edu.uz</a></div></div><div class="container footer-bottom"><span>© ${new Date().getFullYear()} ${uz.footerSub}</span><span>${uz.source}</span></div></footer>`;
@@ -235,7 +280,7 @@ function sectionCards() {
 function home() {
   const newton = allConfigs.find((c) => c.key === "newton");
   shell(
-    `<section class="hero dark-hero"><div id="floating-lines" class="floating-lines" aria-hidden="true"></div><div class="dark-hero-grid" aria-hidden="true"></div><div class="container dark-hero-content"><div id="particle-text" class="particle-text particle-headline" role="heading" aria-level="1"></div><p>${uz.heroText}</p><div class="hero-buttons"><a class="button primary specular-button" href="${simLink(newton)}"><span>${uz.start}</span>${icon("arrow")}</a><a class="button ghost" href="#/topics">${icon("grid")}<span>${uz.browse}</span></a></div><div class="dark-hero-meta"><div class="hero-proof"><span class="proof-symbol">∑</span><span>${uz.proofTop}<br><strong>${uz.proofBottom}</strong></span></div><div class="hero-formula-chips" aria-label="Asosiy fizika formulalari"><span>F = ma</span><span>E = mc²</span><span>pV = nRT</span></div></div></div></section><section class="stat-strip"><div class="container stats"><div><b>15</b><span>${uz.simulations}</span></div><div><b>143</b><span>${uz.topics}</span></div><div><b>15</b><span>${uz.sections}</span></div><div><b>3</b><span>${uz.learningLevels}</span></div></div></section><section class="container section-space"><div class="section-heading"><div><span class="eyebrow orange">${uz.featuredTag}</span><h2>${uz.featured}</h2><p>${uz.featuredText}</p></div><a class="text-link" href="#/topics?ready=1">${uz.allSims}${icon("arrow")}</a></div><div class="sim-grid">${[
+    `<section class="hero dark-hero"><div id="floating-lines" class="floating-lines" aria-hidden="true"></div><div class="dark-hero-grid" aria-hidden="true"></div><div class="container dark-hero-content"><h1 id="particle-text" class="particle-text particle-headline"></h1><p>${uz.heroText}</p><div class="hero-buttons"><a class="button primary specular-button" href="${simLink(newton)}"><span>${uz.start}</span>${icon("arrow")}</a><a class="button ghost" href="#/topics">${icon("grid")}<span>${uz.browse}</span></a></div><div class="dark-hero-meta"><div class="hero-proof"><span class="proof-symbol">∑</span><span>${uz.proofTop}<br><strong>${uz.proofBottom}</strong></span></div><div class="hero-formula-chips" aria-label="Asosiy fizika formulalari"><span>F = ma</span><span>E = mc²</span><span>pV = nRT</span></div></div></div></section><section class="stat-strip"><div class="container stats"><div><b>15</b><span>${uz.simulations}</span></div><div><b>143</b><span>${uz.topics}</span></div><div><b>15</b><span>${uz.sections}</span></div><div><b>3</b><span>${uz.learningLevels}</span></div></div></section><section class="container section-space"><div class="section-heading"><div><span class="eyebrow orange">${uz.featuredTag}</span><h2>${uz.featured}</h2><p>${uz.featuredText}</p></div><a class="text-link" href="#/topics?ready=1">${uz.allSims}${icon("arrow")}</a></div><div class="sim-grid">${[
       "newton",
       "projectile",
       "spring",
@@ -327,9 +372,19 @@ function catalog(query) {
 function simPage(config, level = 0) {
   const restored = simSessions.get(config.id);
   let p = { ...defaults(config, level), ...(restored?.p || {}) },
-    t = restored?.t || 0,
-    state = config.calculate(p, t),
-    speed = restored?.speed || 1,
+    t = Number.isFinite(restored?.t) ? restored.t : 0,
+    state;
+  try {
+    state = config.calculate(p, t);
+  } catch (error) {
+    console.error("Initial simulation calculation failed:", error);
+    p = defaults(config, level);
+    t = 0;
+    state = config.calculate(p, t);
+  }
+  let speed =
+      Number.isFinite(restored?.speed) && restored.speed > 0 ? restored.speed : 1,
+    // Static models have no time axis, so they never autoplay.
     playing = config.static
       ? false
       : (restored?.playing ??
@@ -352,11 +407,22 @@ function simPage(config, level = 0) {
           : "";
   const chartVisible =
     level > 0 || ["motion", "spring", "energy"].includes(c.key);
+  // Static models have no time axis: they must not expose a play/pause control
+  // at all, and the explanation replaces the transport row.
   const transport = c.static
-    ? `<div class="static-model-note">${icon("help")}<span>${uz.staticModel}</span></div>`
-    : `<div class="transport"><div><button class="icon-button" id="play" aria-label="${playing ? uz.pause : uz.play}">${icon(playing ? "pause" : "play")}</button><button class="icon-button" id="reset" aria-label="${uz.reset}">${icon("reset")}</button><span class="time-display">t = <b id="sim-time">${t.toFixed(2)}</b> s</span></div><div>${c.key === "projectile" ? `<button id="save-trail" class="subtle-button">+ ${uz.saveTrail}</button><button id="clear-trail" class="icon-button" aria-label="${uz.clearTrail}">${icon("close")}</button>` : ""}<label class="speed-control"><span>${uz.speed}</span><select id="sim-speed" aria-label="${uz.animationSpeed}"><option value="0.25">0.25×</option><option value="0.5">0.5×</option><option value="1">1×</option><option value="2">2×</option></select></label></div></div><label class="time-scrubber"><span>${uz.timeline}</span><input id="timeline" type="range" min="0" max="${c.duration}" step="any" value="${t}" aria-label="${uz.timeline}"></label>`;
+    ? `<div class="static-model-note" role="note">${icon("help")}<span>${uz.staticModel}</span></div>`
+    : `<div class="transport"><div><button type="button" class="icon-button" id="play" aria-label="${playing ? uz.pause : uz.play}">${icon(playing ? "pause" : "play")}</button><button type="button" class="icon-button" id="reset" aria-label="${uz.reset}">${icon("reset")}</button><span class="time-display">t = <b id="sim-time">${t.toFixed(2)}</b> s</span></div><div>${c.key === "projectile" ? `<button type="button" id="save-trail" class="subtle-button">+ ${uz.saveTrail}</button><button type="button" id="clear-trail" class="icon-button" aria-label="${uz.clearTrail}">${icon("close")}</button>` : ""}<label class="speed-control"><span>${uz.speed}</span><select id="sim-speed" aria-label="${uz.animationSpeed}"><option value="0.25">0.25×</option><option value="0.5">0.5×</option><option value="1">1×</option><option value="2">2×</option></select></label></div></div><label class="time-scrubber"><span>${uz.timeline}</span><input id="timeline" type="range" min="0" max="${c.duration}" step="any" value="${t}" aria-label="${uz.timeline}"></label>`;
+  // The energy model swaps its banner when friction is on, so the formula has to
+  // follow the live (or restored) state instead of the static config.
+  const mainFormula = () =>
+    formula(
+      c.key === "energy" && p.friction
+        ? "E_k+E_p+Q=\\mathrm{const}"
+        : c.formulaLatex,
+      true,
+    );
   shell(
-    `<div class="container sim-page"><div class="breadcrumb"><a href="#/topics">${uz.nav[1]}</a><span>/</span><a href="#/topics?section=${c.section}">${sectionName(c.section)}</a><span>/</span><span>${c.title}</span></div><div class="sim-title-row"><div><span class="eyebrow orange">${uz.experimentLabel} ${String(index + 1).padStart(2, "0")} / ${sectionName(c.section).toUpperCase()}</span><h1>${c.title}</h1><p>${c.description}</p></div><button class="icon-button help-button" aria-label="${uz.help}">${icon("help")}</button></div><div class="formula-banner"><div id="main-formula">${formula(c.formulaLatex, true)}</div><span>SI · ${uz.levels[level]}</span></div>${levelTabs(level)}<div id="experiment-panel" role="tabpanel" aria-labelledby="level-${level}"><div class="experiment-layout"><section class="experiment-card"><div class="panel-header"><h2>${icon("grid")}${uz.experiment}</h2><span class="live-label"><i></i>${uz.live}</span></div><canvas id="sim-canvas" role="img" aria-label="${uz.canvasLabel}: ${c.title}"></canvas>${transport}<div class="vector-legend">${legendFor(c)}<span id="sim-notice" role="status"></span></div></section><aside class="controls-card"><div class="panel-header"><h2>${uz.parameters}</h2><span>${params.length}</span></div>${extras}<div class="parameter-stack">${params.map((param) => parameterSlider(param, p[param.key])).join("")}</div><div class="controls-note">${icon("help")}<span>${uz.previewText}</span></div></aside></div><section class="results-section"><div class="minor-heading"><h2>${uz.results}</h2><span>SI</span></div><div class="result-grid">${c.results.map((r) => resultCard(r, state[r.key])).join("")}</div><p id="result-status" class="result-status" role="status"></p></section>${chartVisible ? `<section class="chart-section"><div class="minor-heading"><h2>${uz.chart}</h2><span>${["coulomb", "lens", "ohm", "circuit", "gas", "resonance"].includes(c.key) ? uz.relationsLabel : uz.timeRelationsLabel}</span></div><div id="charts" class="charts-grid"></div></section>` : ""}<div class="learning-grid"><section class="learning-card"><span class="section-icon">${icon("book")}</span><h2>${level === 2 ? uz.derivation : uz.explanation}</h2>${level === 2 ? `<ol class="derivation">${c.hard.map((s) => `<li>${formula(s, true)}</li>`).join("")}</ol>` : `<p>${level === 0 ? c.easy : c.medium}</p>`}</section><section class="learning-card engineering"><span class="section-icon">${icon("force")}</span><span class="eyebrow">${uz.engineeringLabel}</span><h2>${uz.engineering}</h2><p>${c.engineering}</p></section></div><details class="model-note"><summary>${uz.model}</summary><p>${c.model}</p></details></div><div class="sim-navigation"><a class="button secondary" href="${simLink(allConfigs[(index - 1 + allConfigs.length) % allConfigs.length])}">← ${uz.previous}</a><button id="complete" class="button ${completed.has(c.id) ? "completed" : "primary"}">${icon("check")}${completed.has(c.id) ? uz.completed : uz.complete}</button><a class="button secondary" href="${simLink(allConfigs[(index + 1) % allConfigs.length])}">${uz.next} →</a></div><a class="text-link back-link" href="#/topics">${icon("grid")}${uz.back}</a></div>`,
+    `<div class="container sim-page"><div class="breadcrumb"><a href="#/topics">${uz.nav[1]}</a><span>/</span><a href="#/topics?section=${c.section}">${sectionName(c.section)}</a><span>/</span><span>${c.title}</span></div><div class="sim-title-row"><div><span class="eyebrow orange">${uz.experimentLabel} ${String(index + 1).padStart(2, "0")} / ${sectionName(c.section).toUpperCase()}</span><h1>${c.title}</h1><p>${c.description}</p></div><button type="button" class="icon-button help-button" aria-label="${uz.help}">${icon("help")}</button></div><div class="formula-banner"><div id="main-formula">${mainFormula()}</div><span>SI · ${uz.levels[level]}</span></div>${levelTabs(level)}<div id="experiment-panel" role="tabpanel" aria-labelledby="level-${level}"><div class="experiment-layout"><section class="experiment-card"><div class="panel-header"><h2>${icon("grid")}${uz.experiment}</h2><span class="live-label"><i></i>${uz.live}</span></div><canvas id="sim-canvas" role="img" aria-label="${uz.canvasLabel}: ${c.title}"></canvas>${transport}<div class="vector-legend">${legendFor(c)}<span id="sim-notice" role="status"></span></div></section><aside class="controls-card"><div class="panel-header"><h2>${uz.parameters}</h2><span>${params.length}</span></div>${extras}<div class="parameter-stack">${params.map((param) => parameterSlider(param, p[param.key])).join("")}</div><div class="controls-note">${icon("help")}<span>${uz.previewText}</span></div></aside></div><section class="results-section"><div class="minor-heading"><h2>${uz.results}</h2><span>SI</span></div><div class="result-grid">${c.results.map((r) => resultCard(r, state[r.key])).join("")}</div><p id="result-status" class="result-status" role="status"></p></section>${chartVisible ? `<section class="chart-section"><div class="minor-heading"><h2>${uz.chart}</h2><span>${["coulomb", "lens", "ohm", "circuit", "gas", "resonance"].includes(c.key) ? uz.relationsLabel : uz.timeRelationsLabel}</span></div><div id="charts" class="charts-grid"></div></section>` : ""}<div class="learning-grid"><section class="learning-card"><span class="section-icon">${icon("book")}</span><h2>${level === 2 ? uz.derivation : uz.explanation}</h2>${level === 2 ? `<ol class="derivation">${c.hard.map((s) => `<li>${formula(s, true)}</li>`).join("")}</ol>` : `<p>${level === 0 ? c.easy : c.medium}</p>`}</section><section class="learning-card engineering"><span class="section-icon">${icon("force")}</span><span class="eyebrow">${uz.engineeringLabel}</span><h2>${uz.engineering}</h2><p>${c.engineering}</p></section></div><details class="model-note"><summary>${uz.model}</summary><p>${c.model}</p></details></div><div class="sim-navigation"><a class="button secondary" href="${simLink(allConfigs[(index - 1 + allConfigs.length) % allConfigs.length])}">← ${uz.previous}</a><button type="button" id="complete" class="button ${completed.has(c.id) ? "completed" : "primary"}">${icon("check")}${completed.has(c.id) ? uz.completed : uz.complete}</button><a class="button secondary" href="${simLink(allConfigs[(index + 1) % allConfigs.length])}">${uz.next} →</a></div><a class="text-link back-link" href="#/topics">${icon("grid")}${uz.back}</a></div>`,
     "topics",
   );
   const canvas = new SimulationCanvas(document.querySelector("#sim-canvas")),
@@ -372,22 +438,48 @@ function simPage(config, level = 0) {
       const cycles = Math.max(1, Math.floor(c.duration / state.period));
       end = cycles * state.period;
     }
-    return Math.max(0.01, end);
+    return Number.isFinite(end) && end > 0 ? end : Math.max(0.01, c.duration);
   };
   const setPlayState = (next) => {
+    if (c.static) {
+      // Static models never run, so there is no control to reflect.
+      playing = false;
+      return;
+    }
     playing = next;
     const button = document.querySelector("#play");
     if (!button) return;
     button.innerHTML = icon(playing ? "pause" : "play");
     button.setAttribute("aria-label", playing ? uz.pause : uz.play);
+    if (next && !c.static && frame == null) {
+      last = 0;
+      frame = requestAnimationFrame(loop);
+    } else if (!next && frame != null) {
+      cancelAnimationFrame(frame);
+      frame = null;
+      last = 0;
+    }
   };
   const update = (force) => {
     if (disposed || !document.querySelector("#sim-canvas")) return;
-    state = c.calculate(p, t);
+    try {
+      state = c.calculate(p, t);
+    } catch (error) {
+      console.error("Simulation calculation failed:", error);
+      setPlayState(false);
+      const notice = document.querySelector("#sim-notice");
+      if (notice) notice.textContent = uz.simulationError;
+      return;
+    }
     canvas.update({ config: c, p, s: state, t, trails, level });
     for (const r of c.results) {
       const output = document.querySelector(`[data-result="${r.key}"]`);
-      if (output) output.textContent = format(state[r.key] * r.scale);
+      if (output) {
+        const formatted = formatResult(r, state[r.key]);
+        output.textContent = formatted;
+        const unit = output.parentElement?.querySelector("[data-result-unit]");
+        if (unit) unit.hidden = formatted === NO_VALUE;
+      }
     }
     const timeOutput = document.querySelector("#sim-time"),
       timeline = document.querySelector("#timeline"),
@@ -398,15 +490,11 @@ function simPage(config, level = 0) {
       timeline.value = Math.min(t, end);
       timeline.style.setProperty("--fill", `${(Math.min(t, end) / end) * 100}%`);
     }
-    if (c.key === "lens")
-      document.querySelector("#result-status").textContent = state.atFocus
-        ? uz.focus
-        : state.real
-          ? uz.real
-          : uz.virtual;
-    if (c.key === "buoyancy")
-      document.querySelector("#result-status").textContent =
-        uz.floating[state.status];
+    const status = document.querySelector("#result-status");
+    if (c.key === "lens" && status)
+      status.textContent = state.atFocus ? uz.focus : state.real ? uz.real : uz.virtual;
+    if (c.key === "buoyancy" && status)
+      status.textContent = uz.floating[state.status] || "";
     chart?.add(t, state, force);
   };
   const restart = () => {
@@ -416,40 +504,86 @@ function simPage(config, level = 0) {
     update(true);
   };
   const decimals = (step) => (String(step).split(".")[1] || "").length;
+  /**
+   * Clamps a raw value into the input range and snaps it to the step, so the
+   * slider, the number field and the engine can never disagree. Non numeric
+   * input falls back to the low bound instead of poisoning the state with NaN.
+   */
   const normalizeValue = (input, raw) => {
     const min = Number(input.min),
       max = Number(input.max),
-      step = Number(input.step) || 1,
-      clamped = Math.max(min, Math.min(max, Number(raw)));
-    return Number((min + Math.round((clamped - min) / step) * step).toFixed(decimals(step) + 2));
+      step = Math.abs(Number(input.step)) || 1,
+      lo = Number.isFinite(min) ? min : -Infinity,
+      hi = Number.isFinite(max) ? max : Infinity,
+      value = Number(raw);
+    const clamped = Number.isFinite(value)
+      ? Math.max(lo, Math.min(hi, value))
+      : lo;
+    if (!Number.isFinite(lo)) return clamped;
+    const snapped = lo + Math.round((clamped - lo) / step) * step;
+    const result = Number(snapped.toFixed(decimals(step) + 2));
+    return Number.isFinite(result) ? result : clamped;
+  };
+  const fillFor = (value, min, max) => {
+    const span = max - min;
+    const percent = Number.isFinite(span) && span > 0 ? ((value - min) / span) * 100 : 100;
+    return `${Math.max(0, Math.min(100, percent))}%`;
+  };
+  /** Preset dropdowns that mirror a numeric parameter. */
+  const presetSelectors = { mu: "#surface", fluid: "#fluid-choice" };
+  /** Returns null for empty / half typed / non numeric values. */
+  const toNumber = (raw) => {
+    if (typeof raw === "string" && raw.trim() === "") return null;
+    const value = Number(raw);
+    return Number.isFinite(value) ? value : null;
   };
   const syncPreset = (key, value) => {
-    const select = document.querySelector(key === "mu" ? "#surface" : "#fluid-choice");
+    const selector = presetSelectors[key];
+    if (!selector) return;
+    const select = document.querySelector(selector);
     if (!select) return;
+    const tolerance = Math.max(1e-9, Math.abs(Number(value)) * 1e-9);
     const match = [...select.options].find(
-      (option) => option.value !== "custom" && Math.abs(Number(option.value) - value) < 1e-9,
+      (option) =>
+        option.value !== "custom" &&
+        Math.abs(Number(option.value) - Number(value)) <= tolerance,
     );
-    select.value = match?.value || "custom";
+    const next = match?.value ?? "custom";
+    if (select.value !== next) select.value = next;
   };
-  function sync(key, value) {
+  /**
+   * Single entry point for parameter changes: normalises the value, mirrors it
+   * into every control (range, number field, preset select) and re-runs the
+   * model. Returns the value that was actually applied.
+   */
+  function sync(key, raw) {
     const range = document.querySelector(`[data-param="${key}"]`),
-      number = document.querySelector(`[data-number="${key}"]`);
-    const normalized = range ? normalizeValue(range, value) : value;
+      number = document.querySelector(`[data-number="${key}"]`),
+      source = range || number;
+    // Empty / unparseable input keeps the last applied value instead of
+    // snapping the parameter to 0 (Number("") === 0).
+    const usable = toNumber(raw) ?? Number(p[key]);
+    const normalized = source
+      ? normalizeValue(source, usable)
+      : Number.isFinite(usable)
+        ? usable
+        : 0;
     p[key] = normalized;
     if (range) {
       range.value = normalized;
       range.style.setProperty(
         "--fill",
-        ((normalized - Number(range.min)) /
-          (Number(range.max) - Number(range.min))) *
-          100 +
-          "%",
+        fillFor(normalized, Number(range.min), Number(range.max)),
       );
-      number.value = normalized;
     }
-    if (key === "mu" || key === "fluid") syncPreset(key, normalized);
+    // Never rewrite the field being typed in: that would move the caret.
+    if (number && document.activeElement !== number) number.value = normalized;
+    syncPreset(key, normalized);
     restart();
+    return normalized;
   }
+  /** Returns null for empty / half typed / non numeric field content. */
+  const parseNumber = (input) => toNumber(input.value);
   document
     .querySelectorAll("[data-param]")
     .forEach(
@@ -457,24 +591,37 @@ function simPage(config, level = 0) {
         (input.oninput = () => sync(input.dataset.param, Number(input.value))),
     );
   document.querySelectorAll("[data-number]").forEach((input) => {
+    const markValid = (valid) => {
+      input.setAttribute("aria-invalid", valid ? "false" : "true");
+      input.closest(".parameter")?.classList.toggle("is-invalid", !valid);
+    };
     input.oninput = () => {
-      if (input.value === "" || !Number.isFinite(Number(input.value))) return;
-      const value = Number(input.value);
+      const value = parseNumber(input);
+      if (value === null) {
+        // Empty or half typed: keep the last applied value, flag the field.
+        markValid(false);
+        return;
+      }
+      markValid(true);
       if (value >= Number(input.min) && value <= Number(input.max))
         sync(input.dataset.number, value);
     };
     input.onchange = () => {
-      const n = Number(input.value);
-      sync(
+      const value = parseNumber(input);
+      // Commit: clamp/snap out of range input, or restore the model value when
+      // the field was cleared. `sync` skips the focused field, so echo it back.
+      input.value = sync(
         input.dataset.number,
-        Number.isFinite(n)
-          ? Math.max(Number(input.min), Math.min(Number(input.max), n))
-          : p[input.dataset.number],
+        value === null ? p[input.dataset.number] : value,
       );
+      markValid(true);
+    };
+    input.onkeydown = (e) => {
+      if (e.key === "Enter") input.blur();
     };
   });
   const play = document.querySelector("#play");
-  if (play)
+  if (play && !c.static)
     play.onclick = () => {
       if (!playing && t >= endTime() - 1e-6) restart();
       setPlayState(!playing);
@@ -485,48 +632,55 @@ function simPage(config, level = 0) {
   if (reset) reset.onclick = restart;
   if (speedInput) {
     speedInput.value = String(speed);
-    speedInput.onchange = (e) => (speed = Number(e.target.value));
+    speedInput.onchange = (e) => {
+      const value = Number(e.target.value);
+      if (Number.isFinite(value) && value > 0) speed = value;
+    };
   }
   if (timeline)
     timeline.oninput = (e) => {
       setPlayState(false);
       const value = Number(e.target.value),
         max = Number(e.target.max);
-      t = value >= max - 1e-6 ? max : value;
+      t = Number.isFinite(value) ? (value >= max - 1e-6 ? max : value) : 0;
       update(true);
     };
+  // Preset dropdowns: reflect the restored/current value, and push the chosen
+  // preset back through `sync` so range + number + select stay in lockstep.
   syncPreset("mu", p.mu);
   syncPreset("fluid", p.fluid);
-  document
-    .querySelector("#surface")
-    ?.addEventListener("change", (e) => {
-      if (e.target.value !== "custom") sync("mu", Number(e.target.value));
-    });
-  document
-    .querySelector("#fluid-choice")
-    ?.addEventListener("change", (e) => {
-      if (e.target.value !== "custom") sync("fluid", Number(e.target.value));
-    });
-  document
-    .querySelector("#friction-toggle")
-    ?.addEventListener("change", (e) => {
+  Object.entries(presetSelectors).forEach(([key, selector]) => {
+    const select = document.querySelector(selector);
+    if (!select) return;
+    select.onchange = (e) => {
+      const value = Number(e.target.value);
+      // "custom" only marks the current value as user defined; it changes nothing.
+      if (e.target.value === "custom" || !Number.isFinite(value)) return;
+      sync(key, value);
+    };
+  });
+  const frictionToggle = document.querySelector("#friction-toggle");
+  if (frictionToggle) {
+    // Restored sessions can carry `friction: true`, so seed the control.
+    frictionToggle.checked = Boolean(p.friction);
+    frictionToggle.onchange = (e) => {
       p.friction = e.target.checked;
-      document.querySelector("#main-formula").innerHTML = formula(
-        p.friction ? "E_k+E_p+Q=\\mathrm{const}" : c.formulaLatex,
-        true,
-      );
+      const banner = document.querySelector("#main-formula");
+      if (banner) banner.innerHTML = mainFormula();
       restart();
-    });
+    };
+  }
   document.querySelector("#save-trail")?.addEventListener("click", () => {
     trails.push({ ...p });
     if (trails.length > 4) trails.shift();
-    document.querySelector("#sim-notice").textContent =
-      uz.trailSaved + ` (${trails.length}/4)`;
+    const notice = document.querySelector("#sim-notice");
+    if (notice) notice.textContent = uz.trailSaved + ` (${trails.length}/4)`;
     update(true);
   });
   document.querySelector("#clear-trail")?.addEventListener("click", () => {
     trails = [];
-    document.querySelector("#sim-notice").textContent = "";
+    const notice = document.querySelector("#sim-notice");
+    if (notice) notice.textContent = "";
     update(true);
   });
   document.querySelectorAll("[data-level]").forEach(
@@ -540,42 +694,49 @@ function simPage(config, level = 0) {
         window.scrollTo(0, scroll);
         document
           .querySelector(`[data-level="${button.dataset.level}"]`)
-          .focus({ preventScroll: true });
+          ?.focus({ preventScroll: true });
       }),
   );
-  document.querySelector(".level-tabs").onkeydown = (e) => {
-    if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(e.key)) return;
-    e.preventDefault();
-    const next =
-      e.key === "Home"
-        ? 0
-        : e.key === "End"
-          ? 2
-          : (level + (e.key === "ArrowRight" ? 1 : 2)) % 3;
-    document.querySelector(`[data-level="${next}"]`).click();
-  };
-  document.querySelector("#complete").onclick = (e) => {
-    if (completed.has(c.id)) completed.delete(c.id);
-    else completed.add(c.id);
-    write("tt-completed", [...completed]);
-    const b = document.querySelector("#complete");
-    b.className = "button " + (completed.has(c.id) ? "completed" : "primary");
-    b.innerHTML =
-      icon("check") + (completed.has(c.id) ? uz.completed : uz.complete);
-  };
+  const levelTabsEl = document.querySelector(".level-tabs");
+  if (levelTabsEl)
+    levelTabsEl.onkeydown = (e) => {
+      if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(e.key)) return;
+      e.preventDefault();
+      const next =
+        e.key === "Home"
+          ? 0
+          : e.key === "End"
+            ? 2
+            : (level + (e.key === "ArrowRight" ? 1 : 2)) % 3;
+      document.querySelector(`[data-level="${next}"]`)?.click();
+    };
+  const completeButton = document.querySelector("#complete");
+  if (completeButton)
+    completeButton.onclick = () => {
+      if (completed.has(c.id)) completed.delete(c.id);
+      else completed.add(c.id);
+      write("tt-completed", [...completed]);
+      completeButton.className =
+        "button " + (completed.has(c.id) ? "completed" : "primary");
+      completeButton.innerHTML =
+        icon("check") + (completed.has(c.id) ? uz.completed : uz.complete);
+    };
   const onboarding = () => {
+    const card = document.querySelector(".controls-card");
     document.querySelector(".onboarding")?.remove();
+    if (!card) return;
     const box = document.createElement("div");
     box.className = "onboarding";
     box.setAttribute("role", "status");
-    box.innerHTML = `${icon("help")}<p>${uz.onboarding}</p><button class="button primary">${uz.gotIt}</button>`;
-    document.querySelector(".controls-card").append(box);
+    box.innerHTML = `${icon("help")}<p>${uz.onboarding}</p><button type="button" class="button primary">${uz.gotIt}</button>`;
+    card.append(box);
     box.querySelector("button").onclick = () => {
       box.remove();
       write("tt-onboarded", true);
     };
   };
-  document.querySelector(".help-button").onclick = onboarding;
+  const helpButton = document.querySelector(".help-button");
+  if (helpButton) helpButton.onclick = onboarding;
   if (!read("tt-onboarded", false)) onboarding();
   const loop = (now) => {
     if (disposed) return;
@@ -591,10 +752,11 @@ function simPage(config, level = 0) {
       update(false);
     }
     last = now;
-    frame = requestAnimationFrame(loop);
+    if (playing && !c.static) frame = requestAnimationFrame(loop);
+    else frame = null;
   };
   update(true);
-  frame = requestAnimationFrame(loop);
+  if (playing && !c.static) frame = requestAnimationFrame(loop);
   cleanup = () => {
     if (disposed) return;
     disposed = true;
@@ -647,13 +809,31 @@ function planned(number) {
   );
 }
 async function route() {
+  const raw = location.hash.slice(1) || "/";
+  let [path, query = ""] = raw.split("?");
+  // "#main" is the skip link target rendered by the shell, not a route. Bail out
+  // to the mounted page (and keep focus on #main) instead of unmounting it.
+  if (path === "main" || path === "/main") {
+    replaceHash("#" + (currentRoute || "/"));
+    if (currentRoute) {
+      focusTarget("#main");
+      return;
+    }
+    [path, query] = ["/", ""];
+  }
   const generation = ++routeGeneration;
   cleanup();
   cleanup = () => {};
-  const raw = location.hash.slice(1) || "/",
-    [path, query = ""] = raw.split("?");
   currentRoute = path;
   document.body.classList.toggle("home-dark", path === "/");
+  if (catalogFailed) {
+    shell(
+      `<section class="container page-heading"><span class="eyebrow orange">${uz.catalogError}</span><h1>${uz.catalogError}</h1><p>${uz.simulationError}</p><a class="button primary" href="#/">${uz.home}</a></section>`,
+      "home",
+    );
+    document.title = `${uz.catalogError} — TT Physics Lab`;
+    return;
+  }
   if (path === "/") home();
   else if (path === "/topics") catalog(query);
   else if (path === "/sections")
@@ -667,9 +847,19 @@ async function route() {
   else if (path.startsWith("/sim/")) {
     const c = allConfigs.find((c) => c.id === path.split("/")[2]);
     if (c) {
-      const module = await import(`./simulations/${c.section}/${c.id}.js`);
-      if (generation !== routeGeneration) return;
-      simPage(module.simulationConfig);
+      try {
+        const module = await import(`./simulations/${c.section}/${c.id}.js`);
+        if (generation !== routeGeneration) return;
+        simPage(module.simulationConfig);
+      } catch (error) {
+        console.error("Simulation route failed:", error);
+        if (generation === routeGeneration) {
+          shell(
+            `<section class="container page-heading"><span class="eyebrow orange">${uz.simulationLoadError}</span><h1>${uz.simulationLoadError}</h1><p>${uz.simulationError}</p><a class="button primary" href="#/topics">${uz.back}</a></section>`,
+            "topics",
+          );
+        }
+      }
     } else planned(-1);
   } else planned(-1);
   setTimeout(() => {
@@ -692,18 +882,25 @@ async function route() {
       ? uz.labTitle
       : document.querySelector("h1")?.textContent || "Mavzular") +
     " — TT Physics Lab";
+  // Move focus into the freshly rendered page: the previously focused node is
+  // gone, so keyboard users would otherwise restart from <body>.
+  const focus = pendingRouteFocus;
+  pendingRouteFocus = "#main";
+  if (!firstRoute) focusTarget(focus);
+  firstRoute = false;
 }
 window.addEventListener("hashchange", route);
 window.addEventListener("keydown", (e) => {
-  if (
-    e.key === "/" &&
-    !["INPUT", "TEXTAREA"].includes(document.activeElement.tagName)
-  ) {
-    e.preventDefault();
-    if (currentRoute !== "/topics") {
-      location.hash = "/topics";
-      setTimeout(() => document.querySelector("#catalog-search")?.focus(), 100);
-    } else document.querySelector("#catalog-search")?.focus();
-  }
+  if (e.key !== "/" || e.metaKey || e.ctrlKey || e.altKey) return;
+  const active = document.activeElement;
+  const typing =
+    !!active?.isContentEditable ||
+    !!active?.closest?.("input, textarea, select, [contenteditable]");
+  if (typing) return;
+  e.preventDefault();
+  if (currentRoute !== "/topics") {
+    pendingRouteFocus = "#catalog-search";
+    location.hash = "/topics";
+  } else document.querySelector("#catalog-search")?.focus();
 });
 await route();

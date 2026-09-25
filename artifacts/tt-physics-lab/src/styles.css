@@ -22,8 +22,12 @@
 * {
   box-sizing: border-box;
 }
+html {
+  overflow-x: hidden;
+}
 body {
   margin: 0;
+  overflow-x: hidden;
 }
 button,
 input,
@@ -180,6 +184,10 @@ b {
 }
 .skip:focus {
   top: 10px;
+}
+main:focus,
+main:focus-visible {
+  outline: none;
 }
 .topbar {
   background: #f6f7f9;
@@ -1402,6 +1410,10 @@ footer a:hover {
 .experiment-card canvas {
   display: block;
   width: 100%;
+  /* `height: auto` keeps the box on the 800/460 ratio: the canvas width/height
+     attributes are presentational hints, so without it the backing store size
+     (device pixels) would drive the layout on HiDPI screens. */
+  height: auto;
   aspect-ratio: 800/460;
 }
 .transport {
@@ -1556,6 +1568,14 @@ footer a:hover {
 }
 .value-wrap input::-webkit-inner-spin-button {
   appearance: none;
+}
+.value-wrap input[aria-invalid="true"] {
+  border-color: #e0575799;
+  background: #fdf4f4;
+  color: #b23b3b;
+}
+.parameter.is-invalid .parameter-top label {
+  color: #b23b3b;
 }
 .range-labels {
   display: flex;

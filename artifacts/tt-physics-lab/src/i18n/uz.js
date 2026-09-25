@@ -31,6 +31,8 @@ export const uz = {
   physicsSources: "Fizika manbalari",
   topicLabel: "MAVZU",
   catalogError: "Katalog yuklanmadi",
+  simulationError: "Simulyatsiyani hisoblashda xatolik yuz berdi",
+  simulationLoadError: "Simulyatsiya yuklanmadi",
   labTitle: "Interaktiv fizika laboratoriyasi",
   currentSurface: "Boshqa qiymat",
   closeSearch: "Qidiruvni yopish",

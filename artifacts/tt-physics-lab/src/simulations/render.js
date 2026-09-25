@@ -27,7 +27,16 @@ function text(c, s, x, y, color = muted, size = 13, align = "left") {
 function rect(c, x, y, w, h, color, r = 8) {
   c.fillStyle = color;
   c.beginPath();
-  c.roundRect(x, y, w, h, r);
+  if (typeof c.roundRect === "function") c.roundRect(x, y, w, h, r);
+  else {
+    const radius = Math.min(r, Math.abs(w) / 2, Math.abs(h) / 2);
+    c.moveTo(x + radius, y);
+    c.arcTo(x + w, y, x + w, y + h, radius);
+    c.arcTo(x + w, y + h, x, y + h, radius);
+    c.arcTo(x, y + h, x, y, radius);
+    c.arcTo(x, y, x + w, y, radius);
+    c.closePath();
+  }
   c.fill();
 }
 function circle(c, x, y, r, color) {

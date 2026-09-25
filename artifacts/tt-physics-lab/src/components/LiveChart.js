@@ -6,6 +6,7 @@ export class LiveChart {
     this.charts = [];
     this.last = -1;
     this.destroyed = false;
+    if (!container) return;
     this.static = [
       "coulomb",
       "lens",
@@ -33,7 +34,9 @@ export class LiveChart {
       );
       wrap.append(canvas);
       container.append(wrap);
-      const ch = new Chart(canvas, {
+      let ch;
+      try {
+        ch = new Chart(canvas, {
         type: "line",
         data: {
           datasets: series.map(([key, unit, scale = 1], i) => ({
@@ -85,10 +88,30 @@ export class LiveChart {
             },
           },
         },
-      });
+        });
+      } catch (error) {
+        console.warn("Chart could not be created:", error);
+        wrap.textContent = uz.chartUnavailable;
+        continue;
+      }
       this.charts.push(ch);
     }
     if (this.static) this.curve(p);
+  }
+  safeCalculate(p) {
+    try {
+      return this.config.calculate(p, 0);
+    } catch (error) {
+      console.warn("Graph calculation failed:", error);
+      return null;
+    }
+  }
+  updateChart(chart) {
+    try {
+      this.updateChart(chart);
+    } catch (error) {
+      console.warn("Graph update failed:", error);
+    }
   }
   curve(p) {
     if (this.destroyed) return;
@@ -125,6 +148,11 @@ export class LiveChart {
       max = 3;
       label = "ω (rad/s)";
     }
+    const definition = this.config.params?.find((item) => item.key === param);
+    if (definition) {
+      min = definition.min;
+      max = definition.max;
+    }
     for (const chart of this.charts) {
       chart.options.scales.x.title.text = label;
       chart.data.datasets = chart.data.datasets.filter(
@@ -134,7 +162,8 @@ export class LiveChart {
         ds.data = Array.from({ length: 181 }, (_, i) => {
           const x = min + ((max - min) * i) / 180,
             q = { ...p, [param]: x },
-            r = this.config.calculate(q, 0);
+            r = this.safeCalculate(q);
+          if (!r) return { x, y: null };
           let y = (key === "resonance" ? r.amplitude : r[ds.key]) * ds.scale;
           if (
             key === "lens" &&
@@ -165,8 +194,8 @@ export class LiveChart {
         });
       }
       const ds = chart.data.datasets[0],
-        r = this.config.calculate(p, 0),
-        value = (key === "resonance" ? r.amplitude : r[ds.key]) * ds.scale;
+        r = this.safeCalculate(p),
+        value = r ? (key === "resonance" ? r.amplitude : r[ds.key]) * ds.scale : NaN;
       chart.data.datasets.push({
         label: uz.currentValue,
         currentMarker: true,
@@ -179,20 +208,21 @@ export class LiveChart {
         showLine: false,
         fill: false,
       });
-      chart.update("none");
+      this.updateChart(chart);
     }
   }
   add(t, state, force = false) {
-    if (this.static || this.destroyed) return;
+    if (this.static || this.destroyed || !state) return;
     if (!force && t - this.last < 0.09) return;
     this.last = t;
     for (const ch of this.charts) {
       for (const ds of ch.data.datasets) {
-        const y = state[ds.key] * ds.scale;
+        const raw = state[ds.key],
+          y = typeof raw === "number" ? raw * ds.scale : NaN;
         ds.data.push({ x: t, y: Number.isFinite(y) ? y : null });
         if (ds.data.length > 1200) ds.data.shift();
       }
-      ch.update("none");
+      this.updateChart(ch);
     }
   }
   reset(p) {
@@ -204,7 +234,7 @@ export class LiveChart {
     }
     for (const ch of this.charts) {
       for (const ds of ch.data.datasets) ds.data = [];
-      ch.update("none");
+      this.updateChart(ch);
     }
   }
   destroy() {

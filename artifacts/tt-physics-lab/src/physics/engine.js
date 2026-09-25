@@ -7,9 +7,22 @@ const positive = (x, name) => {
     throw new RangeError(name + " musbat bo‘lishi kerak.");
   return x;
 };
+// Elapsed time never runs backwards. Invalid values return to the start, while
+// positive infinity may advance safely to a known terminal time.
+const simulationTime = (t, upper = Infinity) => {
+  if (!Number.isFinite(t))
+    return t === Infinity && Number.isFinite(upper)
+      ? Math.max(0, upper)
+      : 0;
+  return clamp(t, 0, upper);
+};
+const cleanComponent = (value, scale) => {
+  const tolerance = 8 * Number.EPSILON * Math.max(1, Math.abs(scale));
+  return Number.isFinite(value) && Math.abs(value) <= tolerance ? 0 : value;
+};
 export function motion(p, t = 0) {
-  const stop = p.a < 0 ? -p.v0 / p.a : Infinity;
-  const time = Math.min(Math.max(t, 0), stop);
+  const stop = p.a < 0 ? -p.v0 / p.a : Infinity,
+    time = simulationTime(t, stop);
   return {
     x: p.x0 + p.v0 * time + (p.a * time * time) / 2,
     v: p.v0 + p.a * time,
@@ -20,11 +33,11 @@ export function motion(p, t = 0) {
 export function projectile(p, t = 0) {
   const g = positive(p.g ?? G, "g"),
     angle = ((p.angle ?? 0) * Math.PI) / 180,
-    vx = p.v0 * Math.cos(angle),
-    vy = p.v0 * Math.sin(angle);
+    vx = cleanComponent(p.v0 * Math.cos(angle), p.v0),
+    vy = cleanComponent(p.v0 * Math.sin(angle), p.v0);
   const duration = (vy + Math.sqrt(vy * vy + 2 * g * p.h)) / g,
-    time = clamp(t, 0, duration),
-    landed = t >= duration;
+    time = simulationTime(t, duration),
+    landed = time >= duration;
   return {
     x: vx * time,
     y: Math.max(0, p.h + vy * time - (g * time * time) / 2),
@@ -45,15 +58,16 @@ export function newton(p, t = 0) {
     driving = p.force - p.m * G * Math.sin(angle),
     friction = (p.mu ?? 0) * normal;
   const net = Math.sign(driving) * Math.max(0, Math.abs(driving) - friction),
-    a = net / p.m;
+    a = net / p.m,
+    time = simulationTime(t);
   return {
     a,
     net,
     normal,
     driving,
     friction: Math.min(Math.abs(driving), friction),
-    v: a * t,
-    x: (a * t * t) / 2,
+    v: a * time,
+    x: (a * time * time) / 2,
   };
 }
 export function friction(p, t = 0) {
@@ -61,16 +75,17 @@ export function friction(p, t = 0) {
   const f = p.mu * p.normal,
     a = f / p.m,
     stop = a > 0 ? p.v0 / a : Infinity,
-    time = Math.min(t, stop),
-    stopped = Number.isFinite(stop) && t >= stop;
+    time = simulationTime(t, stop),
+    stopped = Number.isFinite(stop) && time >= stop,
+    distance = a > 0 ? (p.v0 * p.v0) / (2 * a) : Infinity;
   return {
     f: stopped ? 0 : f,
     maxFriction: f,
     a: stopped ? 0 : -a,
     v: stopped ? 0 : Math.max(0, p.v0 - a * time),
-    x: p.v0 * time - (a * time * time) / 2,
+    x: stopped ? distance : p.v0 * time - (a * time * time) / 2,
     stop,
-    distance: a > 0 ? (p.v0 * p.v0) / (2 * a) : Infinity,
+    distance,
     stopped,
   };
 }
@@ -79,7 +94,7 @@ export function energy(p, t = 0) {
   const radius = 12,
     beta = p.friction ? 0.36 : 0;
   // Exact constrained particle: y=q²/(2R); metric accounts for the actual track speed.
-  const target = Math.max(0, t),
+  const target = simulationTime(t),
     cacheKey = `${p.h}|${Boolean(p.friction)}`,
     reusable = energyCache?.key === cacheKey && energyCache.t <= target;
   let q = reusable ? energyCache.q : Math.sqrt(2 * radius * p.h),
@@ -128,11 +143,12 @@ export function spring(p, t = 0) {
   const omega = Math.sqrt(p.k / p.m),
     A = p.amplitude ?? 0.4,
     phase = p.phase ?? 0;
+  const time = simulationTime(t);
   return {
     period: TAU / omega,
     omega,
-    x: A * Math.cos(omega * t + phase),
-    v: -A * omega * Math.sin(omega * t + phase),
+    x: A * Math.cos(omega * time + phase),
+    v: -A * omega * Math.sin(omega * time + phase),
     energy: (p.k * A * A) / 2,
     equilibrium: (p.m * G) / p.k,
   };
@@ -142,17 +158,20 @@ export function resonance(p, t = 0) {
   const w0 = p.natural,
     omega = p.frequency,
     beta = p.damping,
-    force = p.drive ?? 0.25;
-  const amplitude =
-      force /
-      Math.sqrt((w0 * w0 - omega * omega) ** 2 + (2 * beta * omega) ** 2),
-    phase = Math.atan2(2 * beta * omega, w0 * w0 - omega * omega);
+    force = p.drive ?? 0.25,
+    denominator = Math.sqrt(
+      (w0 * w0 - omega * omega) ** 2 + (2 * beta * omega) ** 2,
+    ),
+    amplitude = force === 0 ? 0 : force / denominator,
+    phase = Math.atan2(2 * beta * omega, w0 * w0 - omega * omega),
+    peakSquared = w0 * w0 - 2 * beta * beta,
+    time = simulationTime(t);
   return {
     amplitude,
-    x: amplitude * Math.cos(omega * t - phase),
+    x: amplitude * Math.cos(omega * time - phase),
     phase,
     natural: w0,
-    peak: Math.sqrt(Math.max(0, w0 * w0 - 2 * beta * beta)),
+    peak: peakSquared > 0 ? Math.sqrt(peakSquared) : null,
   };
 }
 export function buoyancy(p, t = 0) {
@@ -164,7 +183,7 @@ export function buoyancy(p, t = 0) {
     mass = p.rho * volume,
     weight = mass * G;
   // Center depth relative to waterline; released fully submerged. Linear fluid drag.
-  const target = Math.min(Math.max(t, 0), 15),
+  const target = simulationTime(t, 15),
     cacheKey = `${p.rho}|${p.fluid}|${p.volume}`,
     reusable = buoyancyCache?.key === cacheKey && buoyancyCache.t <= target;
   let depth = reusable ? buoyancyCache.depth : side * 1.2,
@@ -250,14 +269,18 @@ export function circuit(p) {
     voltage: current * p.resistance,
     power: current * current * p.resistance,
     loss: current * current * p.internal,
-    efficiency: (p.resistance / (p.resistance + p.internal)) * 100,
+    efficiency:
+      p.emf === 0
+        ? null
+        : (p.resistance / (p.resistance + p.internal)) * 100,
   };
 }
 export function induction(p, t = 0) {
   positive(p.resistance, "Qarshilik");
   const w = p.speed,
-    x = 1.5 * Math.cos(w * t),
-    velocity = -1.5 * w * Math.sin(w * t),
+    time = simulationTime(t),
+    x = 1.5 * Math.cos(w * time),
+    velocity = -1.5 * w * Math.sin(w * time),
     length = 0.65;
   const flux = p.field * 0.02 * Math.exp((-x * x) / (2 * length * length)),
     emf = (p.turns * flux * x * velocity) / (length * length);
