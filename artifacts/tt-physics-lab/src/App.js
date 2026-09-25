@@ -327,7 +327,7 @@ function home() {
     color: "#fff8f4",
     highlightColor: "#f1592a",
     align: "center",
-    maxFontSize: 104,
+    maxFontSize: 98,
     fontWeight: 760,
     lineHeight: 1.08,
     accentLine: 1,
