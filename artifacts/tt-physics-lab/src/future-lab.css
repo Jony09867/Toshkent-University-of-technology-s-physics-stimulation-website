@@ -736,7 +736,7 @@ footer .eyebrow { color: #6a7a88; }
 footer .footer-top > div > a:not(.brand) { color: #6a7a88; }
 footer .footer-top > div > a:not(.brand):hover,
 footer a:hover { color: var(--brand); }
-footer .footer-bottom { color: #6a7a88; border-top-color: rgba(255, 255, 255, 0.06); }
+footer .footer-bottom { color: #6a7a88; border-top: 0; }
 
 /* Dark landing actions — glass liquid style ------------------------------ */
 .dark-hero .hero-buttons { gap: 12px; }
