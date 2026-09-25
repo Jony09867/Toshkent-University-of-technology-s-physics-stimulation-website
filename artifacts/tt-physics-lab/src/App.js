@@ -10,8 +10,10 @@ import { SimulationCanvas } from "./components/SimulationCanvas.js";
 import { LiveChart } from "./components/LiveChart.js";
 import { attachBorderGlow } from "./components/BorderGlow.js";
 import { mountParticleText } from "./components/ParticleText.js";
+import { mountFloatingLines } from "./components/FloatingLines.js";
 import "./components/BorderGlow.css";
 import "./components/ParticleText.css";
+import "./components/FloatingLines.css";
 
 const app = document.querySelector("#app");
 const escape = (s) =>
@@ -233,7 +235,7 @@ function sectionCards() {
 function home() {
   const newton = allConfigs.find((c) => c.key === "newton");
   shell(
-    `<section class="hero"><div class="hero-grid-lines" aria-hidden="true"></div><div class="container hero-stage"><span class="eyebrow"><i></i>${uz.heroTag}</span><div id="particle-text" class="particle-text particle-headline" role="heading" aria-level="1"></div><div class="hero-bottom"><div class="hero-copy"><p>${uz.heroText}</p><div class="hero-buttons"><a class="button primary specular-button" href="${simLink(newton)}"><span>${uz.start}</span>${icon("arrow")}</a><a class="button ghost" href="#/topics">${icon("grid")}${uz.browse}</a></div><div class="hero-proof"><span class="proof-symbol">∑</span><span>${uz.proofTop}<br><strong>${uz.proofBottom}</strong></span></div></div><div class="hero-formula-panel" aria-label="Asosiy fizika formulalari"><div class="hero-visual-top"><span>TT / PHYSICS LAB</span><span>01 — 15</span></div><div class="hero-formula-chips"><span>F = ma</span><span>E = mc²</span><span>pV = nRT</span></div></div></div></div></section><section class="stat-strip"><div class="container stats"><div><b>15</b><span>${uz.simulations}</span></div><div><b>143</b><span>${uz.topics}</span></div><div><b>15</b><span>${uz.sections}</span></div><div><b>3</b><span>${uz.learningLevels}</span></div></div></section><section class="container section-space"><div class="section-heading"><div><span class="eyebrow orange">${uz.featuredTag}</span><h2>${uz.featured}</h2><p>${uz.featuredText}</p></div><a class="text-link" href="#/topics?ready=1">${uz.allSims}${icon("arrow")}</a></div><div class="sim-grid">${[
+    `<section class="hero dark-hero"><div id="floating-lines" class="floating-lines" aria-hidden="true"></div><div class="dark-hero-grid" aria-hidden="true"></div><div class="container dark-hero-content"><span class="hero-kicker"><b>YANGI</b>${uz.heroTag}</span><div id="particle-text" class="particle-text particle-headline" role="heading" aria-level="1"></div><p>${uz.heroText}</p><div class="hero-buttons"><a class="button primary specular-button" href="${simLink(newton)}"><span>${uz.start}</span>${icon("arrow")}</a><a class="button ghost" href="#/topics">${icon("grid")}${uz.browse}</a></div><div class="dark-hero-meta"><div class="hero-proof"><span class="proof-symbol">∑</span><span>${uz.proofTop}<br><strong>${uz.proofBottom}</strong></span></div><div class="hero-formula-chips" aria-label="Asosiy fizika formulalari"><span>F = ma</span><span>E = mc²</span><span>pV = nRT</span></div></div></div></section><section class="stat-strip"><div class="container stats"><div><b>15</b><span>${uz.simulations}</span></div><div><b>143</b><span>${uz.topics}</span></div><div><b>15</b><span>${uz.sections}</span></div><div><b>3</b><span>${uz.learningLevels}</span></div></div></section><section class="container section-space"><div class="section-heading"><div><span class="eyebrow orange">${uz.featuredTag}</span><h2>${uz.featured}</h2><p>${uz.featuredText}</p></div><a class="text-link" href="#/topics?ready=1">${uz.allSims}${icon("arrow")}</a></div><div class="sim-grid">${[
       "newton",
       "projectile",
       "spring",
@@ -254,10 +256,10 @@ function home() {
   );
   const particleCleanup = mountParticleText(document.querySelector("#particle-text"), {
     text: `${uz.heroTitle}\n${uz.heroAccent}`,
-    color: "#111820",
+    color: "#fff8f4",
     highlightColor: "#f1592a",
-    align: "left",
-    maxFontSize: 112,
+    align: "center",
+    maxFontSize: 92,
     fontWeight: 760,
     lineHeight: 1.08,
     accentLine: 1,
@@ -268,7 +270,11 @@ function home() {
     duration: 1000,
     scatter: 90,
   });
-  cleanup = particleCleanup;
+  const linesCleanup = mountFloatingLines(document.querySelector("#floating-lines"));
+  cleanup = () => {
+    particleCleanup();
+    linesCleanup();
+  };
 }
 function catalog(query) {
   const filter = new URLSearchParams(query),
@@ -646,6 +652,7 @@ async function route() {
   const raw = location.hash.slice(1) || "/",
     [path, query = ""] = raw.split("?");
   currentRoute = path;
+  document.body.classList.toggle("home-dark", path === "/");
   if (path === "/") home();
   else if (path === "/topics") catalog(query);
   else if (path === "/sections")
