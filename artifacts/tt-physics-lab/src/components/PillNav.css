@@ -84,6 +84,10 @@
   background: color-mix(in srgb, var(--pill-bg, #fff) 86%, var(--brand, #f1592a));
 }
 
+.home-dark .pill-nav-link.is-active {
+  background: #2a3642;
+}
+
 .pill-nav-link:focus-visible {
   outline: 2px solid var(--brand, #f1592a);
   outline-offset: 3px;

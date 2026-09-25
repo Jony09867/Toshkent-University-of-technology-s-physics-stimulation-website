@@ -243,9 +243,9 @@ function shell(body, active = "home") {
       className: "site-pill-nav",
       ariaLabel: uz.mainNav,
       baseColor: dark ? "#141a22" : "#ffffff",
-      pillColor: dark ? "#ffffff" : "#f1f4f7",
+      pillColor: dark ? "#202b37" : "#f1f4f7",
       hoveredPillTextColor: "#ffffff",
-      pillTextColor: dark ? "#141a22" : "#1e2a38",
+      pillTextColor: dark ? "#d7e0e8" : "#1e2a38",
     });
   } catch (error) {
     console.error("Pill navigation failed to mount:", error);
