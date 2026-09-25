@@ -906,60 +906,117 @@ footer .brand-sub {
   border-top-color: rgba(255, 255, 255, 0.1);
 }
 
-/* Dark landing actions -------------------------------------------------- */
+/* Dark landing actions — glass liquid style ------------------------------ */
 .dark-hero .hero-buttons {
   gap: 12px;
 }
 
 .dark-hero .hero-buttons .button {
+  position: relative;
+  isolation: isolate;
   width: auto;
   min-width: 0;
-  min-height: 48px;
-  padding: 0 20px;
-  border-radius: 12px;
+  min-height: 52px;
+  padding: 0 22px;
+  border-radius: 14px;
   font-size: 12px;
-  font-weight: 680;
-  letter-spacing: 0.01em;
+  font-weight: 700;
+  letter-spacing: 0.015em;
+  overflow: hidden;
+}
+
+.dark-hero .hero-buttons .button::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  z-index: -1;
+  background: inherit;
+  filter: blur(24px);
+  opacity: 0.35;
+  transform: scale(1.15);
+  pointer-events: none;
 }
 
 .dark-hero .hero-buttons .button.primary {
   color: #fff;
-  border: 1px solid rgba(255, 140, 107, 0.8);
-  background: linear-gradient(135deg, #f26738 0%, #df4d20 100%);
+  border: 1px solid rgba(255, 158, 118, 0.55);
+  background:
+    linear-gradient(135deg, rgba(241, 91, 43, 0.62) 0%, rgba(217, 72, 32, 0.55) 100%),
+    radial-gradient(ellipse 80% 120% at 50% -20%, rgba(255, 255, 255, 0.22) 0%, transparent 60%);
   box-shadow:
-    0 12px 28px rgba(241, 91, 43, 0.27),
-    inset 0 1px 0 rgba(255, 255, 255, 0.35);
+    0 0 0 1px rgba(255, 255, 255, 0.08) inset,
+    0 2px 4px rgba(0, 0, 0, 0.15) inset,
+    0 16px 40px rgba(241, 91, 43, 0.22),
+    0 4px 14px rgba(0, 0, 0, 0.12);
+  backdrop-filter: blur(18px) saturate(140%);
 }
 
 .dark-hero .hero-buttons .button.primary:hover {
-  background: linear-gradient(135deg, #ff7547 0%, #e85425 100%);
+  border-color: rgba(255, 170, 135, 0.75);
+  background:
+    linear-gradient(135deg, rgba(255, 115, 55, 0.7) 0%, rgba(232, 84, 37, 0.65) 100%),
+    radial-gradient(ellipse 80% 120% at 50% -20%, rgba(255, 255, 255, 0.3) 0%, transparent 55%);
   box-shadow:
-    0 16px 34px rgba(241, 91, 43, 0.38),
-    inset 0 1px 0 rgba(255, 255, 255, 0.45);
+    0 0 0 1px rgba(255, 255, 255, 0.12) inset,
+    0 2px 4px rgba(0, 0, 0, 0.12) inset,
+    0 22px 50px rgba(241, 91, 43, 0.3),
+    0 6px 18px rgba(0, 0, 0, 0.16);
+  transform: translateY(-3px) scale(1.01);
+}
+
+.dark-hero .hero-buttons .button.primary:active {
+  transform: translateY(-1px) scale(0.99);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.1) inset,
+    0 1px 2px rgba(0, 0, 0, 0.2) inset,
+    0 8px 20px rgba(241, 91, 43, 0.25),
+    0 2px 6px rgba(0, 0, 0, 0.1);
 }
 
 .dark-hero .hero-buttons .button.ghost {
-  color: #e5ebf0;
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  background: rgba(255, 255, 255, 0.04);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(12px);
+  color: #eef3f7;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.07) 0%, rgba(255, 255, 255, 0.025) 100%),
+    radial-gradient(ellipse 80% 120% at 50% -20%, rgba(255, 255, 255, 0.12) 0%, transparent 65%);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.05) inset,
+    0 1px 3px rgba(0, 0, 0, 0.15) inset,
+    0 12px 32px rgba(0, 0, 0, 0.18);
+  backdrop-filter: blur(24px) saturate(160%);
 }
 
 .dark-hero .hero-buttons .button.ghost:hover {
   color: #fff;
-  border-color: rgba(241, 91, 43, 0.58);
-  background: rgba(241, 91, 43, 0.1);
-  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.18);
+  border-color: rgba(255, 158, 118, 0.6);
+  background:
+    linear-gradient(180deg, rgba(255, 158, 118, 0.1) 0%, rgba(241, 91, 43, 0.05) 100%),
+    radial-gradient(ellipse 80% 120% at 50% -20%, rgba(255, 255, 255, 0.18) 0%, transparent 55%);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.08) inset,
+    0 1px 3px rgba(0, 0, 0, 0.12) inset,
+    0 18px 42px rgba(241, 91, 43, 0.14),
+    0 6px 16px rgba(0, 0, 0, 0.2);
+  transform: translateY(-3px) scale(1.01);
+}
+
+.dark-hero .hero-buttons .button.ghost:active {
+  transform: translateY(-1px) scale(0.99);
 }
 
 .dark-hero .hero-buttons .button .icon {
   width: 17px;
   height: 17px;
+  transition: transform 0.2s ease;
+}
+
+.dark-hero .hero-buttons .button:hover .icon {
+  transform: translateX(2px);
 }
 
 .dark-hero .hero-buttons .button.ghost .icon {
-  color: #ff9a76;
+  color: #ffb38a;
 }
 
 /* Responsive refinements ------------------------------------------------ */
