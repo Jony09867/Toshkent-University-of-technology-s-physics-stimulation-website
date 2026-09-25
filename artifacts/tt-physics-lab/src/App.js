@@ -186,6 +186,7 @@ function setupHeaderSearch() {
     }
     const panel = document.createElement("form");
     panel.className = "header-search-panel";
+    panel.id = "header-search-panel";
     panel.setAttribute("role", "search");
     panel.innerHTML = `<div class="search-field">${icon("search")}<input type="search" aria-label="${uz.searchLabel}" placeholder="${uz.search}"><button type="button" class="icon-button close-search" aria-label="${uz.closeSearch}">${icon("close")}</button></div><div class="header-search-results"></div>`;
     document.querySelector(".header").append(panel);
@@ -225,7 +226,7 @@ function setupHeaderSearch() {
   };
 }
 function header(active = "home") {
-  return `<div class="topbar"><div class="container"><span>${uz.brand}</span><a href="https://tashkenttech-edu.uz/" target="_blank" rel="noopener">${uz.university} ↗</a></div></div><header class="header"><div class="container header-inner">${brand()}<div class="pill-nav-slot" data-pill-nav></div><div class="header-actions"><button type="button" class="icon-button header-search-toggle" aria-label="${uz.searchLabel}" aria-expanded="false">${icon("search")}</button><span class="language" lang="uz">UZ</span><a class="header-lab" href="${simLink(allConfigs.find((c) => c.key === "newton"))}">${icon("arrow")}</a></div></div></header>`;
+  return `<div class="topbar"><div class="container"><span>${uz.brand}</span><a href="https://tashkenttech-edu.uz/" target="_blank" rel="noopener">${uz.university} ↗</a></div></div><header class="header"><div class="container header-inner">${brand()}<div class="pill-nav-slot" data-pill-nav></div><div class="header-actions"><button type="button" class="icon-button header-search-toggle" aria-label="${uz.searchLabel}" aria-controls="header-search-panel" aria-expanded="false">${icon("search")}</button><span class="language" lang="uz">UZ</span><a class="header-lab" href="${simLink(allConfigs.find((c) => c.key === "newton"))}" aria-label="${uz.start}">${icon("arrow")}</a></div></div></header>`;
 }
 function footer() {
   return `<footer><div class="container footer-top"><div>${brand()}<p>${uz.footerText}</p></div><div><span class="eyebrow">PHYSICS LAB</span><a href="#/topics">${uz.browse}</a><a href="#/about">${uz.nav[4]}</a></div><div><span class="eyebrow">TASHKENT TECH</span><a href="https://tashkenttech-edu.uz/" target="_blank" rel="noopener">${uz.university} ↗</a><a href="mailto:info@tashkenttech-edu.uz">info@tashkenttech-edu.uz</a></div></div><div class="container footer-bottom"><span>© ${new Date().getFullYear()} ${uz.footerSub}</span><span>${uz.source}</span></div></footer>`;
@@ -244,7 +245,7 @@ function shell(body, active = "home") {
       ariaLabel: uz.mainNav,
       baseColor: dark ? "#141a22" : "#ffffff",
       pillColor: dark ? "#202b37" : "#f1f4f7",
-      hoveredPillTextColor: "#ffffff",
+      hoveredPillTextColor: dark ? "#ffffff" : "#1e2a38",
       pillTextColor: dark ? "#d7e0e8" : "#1e2a38",
     });
   } catch (error) {
@@ -350,10 +351,10 @@ function catalog(query) {
     section = filter.get("section") || "",
     ready = filter.get("ready") === "1";
   shell(
-    `<section class="page-heading container"><div class="breadcrumb"><a href="#/">${uz.home}</a><span>/</span>${uz.nav[1]}</div><span class="eyebrow orange">${uz.libraryLabel}</span><h1>${uz.catalogTitle}</h1><p>${uz.catalogText}</p></section><div class="container catalog-layout"><aside class="catalog-sidebar"><h3>${uz.nav[2]}</h3><a class="${!section ? "selected" : ""}" href="#/topics">${icon("grid")}${uz.all}<span>143</span></a>${sections
+    `<section class="page-heading container"><div class="breadcrumb"><a href="#/">${uz.home}</a><span>/</span>${uz.nav[1]}</div><span class="eyebrow orange">${uz.libraryLabel}</span><h1>${uz.catalogTitle}</h1><p>${uz.catalogText}</p></section><div class="container catalog-layout"><aside class="catalog-sidebar"><h3>${uz.nav[2]}</h3><a class="${!section ? "selected" : ""}" href="#/topics"${!section ? ' aria-current="page"' : ""}>${icon("grid")}${uz.all}<span>143</span></a>${sections
       .map(
         (s) =>
-          `<details ${s.id === section ? "open" : ""}><summary><a href="#/topics?section=${s.id}">${s.title}</a><span>${topics.filter((t) => t.section === s.id).length}</span></summary><div>${topics
+          `<details ${s.id === section ? "open" : ""}><summary><a href="#/topics?section=${s.id}"${s.id === section ? ' aria-current="page"' : ""}>${s.title}</a><span>${topics.filter((t) => t.section === s.id).length}</span></summary><div>${topics
             .filter((t) => t.section === s.id)
             .map(
               (t) =>
