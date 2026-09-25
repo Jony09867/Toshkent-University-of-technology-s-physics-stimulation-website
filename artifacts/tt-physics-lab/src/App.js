@@ -864,7 +864,7 @@ async function route() {
   } else planned(-1);
   setTimeout(() => {
     if (generation !== routeGeneration) return;
-    document.querySelectorAll('.sim-card:not(.electric-card), .learning-card, .result-card').forEach((el) => {
+    document.querySelectorAll('.sim-card, .learning-card, .result-card').forEach((el) => {
       attachBorderGlow(el, {
         edgeSensitivity: 30,
         glowColor: "14 88 55",
