@@ -9,9 +9,9 @@ import { resultCard, format } from "./components/ResultCard.js";
 import { SimulationCanvas } from "./components/SimulationCanvas.js";
 import { LiveChart } from "./components/LiveChart.js";
 import { attachBorderGlow } from "./components/BorderGlow.js";
-import { mountGalaxy } from "./components/Galaxy.js";
+import { mountParticleText } from "./components/ParticleText.js";
 import "./components/BorderGlow.css";
-import "./components/Galaxy.css";
+import "./components/ParticleText.css";
 
 const app = document.querySelector("#app");
 const escape = (s) =>
@@ -218,8 +218,8 @@ function artwork(key) {
       ).join("");
   return `<svg class="sim-art" viewBox="0 0 320 154" aria-hidden="true"><defs><pattern id="dots-${key}" width="16" height="16" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r=".6" fill="#bacad6"/></pattern></defs><rect width="320" height="154" fill="url(#dots-${key})"/>${art}</svg>`;
 }
-function card(c, index = 0) {
-  return `<a class="sim-card" href="${simLink(c)}"><div class="sim-card-visual tint-${index % 4}"><span class="mini-index">${String(allConfigs.indexOf(c) + 1).padStart(2, "0")} / ${uz.experimentLabel}</span>${artwork(c.key)}<span class="ready-tag"><i></i>${uz.ready}</span></div><div class="sim-card-body"><span class="card-category">${sectionName(c.section)}</span><h3>${c.title}</h3><p>${c.description}</p><div class="card-foot"><span class="small-formula">${formula(c.formulaLatex)}</span><span class="card-arrow">${icon("arrow")}</span></div></div></a>`;
+function card(c, index = 0, featured = false) {
+  return `<a class="sim-card${featured ? " electric-card" : ""}" href="${simLink(c)}"><div class="sim-card-visual tint-${index % 4}"><span class="mini-index">${String(allConfigs.indexOf(c) + 1).padStart(2, "0")} / ${uz.experimentLabel}</span>${artwork(c.key)}<span class="ready-tag"><i></i>${uz.ready}</span></div><div class="sim-card-body"><span class="card-category">${sectionName(c.section)}</span><h3>${c.title}</h3><p>${c.description}</p><div class="card-foot"><span class="small-formula">${formula(c.formulaLatex)}</span><span class="card-arrow">${icon("arrow")}</span></div></div></a>`;
 }
 function sectionCards() {
   return sections
@@ -233,7 +233,7 @@ function sectionCards() {
 function home() {
   const newton = allConfigs.find((c) => c.key === "newton");
   shell(
-    `<section class="hero"><div class="hero-galaxy" aria-hidden="true"></div><div class="container hero-grid"><div class="hero-copy"><span class="eyebrow"><i></i>${uz.heroTag}</span><h1>${uz.heroTitle}<br><em>${uz.heroAccent}</em></h1><p>${uz.heroText}</p><div class="hero-buttons"><a class="button primary" href="${simLink(newton)}">${uz.start}${icon("arrow")}</a><a class="button ghost" href="#/topics">${icon("grid")}${uz.browse}</a></div><div class="hero-proof"><span class="proof-symbol">∑</span><span>${uz.proofTop}<br><strong>${uz.proofBottom}</strong></span></div></div><div class="hero-experiment"><div class="preview-top"><span class="live-label"><i></i>${uz.live}</span><span>01 — NYUTON II</span></div><div class="preview-formula">${formula("F=m\\cdot a")}<span>${uz.previewSentence}</span></div><canvas id="hero-canvas" aria-label="${uz.previewAria}" role="img"></canvas><div class="preview-controls"><label for="hero-force">${uz.force} <b><span id="hero-force-value">20</span> N</b></label><input type="range" id="hero-force" min="0" max="100" value="20" step="1" style="--fill:20%"><span class="preview-result">a = <b id="hero-accel">4.00</b> m/s²</span></div><div class="preview-bottom">${icon("help")} ${uz.previewText}<span>m = 5 kg</span></div></div></div></section><section class="stat-strip"><div class="container stats"><div><b>15</b><span>${uz.simulations}</span></div><div><b>143</b><span>${uz.topics}</span></div><div><b>15</b><span>${uz.sections}</span></div><div><b>3</b><span>${uz.learningLevels}</span></div></div></section><section class="container section-space"><div class="section-heading"><div><span class="eyebrow orange">${uz.featuredTag}</span><h2>${uz.featured}</h2><p>${uz.featuredText}</p></div><a class="text-link" href="#/topics?ready=1">${uz.allSims}${icon("arrow")}</a></div><div class="sim-grid">${[
+    `<section class="hero"><div class="hero-grid-lines" aria-hidden="true"></div><div class="container hero-grid"><div class="hero-copy"><span class="eyebrow"><i></i>${uz.heroTag}</span><h1>${uz.heroTitle}<br><em>${uz.heroAccent}</em></h1><p>${uz.heroText}</p><div class="hero-buttons"><a class="button primary specular-button" href="${simLink(newton)}"><span>${uz.start}</span>${icon("arrow")}</a><a class="button ghost" href="#/topics">${icon("grid")}${uz.browse}</a></div><div class="hero-proof"><span class="proof-symbol">∑</span><span>${uz.proofTop}<br><strong>${uz.proofBottom}</strong></span></div></div><div class="hero-visual"><div class="hero-visual-top"><span>TT / PHYSICS LAB</span><span>01 — 15</span></div><div id="particle-text" class="particle-text" aria-label="FIZIKA"></div><div class="hero-formula-chips" aria-hidden="true"><span>F = ma</span><span>E = mc²</span><span>pV = nRT</span></div></div></div></section><section class="stat-strip"><div class="container stats"><div><b>15</b><span>${uz.simulations}</span></div><div><b>143</b><span>${uz.topics}</span></div><div><b>15</b><span>${uz.sections}</span></div><div><b>3</b><span>${uz.learningLevels}</span></div></div></section><section class="container section-space"><div class="section-heading"><div><span class="eyebrow orange">${uz.featuredTag}</span><h2>${uz.featured}</h2><p>${uz.featuredText}</p></div><a class="text-link" href="#/topics?ready=1">${uz.allSims}${icon("arrow")}</a></div><div class="sim-grid">${[
       "newton",
       "projectile",
       "spring",
@@ -245,53 +245,19 @@ function home() {
         card(
           allConfigs.find((c) => c.key === k),
           i,
+          i === 0,
         ),
       )
       .join(
         "",
       )}</div></section><section class="sections-band"><div class="container section-space"><div class="section-heading"><div><span class="eyebrow orange">${uz.mapLabel}</span><h2>${uz.sectionsTitle}</h2><p>${uz.sectionsText}</p></div><span class="count-label">15 ${uz.sections}</span></div><div class="sections-grid">${sectionCards()}</div></div></section><section class="container how section-space"><div><span class="eyebrow orange">${uz.howLabel}</span><h2>${uz.howTitle}</h2><p>${uz.howText}</p><a class="text-link" href="${simLink(newton)}">${uz.start}${icon("arrow")}</a></div><div class="how-steps">${uz.how.map(([n, title, body]) => `<div><span>${n}</span><section><h3>${title}</h3><p>${body}</p></section></div>`).join("")}</div></section>`,
   );
-  const galaxyCleanup = mountGalaxy(document.querySelector(".hero-galaxy"), {
-    disableAnimation: matchMedia("(prefers-reduced-motion: reduce)").matches,
+  const particleCleanup = mountParticleText(document.querySelector("#particle-text"), {
+    text: "FIZIKA",
+    color: "#cfd4d8",
+    highlightColor: "#f1592a",
   });
-  const canvas = new SimulationCanvas(document.querySelector("#hero-canvas"));
-  const p = defaults(newton);
-  const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
-  let time = 0,
-    last = 0,
-    frame;
-  const update = () =>
-    canvas.update({
-      config: newton,
-      p,
-      s: newton.calculate(p, time),
-      t: time,
-      hero: true,
-    });
-  const loop = (now) => {
-    if (last && !document.hidden && !reduceMotion)
-      time += Math.min((now - last) / 1000, 0.1);
-    last = now;
-    if (time > 4.2) time = 0;
-    update();
-    frame = requestAnimationFrame(loop);
-  };
-  frame = requestAnimationFrame(loop);
-  document.querySelector("#hero-force").oninput = (e) => {
-    p.force = Number(e.target.value);
-    time = 0;
-    e.target.style.setProperty("--fill", p.force + "%");
-    document.querySelector("#hero-force-value").textContent = p.force;
-    document.querySelector("#hero-accel").textContent = (p.force / p.m).toFixed(
-      2,
-    );
-    update();
-  };
-  cleanup = () => {
-    galaxyCleanup();
-    cancelAnimationFrame(frame);
-    canvas.destroy();
-  };
+  cleanup = particleCleanup;
 }
 function catalog(query) {
   const filter = new URLSearchParams(query),
@@ -689,7 +655,7 @@ async function route() {
   } else planned(-1);
   setTimeout(() => {
     if (generation !== routeGeneration) return;
-    document.querySelectorAll('.sim-card, .hero-experiment, .learning-card, .result-card').forEach((el) => {
+    document.querySelectorAll('.sim-card:not(.electric-card), .learning-card, .result-card').forEach((el) => {
       attachBorderGlow(el, {
         edgeSensitivity: 30,
         glowColor: "14 88 55",

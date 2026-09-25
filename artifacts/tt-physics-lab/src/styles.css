@@ -2887,3 +2887,355 @@ footer a:hover {
   overflow: auto;
   z-index: 1;
 }
+
+/* Light home experience */
+.hero {
+  min-height: 620px;
+  color: var(--ink);
+  background: #fff;
+  border-bottom: 1px solid var(--line);
+}
+.hero::before {
+  width: 620px;
+  height: 620px;
+  right: -4%;
+  top: 20px;
+  border-color: #f1592a12;
+  box-shadow:
+    0 0 0 72px #f1592a08,
+    0 0 0 144px #f1592a05;
+}
+.hero-grid-lines {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(#24384a0a 1px, transparent 1px),
+    linear-gradient(90deg, #24384a0a 1px, transparent 1px);
+  background-size: 118px 118px;
+  mask-image: linear-gradient(to bottom, #000 0 84%, transparent 100%);
+}
+.hero-grid {
+  grid-template-columns: minmax(0, 0.92fr) minmax(480px, 1.08fr);
+  gap: 30px;
+  min-height: 620px;
+  padding-block: 58px 45px;
+}
+.hero-copy {
+  position: relative;
+  z-index: 2;
+}
+.hero-copy .eyebrow {
+  color: #657583;
+  font-family: "Courier New", monospace;
+  font-size: 9px;
+}
+.hero h1 {
+  max-width: 690px;
+  margin: 30px 0 25px;
+  color: #111820;
+  font-size: clamp(54px, 6vw, 82px);
+  line-height: 0.98;
+  font-weight: 520;
+  letter-spacing: -0.065em;
+}
+.hero h1 em {
+  position: relative;
+  color: #111820;
+  font-style: normal;
+  font-weight: 520;
+  margin-top: 12px;
+}
+.hero h1 em::after {
+  content: "";
+  position: absolute;
+  left: 2px;
+  right: 0;
+  bottom: -9px;
+  height: 8px;
+  background: var(--brand);
+  transform: scaleX(0.72);
+  transform-origin: left;
+}
+.hero p {
+  max-width: 515px;
+  color: #63707b;
+  font-size: 15px;
+  line-height: 1.8;
+}
+.hero .button.ghost {
+  color: #243444;
+  background: #fff;
+  border-color: #cfd6dc;
+}
+.hero .button.ghost:hover {
+  color: var(--brand);
+  border-color: #f1592a80;
+  background: #fff9f6;
+}
+.specular-button {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border-radius: 999px;
+  box-shadow: 0 10px 28px #f1592a24;
+}
+.specular-button::after {
+  content: "";
+  position: absolute;
+  inset: -80% -35%;
+  z-index: -1;
+  background: linear-gradient(110deg, transparent 38%, #ffffff80 48%, transparent 58%);
+  transform: translateX(-55%);
+  transition: transform 0.7s ease;
+}
+.specular-button:hover::after,
+.specular-button:focus-visible::after {
+  transform: translateX(55%);
+}
+.hero-proof {
+  color: #82909b;
+}
+.hero-proof strong {
+  color: #354655;
+}
+.proof-symbol {
+  color: var(--brand);
+  border-color: #f1592a35;
+  background: #fff7f3;
+}
+.hero-visual {
+  position: relative;
+  z-index: 1;
+  min-width: 0;
+  height: 430px;
+  border-left: 1px solid #26374612;
+  border-right: 1px solid #26374612;
+}
+.hero-visual::before,
+.hero-visual::after {
+  content: "";
+  position: absolute;
+  left: -1px;
+  right: -1px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #f1592a75, transparent);
+}
+.hero-visual::before {
+  top: 0;
+}
+.hero-visual::after {
+  bottom: 0;
+}
+.hero-visual-top {
+  position: absolute;
+  z-index: 2;
+  left: 22px;
+  right: 22px;
+  top: 18px;
+  display: flex;
+  justify-content: space-between;
+  color: #87939c;
+  font-family: "Courier New", monospace;
+  font-size: 8px;
+  letter-spacing: 0.14em;
+}
+.hero-formula-chips {
+  position: absolute;
+  z-index: 2;
+  left: 0;
+  right: 0;
+  bottom: 20px;
+  display: flex;
+  justify-content: center;
+  gap: 9px;
+}
+.hero-formula-chips span {
+  padding: 7px 10px;
+  border: 1px solid #dfe4e8;
+  border-radius: 999px;
+  color: #65727d;
+  background: #ffffffcc;
+  font-family: Georgia, serif;
+  font-size: 10px;
+}
+.stat-strip {
+  background: #fff;
+}
+.stats {
+  padding-block: 31px;
+}
+.stats b {
+  color: #172330;
+  font-size: 38px;
+  font-weight: 500;
+}
+
+/* A single featured card gets the stronger electric accent. */
+.electric-card {
+  position: relative;
+  border-color: #f1592a70;
+  box-shadow: 0 14px 34px #f1592a10;
+}
+.electric-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border: 1px solid transparent;
+  border-radius: inherit;
+  background: linear-gradient(110deg, transparent 15%, #f1592a 48%, transparent 75%) border-box;
+  mask: linear-gradient(#000 0 0) padding-box, linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  opacity: 0.55;
+  animation: electric-card-pulse 4.5s ease-in-out infinite;
+}
+@keyframes electric-card-pulse {
+  0%, 100% { opacity: 0.25; }
+  50% { opacity: 0.85; }
+}
+
+/* Soft jelly selection without compromising native tab behavior. */
+.level-tabs {
+  padding: 6px;
+  gap: 8px;
+  background: #f5f6f7;
+  border-radius: 14px;
+}
+.level-tab {
+  border-radius: 10px;
+  transition:
+    transform 0.38s cubic-bezier(0.2, 1.45, 0.35, 1),
+    background 0.25s,
+    color 0.25s,
+    box-shadow 0.25s;
+}
+.level-tab:hover {
+  transform: translateY(-1px) scale(1.01);
+}
+.level-tab.selected {
+  color: #fff;
+  background: var(--brand);
+  border-color: var(--brand);
+  box-shadow: 0 7px 18px #f1592a28;
+  transform: scale(1.018);
+}
+.level-tab.selected .level-dot {
+  background: #fff;
+}
+.level-tab.selected .level-hint {
+  color: #ffffffbd;
+}
+
+/* Linear catalog navigation */
+.catalog-sidebar > a,
+.catalog-sidebar summary,
+.catalog-sidebar details > div a {
+  position: relative;
+  transition: color 0.22s, background 0.22s, transform 0.22s;
+}
+.catalog-sidebar > a::before,
+.catalog-sidebar summary::after,
+.catalog-sidebar details > div a::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 0;
+  height: 1px;
+  background: var(--brand);
+  transition: width 0.25s ease;
+}
+.catalog-sidebar > a:hover,
+.catalog-sidebar details > div a:hover {
+  transform: translateX(5px);
+}
+.catalog-sidebar > a:hover::before,
+.catalog-sidebar summary:hover::after,
+.catalog-sidebar details > div a:hover::before {
+  width: 14px;
+}
+.catalog-sidebar details > div a:hover {
+  padding-left: 18px;
+}
+
+@media (max-width: 1150px) {
+  .hero-grid {
+    grid-template-columns: minmax(0, 0.95fr) minmax(400px, 1.05fr);
+  }
+  .hero h1 {
+    font-size: clamp(48px, 6vw, 68px);
+  }
+}
+@media (max-width: 800px) {
+  .hero {
+    min-height: auto;
+  }
+  .hero-grid {
+    grid-template-columns: 1fr;
+    gap: 24px;
+    min-height: auto;
+    padding-block: 48px 32px;
+  }
+  .hero-copy {
+    max-width: 620px;
+  }
+  .hero-visual {
+    width: 100%;
+    height: 300px;
+  }
+  .particle-text {
+    min-height: 260px;
+  }
+}
+@media (max-width: 680px) {
+  .hero h1 {
+    font-size: clamp(45px, 14vw, 64px);
+    line-height: 1;
+  }
+  .hero h1 em::after {
+    height: 6px;
+  }
+  .hero-buttons {
+    flex-wrap: wrap;
+  }
+  .hero-buttons .button {
+    flex: 1 1 160px;
+  }
+  .hero-visual {
+    height: 230px;
+  }
+  .particle-text {
+    min-height: 210px;
+  }
+  .hero-formula-chips {
+    bottom: 12px;
+  }
+  .stats {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0;
+  }
+  .stats > div {
+    min-height: 76px;
+    border-bottom: 1px solid var(--line);
+  }
+  .stats > div:nth-child(2) {
+    border-right: 0;
+  }
+  .stats > div:nth-child(3),
+  .stats > div:nth-child(4) {
+    border-bottom: 0;
+  }
+  .stats b {
+    font-size: 29px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .electric-card::after {
+    animation: none;
+    opacity: 0.45;
+  }
+  .specular-button::after {
+    display: none;
+  }
+}
