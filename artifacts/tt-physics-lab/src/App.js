@@ -10,8 +10,7 @@ import { SimulationCanvas } from "./components/SimulationCanvas.js";
 import { LiveChart } from "./components/LiveChart.js";
 import { attachBorderGlow } from "./components/BorderGlow.js";
 import { mountPillNav } from "./components/PillNav.js";
-import { mountParticleText } from "./components/ParticleText.js";
-import { mountFloatingLines } from "./components/FloatingLines.js";
+import { mountHomeExperience } from "./components/HomeExperience.jsx";
 import "./components/BorderGlow.css";
 import "./components/PillNav.css";
 import "./components/ParticleText.css";
@@ -302,48 +301,76 @@ function sectionCards() {
 }
 function home() {
   const newton = allConfigs.find((c) => c.key === "newton");
-  shell(
-    `<section class="hero dark-hero"><div id="floating-lines" class="floating-lines" aria-hidden="true"></div><div class="dark-hero-grid" aria-hidden="true"></div><div class="container dark-hero-content"><h1 id="particle-text" class="particle-text particle-headline"></h1><p>${uz.heroText}</p><div class="hero-buttons"><a class="button primary specular-button" href="${simLink(newton)}"><span>${uz.start}</span>${icon("arrow")}</a><a class="button ghost" href="#/topics">${icon("grid")}<span>${uz.browse}</span></a></div><div class="dark-hero-meta"><div class="hero-proof"><span class="proof-symbol">∑</span><span>${uz.proofTop}<br><strong>${uz.proofBottom}</strong></span></div><div class="hero-formula-chips" aria-label="Asosiy fizika formulalari"><span>F = ma</span><span>E = mc²</span><span>pV = nRT</span></div></div></div></section><section class="stat-strip"><div class="container stats"><div><b>15</b><span>${uz.simulations}</span></div><div><b>143</b><span>${uz.topics}</span></div><div><b>15</b><span>${uz.sections}</span></div><div><b>3</b><span>${uz.learningLevels}</span></div></div></section><section class="container section-space"><div class="section-heading"><div><span class="eyebrow orange">${uz.featuredTag}</span><h2>${uz.featured}</h2><p>${uz.featuredText}</p></div><a class="text-link" href="#/topics?ready=1">${uz.allSims}${icon("arrow")}</a></div><div class="sim-grid">${[
-      "newton",
-      "projectile",
-      "spring",
-      "energy",
-      "ohm",
-      "lens",
-    ]
-      .map((k, i) =>
-        card(
-          allConfigs.find((c) => c.key === k),
-          i,
-          i === 0,
-        ),
-      )
-      .join(
-        "",
-      )}</div></section><section class="sections-band"><div class="container section-space"><div class="section-heading"><div><span class="eyebrow orange">${uz.mapLabel}</span><h2>${uz.sectionsTitle}</h2><p>${uz.sectionsText}</p></div><span class="count-label">15 ${uz.sections}</span></div><div class="sections-grid">${sectionCards()}</div></div></section><section class="container how section-space"><div><span class="eyebrow orange">${uz.howLabel}</span><h2>${uz.howTitle}</h2><p>${uz.howText}</p><a class="text-link" href="${simLink(newton)}">${uz.start}${icon("arrow")}</a></div><div class="how-steps">${uz.how.map(([n, title, body]) => `<div><span>${n}</span><section><h3>${title}</h3><p>${body}</p></section></div>`).join("")}</div></section>`,
-  );
-  const particleCleanup = mountParticleText(document.querySelector("#particle-text"), {
-    text: `${uz.heroTitle}\n${uz.heroAccent}`,
-    color: "#fff8f4",
-    highlightColor: "#f1592a",
-    align: "center",
-    maxFontSize: 102,
-    fontWeight: 520,
-    lineHeight: 1.08,
-    accentLine: 1,
-    italicLine: -1,
-    density: 3,
-    particleSize: 2.1,
-    maxParticles: 7000,
-    duration: 1000,
-    scatter: 90,
-    replayOnHover: false,
+  const featuredKeys = ["newton", "projectile", "spring", "energy", "ohm", "lens"];
+  const stories = [
+    {
+      key: "newton",
+      heading: "Kuchdan harakatgacha",
+      description: "Kuch, massa va ishqalanishni bir maydonda boshqaring. Har bir o‘zgarish tezlanish va natijaviy kuchda darhol ko‘rinadi.",
+      params: ["Massa", "Kuch", "Ishqalanish"],
+    },
+    {
+      key: "projectile",
+      heading: "Trayektoriyani oldindan ko‘ring",
+      description: "Tezlik va burchakni taqqoslab, uchish vaqti, maksimal balandlik va masofaning qanday bog‘lanishini kuzating.",
+      params: ["Otish burchagi", "Boshlang‘ich tezlik", "Balandlik"],
+    },
+    {
+      key: "energy",
+      heading: "Energiya shaklini o‘zgartiradi",
+      description: "Kinetik va potensial energiya almashinuvini animatsiya hamda grafik orqali bitta vaqt chizig‘ida tahlil qiling.",
+      params: ["Boshlang‘ich balandlik", "Massa", "Ishqalanish"],
+    },
+    {
+      key: "resonance",
+      heading: "Tebranishni chuqurroq tushuning",
+      description: "Chastota va so‘nishni o‘zgartirib, rezonans cho‘qqisi qachon va nima sababdan paydo bo‘lishini aniqlang.",
+      params: ["Chastota", "Tabiiy chastota", "So‘nish"],
+    },
+  ].map((story, index) => {
+    const config = allConfigs.find((item) => item.key === story.key);
+    return {
+      ...story,
+      index,
+      lab: config.title,
+      eyebrow: sectionName(config.section).toUpperCase(),
+      href: simLink(config),
+      formula: formula(config.formulaLatex),
+      art: artwork(config.key),
+    };
   });
-  const linesCleanup = mountFloatingLines(document.querySelector("#floating-lines"));
-  cleanup = () => {
-    particleCleanup();
-    linesCleanup();
-  };
+
+  shell(`<div id="linear-home-root"></div>`);
+  cleanup = mountHomeExperience(document.querySelector("#linear-home-root"), {
+    copy: {
+      heroTitle: uz.heroTitle,
+      heroAccent: uz.heroAccent,
+      heroText: uz.heroText,
+      start: uz.start,
+      browse: uz.browse,
+      how: uz.how,
+    },
+    links: {
+      start: simLink(newton),
+      topics: "#/topics",
+      ready: "#/topics?ready=1",
+    },
+    preview: {
+      href: simLink(newton),
+      formula: formula(newton.formulaLatex),
+      art: artwork(newton.key),
+    },
+    stats: [
+      ["15", uz.simulations],
+      ["143", uz.topics],
+      ["15", uz.sections],
+      ["3", uz.learningLevels],
+    ],
+    features: stories,
+    featuredCardsHtml: featuredKeys
+      .map((key, index) => card(allConfigs.find((item) => item.key === key), index, false))
+      .join(""),
+  });
 }
 function catalog(query) {
   const filter = new URLSearchParams(query),

@@ -1,0 +1,31 @@
+.scroll-stack {
+  position: relative;
+  display: grid;
+  gap: var(--stack-gap);
+  padding-bottom: 22vh;
+}
+
+.scroll-stack-card {
+  position: sticky;
+  top: calc(var(--stack-top) + var(--stack-index) * var(--stack-distance));
+  min-height: min(650px, 76vh);
+  transform: scale(var(--stack-scale, 1));
+  transform-origin: top center;
+  filter: blur(var(--stack-blur, 0));
+  will-change: transform, filter;
+  transition: transform .18s linear, filter .18s linear;
+}
+
+@media (max-width: 760px), (prefers-reduced-motion: reduce) {
+  .scroll-stack {
+    gap: 28px;
+    padding-bottom: 0;
+  }
+  .scroll-stack-card {
+    position: relative;
+    top: auto;
+    min-height: auto;
+    transform: none !important;
+    filter: none !important;
+  }
+}
