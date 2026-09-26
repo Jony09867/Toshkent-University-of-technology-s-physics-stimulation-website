@@ -187,22 +187,23 @@ select:focus-visible {
   display: inline-flex;
   align-items: center;
   min-height: 32px;
-  padding: 0 10px;
+  padding: 0;
   color: var(--ink-soft);
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  background: var(--surface-soft);
+  border: 0;
+  border-radius: 0;
+  background: transparent;
   font-size: 10px;
 }
 
 .header-lab {
-  width: 40px;
+  width: auto;
   height: 40px;
-  border-radius: 12px;
-  color: var(--brand);
-  border-color: var(--line);
-  background: var(--surface-soft);
-  box-shadow: var(--shadow-xs);
+  padding-inline: 16px;
+  border-radius: 9px;
+  color: #fff;
+  border-color: var(--brand);
+  background: var(--brand);
+  box-shadow: 0 8px 22px rgba(241, 91, 43, 0.2);
 }
 
 .header-lab:hover {
@@ -217,10 +218,10 @@ select:focus-visible {
   display: none;
 }
 
-.home-dark .header-lab { border-radius: 12px; }
+.home-dark .header-lab { border-radius: 9px; }
 
 .home-dark .header-inner {
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  box-shadow: none;
 }
 
 /* Page rhythm and headings ---------------------------------------------- */

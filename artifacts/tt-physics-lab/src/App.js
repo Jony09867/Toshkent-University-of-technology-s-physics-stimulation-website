@@ -9,10 +9,8 @@ import { resultCard, formatResult, NO_VALUE } from "./components/ResultCard.js";
 import { SimulationCanvas } from "./components/SimulationCanvas.js";
 import { LiveChart } from "./components/LiveChart.js";
 import { attachBorderGlow } from "./components/BorderGlow.js";
-import { mountPillNav } from "./components/PillNav.js";
 import { mountHomeExperience } from "./components/HomeExperience.jsx";
 import "./components/BorderGlow.css";
-import "./components/PillNav.css";
 import "./components/ParticleText.css";
 import "./components/FloatingLines.css";
 
@@ -87,7 +85,7 @@ function write(key, value) {
 }
 let completed = new Set(read("tt-completed", [])),
   cleanup = () => {},
-  pillCleanup = () => {},
+  headerCleanup = () => {},
   currentRoute = "",
   routeGeneration = 0,
   firstRoute = true,
@@ -224,31 +222,58 @@ function setupHeaderSearch() {
     input.focus();
   };
 }
+function setupHeaderNavigation() {
+  const toggle = document.querySelector(".menu-button"),
+    nav = document.querySelector(".nav");
+  if (!toggle || !nav) return () => {};
+  const close = () => {
+    nav.classList.remove("open");
+    toggle.setAttribute("aria-expanded", "false");
+    toggle.innerHTML = icon("menu");
+  };
+  const clickToggle = () => {
+    const open = nav.classList.toggle("open");
+    toggle.setAttribute("aria-expanded", String(open));
+    toggle.innerHTML = icon(open ? "close" : "menu");
+  };
+  const clickOutside = (event) => {
+    const path = event.composedPath();
+    if (!nav.classList.contains("open") || path.includes(toggle) || path.includes(nav)) return;
+    close();
+  };
+  const keydown = (event) => {
+    if (event.key !== "Escape" || !nav.classList.contains("open")) return;
+    close();
+    toggle.focus();
+  };
+
+  toggle.onclick = clickToggle;
+  nav.addEventListener("click", close);
+  document.addEventListener("click", clickOutside);
+  document.addEventListener("keydown", keydown);
+  return () => {
+    toggle.onclick = null;
+    nav.removeEventListener("click", close);
+    document.removeEventListener("click", clickOutside);
+    document.removeEventListener("keydown", keydown);
+  };
+}
 function header(active = "home") {
-  return `<div class="topbar"><div class="container"><span>${uz.brand}</span><a href="https://tashkenttech-edu.uz/" target="_blank" rel="noopener">${uz.university} ↗</a></div></div><header class="header"><div class="container header-inner">${brand()}<div class="pill-nav-slot" data-pill-nav></div><div class="header-actions"><button type="button" class="icon-button header-search-toggle" aria-label="${uz.searchLabel}" aria-controls="header-search-panel" aria-expanded="false">${icon("search")}</button><span class="language" lang="uz">UZ</span><a class="header-lab" href="${simLink(allConfigs.find((c) => c.key === "newton"))}" aria-label="${uz.start}">${icon("arrow")}</a></div></div></header>`;
+  const currentHref = navHref(active),
+    navigation = primaryNav
+      .map(({ label, href }) => `<a href="${href}"${href === currentHref ? ' class="active" aria-current="page"' : ""}>${label}</a>`)
+      .join("");
+  return `<div class="topbar"><div class="container"><span>${uz.brand}</span><a href="https://tashkenttech-edu.uz/" target="_blank" rel="noopener">${uz.university} ↗</a></div></div><header class="header"><div class="container header-inner">${brand()}<nav class="nav" id="primary-navigation" aria-label="${uz.mainNav}">${navigation}</nav><div class="header-actions"><button type="button" class="icon-button header-search-toggle" aria-label="${uz.searchLabel}" aria-controls="header-search-panel" aria-expanded="false">${icon("search")}</button><span class="language" lang="uz">UZ</span><a class="header-lab" href="${simLink(allConfigs.find((c) => c.key === "newton"))}"><span>${uz.start}</span>${icon("arrow")}</a><button type="button" class="icon-button menu-button" aria-label="Menyuni ochish" aria-controls="primary-navigation" aria-expanded="false">${icon("menu")}</button></div></div></header>`;
 }
 function footer() {
   return `<footer><div class="container footer-top"><div>${brand()}<p>${uz.footerText}</p></div><div><span class="eyebrow">PHYSICS LAB</span><a href="#/topics">${uz.browse}</a><a href="#/about">${uz.nav[4]}</a></div><div><span class="eyebrow">TASHKENT TECH</span><a href="https://tashkenttech-edu.uz/" target="_blank" rel="noopener">${uz.university} ↗</a><a href="mailto:info@tashkenttech-edu.uz">info@tashkenttech-edu.uz</a></div></div><div class="container footer-bottom"><span>© ${new Date().getFullYear()} ${uz.footerSub}</span><span>${uz.source}</span></div></footer>`;
 }
 function shell(body, active = "home") {
-  pillCleanup();
-  pillCleanup = () => {};
+  headerCleanup();
+  headerCleanup = () => {};
   app.innerHTML =
     header(active) + `<main id="main" tabindex="-1">${body}</main>` + footer();
-  try {
-    pillCleanup = mountPillNav(document.querySelector("[data-pill-nav]"), {
-      items: primaryNav,
-      activeHref: navHref(active),
-      className: "site-pill-nav",
-      ariaLabel: uz.mainNav,
-      baseColor: "#141a22",
-      pillColor: "#202b37",
-      hoveredPillTextColor: "#ffffff",
-      pillTextColor: "#d7e0e8",
-    });
-  } catch (error) {
-    console.error("Pill navigation failed to mount:", error);
-  }
+  headerCleanup = setupHeaderNavigation();
   setupHeaderSearch();
 }
 function artwork(key) {
