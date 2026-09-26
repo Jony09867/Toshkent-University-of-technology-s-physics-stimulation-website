@@ -142,7 +142,7 @@ export function mountPillNav(container, options = {}) {
   });
 
   const layout = () => {
-    if (window.innerWidth > 768) {
+    if (window.innerWidth > 1024) {
       desktopItems.style.removeProperty("width");
       desktopItems.style.removeProperty("opacity");
     }

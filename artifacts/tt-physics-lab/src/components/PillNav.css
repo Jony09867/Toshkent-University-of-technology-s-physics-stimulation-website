@@ -420,14 +420,24 @@
   outline-offset: 2px;
 }
 
-@media (max-width: 900px) {
+@media (max-width: 1150px) {
+  .pill-nav {
+    --pill-pad-x: 10px;
+  }
+
   .pill-nav-link {
-    padding-inline: calc(var(--pill-pad-x) + 2px);
     font-size: 10px;
   }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 900px) {
+  .pill-nav-link {
+    padding-inline: 10px;
+    font-size: 10px;
+  }
+}
+
+@media (max-width: 1024px) {
   .pill-nav-slot {
     order: 3;
     flex: 0 0 auto;
