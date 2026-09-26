@@ -285,7 +285,7 @@ function artwork(key) {
         (_, i) =>
           `<circle cx="${89 + ((i * 37) % 145)}" cy="${35 + ((i * 29) % 85)}" r="4" fill="${i % 3 ? "#6093b7" : "#F1592A"}"/>`,
       ).join("");
-  return `<svg class="sim-art" viewBox="0 0 320 154" aria-hidden="true"><defs><pattern id="dots-${key}" width="16" height="16" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r=".6" fill="#bacad6"/></pattern></defs><rect width="320" height="154" fill="url(#dots-${key})"/>${art}</svg>`;
+  return `<svg class="sim-art" viewBox="0 0 320 154" aria-hidden="true">${art}</svg>`;
 }
 function card(c, index = 0, featured = false) {
   return `<a class="sim-card${featured ? " electric-card" : ""}" href="${simLink(c)}"><div class="sim-card-visual tint-${index % 4}"><span class="mini-index">${String(allConfigs.indexOf(c) + 1).padStart(2, "0")} / ${uz.experimentLabel}</span>${artwork(c.key)}<span class="ready-tag"><i></i>${uz.ready}</span></div><div class="sim-card-body"><span class="card-category">${sectionName(c.section)}</span><h3>${c.title}</h3><p>${c.description}</p><div class="card-foot"><span class="small-formula">${formula(c.formulaLatex)}</span><span class="card-arrow">${icon("arrow")}</span></div></div></a>`;
