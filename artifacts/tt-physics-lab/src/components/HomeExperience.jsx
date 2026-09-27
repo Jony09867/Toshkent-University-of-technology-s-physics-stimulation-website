@@ -104,8 +104,8 @@ function HomeExperience({ copy, links, preview, stats, features, featuredCardsHt
       maxParticles: 7200,
       duration: 1050,
       scatter: 80,
-      pointerRepel: 0,
-      repelRadius: 0,
+      pointerRepel: 7,
+      repelRadius: 84,
       replayOnHover: false,
     });
     const cleanLines = mountFloatingLines(linesRef.current, { orange: "#f1592a", warm: "#fff8f3" });

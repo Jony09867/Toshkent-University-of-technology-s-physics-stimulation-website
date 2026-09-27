@@ -128,6 +128,8 @@ export function mountParticleText(container, options = {}) {
         startY: target.y + Math.sin(angle) * distance,
         targetX: target.x,
         targetY: target.y,
+        pointerOffsetX: 0,
+        pointerOffsetY: 0,
         seed,
         color: mix(accentMix),
         size: particleSize * (0.75 + seed * 0.55),
@@ -154,6 +156,8 @@ export function mountParticleText(container, options = {}) {
         x += Math.sin(now * 0.0007 + particle.seed * 9) * 0.55;
         y += Math.cos(now * 0.0006 + particle.seed * 8) * 0.55;
       }
+      let pointerTargetX = 0,
+        pointerTargetY = 0;
       if (
         pointer.active &&
         pointerRepel > 0 &&
@@ -164,11 +168,15 @@ export function mountParticleText(container, options = {}) {
           dy = y - pointer.smoothY,
           distance = Math.hypot(dx, dy);
         if (distance > 0 && distance < repelRadius) {
-          const force = (1 - distance / repelRadius) ** 2 * pointerRepel;
-          x += (dx / distance) * force;
-          y += (dy / distance) * force;
+          const force = (1 - distance / repelRadius) ** 3 * pointerRepel;
+          pointerTargetX = (dx / distance) * force;
+          pointerTargetY = (dy / distance) * force;
         }
       }
+      particle.pointerOffsetX += (pointerTargetX - particle.pointerOffsetX) * 0.14;
+      particle.pointerOffsetY += (pointerTargetY - particle.pointerOffsetY) * 0.14;
+      x += particle.pointerOffsetX;
+      y += particle.pointerOffsetY;
       particle.x = x;
       particle.y = y;
       ctx.globalAlpha = 0.42 + progress * 0.58;
