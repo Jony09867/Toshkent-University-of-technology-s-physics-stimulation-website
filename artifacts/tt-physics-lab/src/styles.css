@@ -310,6 +310,9 @@ main:focus-visible {
   margin-left: 6px;
   color: var(--muted);
 }
+.header-lab-magnet {
+  display: inline-flex;
+}
 .header-lab {
   min-height: 40px;
   padding: 0 16px;

@@ -9,6 +9,7 @@ import { resultCard, formatResult, NO_VALUE } from "./components/ResultCard.js";
 import { SimulationCanvas } from "./components/SimulationCanvas.js";
 import { LiveChart } from "./components/LiveChart.js";
 import { attachBorderGlow } from "./components/BorderGlow.js";
+import { attachMagnet } from "./components/Magnet.jsx";
 import { mountHomeExperience } from "./components/HomeExperience.jsx";
 import "./components/BorderGlow.css";
 import "./components/ParticleText.css";
@@ -263,7 +264,7 @@ function header(active = "home") {
     navigation = primaryNav
       .map(({ label, href }) => `<a href="${href}"${href === currentHref ? ' class="active" aria-current="page"' : ""}>${label}</a>`)
       .join("");
-  return `<div class="topbar"><div class="container"><span>${uz.brand}</span><a href="https://tashkenttech-edu.uz/" target="_blank" rel="noopener">${uz.university} ↗</a></div></div><header class="header"><div class="container header-inner">${brand()}<nav class="nav" id="primary-navigation" aria-label="${uz.mainNav}">${navigation}</nav><div class="header-actions"><button type="button" class="icon-button header-search-toggle" aria-label="${uz.searchLabel}" aria-controls="header-search-panel" aria-expanded="false">${icon("search")}</button><span class="language" lang="uz">UZ</span><a class="header-lab" href="${simLink(allConfigs.find((c) => c.key === "newton"))}"><span>${uz.start}</span>${icon("arrow")}</a><button type="button" class="icon-button menu-button" aria-label="Menyuni ochish" aria-controls="primary-navigation" aria-expanded="false">${icon("menu")}</button></div></div></header>`;
+  return `<div class="topbar"><div class="container"><span>${uz.brand}</span><a href="https://tashkenttech-edu.uz/" target="_blank" rel="noopener">${uz.university} ↗</a></div></div><header class="header"><div class="container header-inner">${brand()}<nav class="nav" id="primary-navigation" aria-label="${uz.mainNav}">${navigation}</nav><div class="header-actions"><button type="button" class="icon-button header-search-toggle" aria-label="${uz.searchLabel}" aria-controls="header-search-panel" aria-expanded="false">${icon("search")}</button><span class="language" lang="uz">UZ</span><span class="header-lab-magnet"><a class="header-lab" href="${simLink(allConfigs.find((c) => c.key === "newton"))}"><span>${uz.start}</span>${icon("arrow")}</a></span><button type="button" class="icon-button menu-button" aria-label="Menyuni ochish" aria-controls="primary-navigation" aria-expanded="false">${icon("menu")}</button></div></div></header>`;
 }
 function footer() {
   return `<footer><div class="container footer-top"><div>${brand()}<p>${uz.footerText}</p></div><div><span class="eyebrow">PHYSICS LAB</span><a href="#/topics">${uz.browse}</a><a href="#/about">${uz.nav[4]}</a></div><div><span class="eyebrow">TASHKENT TECH</span><a href="https://tashkenttech-edu.uz/" target="_blank" rel="noopener">${uz.university} ↗</a><a href="mailto:info@tashkenttech-edu.uz">info@tashkenttech-edu.uz</a></div></div><div class="container footer-bottom"><span>© ${new Date().getFullYear()} ${uz.footerSub}</span><span>${uz.source}</span></div></footer>`;
@@ -273,7 +274,15 @@ function shell(body, active = "home") {
   headerCleanup = () => {};
   app.innerHTML =
     header(active) + `<main id="main" tabindex="-1">${body}</main>` + footer();
-  headerCleanup = setupHeaderNavigation();
+  const navigationCleanup = setupHeaderNavigation();
+  const magnetCleanup = attachMagnet(
+    document.querySelector(".header-lab-magnet"),
+    { padding: 50, magnetStrength: 32 },
+  );
+  headerCleanup = () => {
+    navigationCleanup();
+    magnetCleanup();
+  };
   setupHeaderSearch();
 }
 function artwork(key) {
