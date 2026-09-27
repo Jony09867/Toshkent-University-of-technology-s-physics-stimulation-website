@@ -101,7 +101,7 @@ function HomeExperience({ copy, links, preview, stats, features, featuredCardsHt
       accentLine: 1,
       density: 4,
       particleSize: 2.2,
-      maxParticles: 7200,
+      maxParticles: 4800,
       duration: 1600,
       scatter: 190,
       stagger: 420,

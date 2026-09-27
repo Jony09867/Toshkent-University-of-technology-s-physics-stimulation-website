@@ -41,6 +41,7 @@ export function mountParticleText(container, options = {}) {
     height = 0,
     frame = 0,
     resizeFrame = 0,
+    lastFrame = 0,
     start = performance.now(),
     disposed = false;
   const pointer = { active: false, x: 0, y: 0, smoothX: 0, smoothY: 0 };
@@ -55,13 +56,16 @@ export function mountParticleText(container, options = {}) {
     accent = hex(highlightColor),
     mix = (amount) =>
       `rgb(${base.map((channel, index) => Math.round(channel + (accent[index] - channel) * amount)).join(",")})`;
+  canvas.style.filter = glow
+    ? `drop-shadow(0 0 ${particleSize * 2}px rgba(${accent.join(",")}, 0.38))`
+    : "none";
 
   const build = async () => {
     if (disposed) return;
     const rect = container.getBoundingClientRect();
     width = Math.max(1, Math.floor(rect.width));
     height = Math.max(1, Math.floor(rect.height));
-    const dpr = Math.min(devicePixelRatio || 1, 2);
+    const dpr = Math.min(devicePixelRatio || 1, 1.5);
     canvas.width = Math.floor(width * dpr);
     canvas.height = Math.floor(height * dpr);
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -133,6 +137,10 @@ export function mountParticleText(container, options = {}) {
         targetY: target.y,
         pointerOffsetX: 0,
         pointerOffsetY: 0,
+        driftCosX: Math.cos(seed * 10),
+        driftSinX: Math.sin(seed * 10),
+        driftCosY: Math.cos(seed * 8),
+        driftSinY: Math.sin(seed * 8),
         seed,
         color: mix(accentMix),
         size: particleSize * (0.75 + seed * 0.55),
@@ -145,11 +153,21 @@ export function mountParticleText(container, options = {}) {
 
   const render = (now) => {
     if (disposed) return;
+    if (now - lastFrame < 1000 / 60) {
+      frame = requestAnimationFrame(render);
+      return;
+    }
+    lastFrame = now;
     ctx.clearRect(0, 0, width, height);
-    ctx.shadowBlur = glow && !reducedMotion.matches ? particleSize * 3 : 0;
-    ctx.shadowColor = highlightColor;
     pointer.smoothX += (pointer.x - pointer.smoothX) * 0.16;
     pointer.smoothY += (pointer.y - pointer.smoothY) * 0.16;
+    const driftX = now * 0.0009,
+      driftY = now * 0.00075,
+      driftSinX = Math.sin(driftX),
+      driftCosX = Math.cos(driftX),
+      driftSinY = Math.sin(driftY),
+      driftCosY = Math.cos(driftY),
+      repelRadiusSquared = repelRadius * repelRadius;
     for (const particle of particles) {
       const progress = reducedMotion.matches
           ? 1
@@ -159,8 +177,14 @@ export function mountParticleText(container, options = {}) {
         y = particle.startY + (particle.targetY - particle.startY) * eased;
       if (!reducedMotion.matches && progress === 1) {
         const driftDepth = 0.65 + particle.seed * 0.45;
-        x += Math.sin(now * 0.0009 + particle.seed * 10) * idleDrift * driftDepth;
-        y += Math.cos(now * 0.00075 + particle.seed * 8) * idleDrift * driftDepth;
+        x +=
+          (driftSinX * particle.driftCosX + driftCosX * particle.driftSinX) *
+          idleDrift *
+          driftDepth;
+        y +=
+          (driftCosY * particle.driftCosY - driftSinY * particle.driftSinY) *
+          idleDrift *
+          driftDepth;
       }
       let pointerTargetX = 0,
         pointerTargetY = 0;
@@ -172,8 +196,9 @@ export function mountParticleText(container, options = {}) {
       ) {
         const dx = x - pointer.smoothX,
           dy = y - pointer.smoothY,
-          distance = Math.hypot(dx, dy);
-        if (distance > 0 && distance < repelRadius) {
+          distanceSquared = dx * dx + dy * dy;
+        if (distanceSquared > 0 && distanceSquared < repelRadiusSquared) {
+          const distance = Math.sqrt(distanceSquared);
           const falloff = (1 - distance / repelRadius) ** 2,
             force = falloff * pointerRepel,
             radialForce = force * 0.32,
@@ -192,21 +217,14 @@ export function mountParticleText(container, options = {}) {
       particle.y = y;
       ctx.globalAlpha = 0.42 + progress * 0.58;
       ctx.fillStyle = particle.color;
-      if (particle.size <= 2.1) {
-        ctx.fillRect(
-          particle.x - particle.size / 2,
-          particle.y - particle.size / 2,
-          particle.size,
-          particle.size,
-        );
-      } else {
-        ctx.beginPath();
-        ctx.arc(particle.x, particle.y, particle.size / 2, 0, Math.PI * 2);
-        ctx.fill();
-      }
+      ctx.fillRect(
+        particle.x - particle.size / 2,
+        particle.y - particle.size / 2,
+        particle.size,
+        particle.size,
+      );
     }
     ctx.globalAlpha = 1;
-    ctx.shadowBlur = 0;
     frame = requestAnimationFrame(render);
   };
   const move = (event) => {
