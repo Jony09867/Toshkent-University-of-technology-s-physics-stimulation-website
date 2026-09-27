@@ -18,6 +18,8 @@ export function mountParticleText(container, options = {}) {
     accentLine = -1,
     italicLine = -1,
     maxParticles = 2600,
+    pointerRepel = 24,
+    repelRadius = 105,
     replayOnHover = true,
   } = options;
   const canvas = document.createElement("canvas"),
@@ -152,12 +154,17 @@ export function mountParticleText(container, options = {}) {
         x += Math.sin(now * 0.0007 + particle.seed * 9) * 0.55;
         y += Math.cos(now * 0.0006 + particle.seed * 8) * 0.55;
       }
-      if (pointer.active && !reducedMotion.matches) {
+      if (
+        pointer.active &&
+        pointerRepel > 0 &&
+        repelRadius > 0 &&
+        !reducedMotion.matches
+      ) {
         const dx = x - pointer.smoothX,
           dy = y - pointer.smoothY,
           distance = Math.hypot(dx, dy);
-        if (distance > 0 && distance < 105) {
-          const force = (1 - distance / 105) ** 2 * 24;
+        if (distance > 0 && distance < repelRadius) {
+          const force = (1 - distance / repelRadius) ** 2 * pointerRepel;
           x += (dx / distance) * force;
           y += (dy / distance) * force;
         }
@@ -191,8 +198,11 @@ export function mountParticleText(container, options = {}) {
     cancelAnimationFrame(resizeFrame);
     resizeFrame = requestAnimationFrame(build);
   });
-  canvas.addEventListener("pointermove", move);
-  canvas.addEventListener("pointerleave", leave);
+  const pointerRepelEnabled = pointerRepel > 0 && repelRadius > 0;
+  if (pointerRepelEnabled) {
+    canvas.addEventListener("pointermove", move);
+    canvas.addEventListener("pointerleave", leave);
+  }
   if (replayOnHover) canvas.addEventListener("pointerenter", replay);
   reducedMotion.addEventListener?.("change", build);
   resize.observe(container);
@@ -204,8 +214,10 @@ export function mountParticleText(container, options = {}) {
     resize.disconnect();
     cancelAnimationFrame(frame);
     cancelAnimationFrame(resizeFrame);
-    canvas.removeEventListener("pointermove", move);
-    canvas.removeEventListener("pointerleave", leave);
+    if (pointerRepelEnabled) {
+      canvas.removeEventListener("pointermove", move);
+      canvas.removeEventListener("pointerleave", leave);
+    }
     if (replayOnHover) canvas.removeEventListener("pointerenter", replay);
     reducedMotion.removeEventListener?.("change", build);
   };
