@@ -168,13 +168,18 @@ export function mountParticleText(container, options = {}) {
           dy = y - pointer.smoothY,
           distance = Math.hypot(dx, dy);
         if (distance > 0 && distance < repelRadius) {
-          const force = (1 - distance / repelRadius) ** 3 * pointerRepel;
-          pointerTargetX = (dx / distance) * force;
-          pointerTargetY = (dy / distance) * force;
+          const falloff = (1 - distance / repelRadius) ** 2,
+            force = falloff * pointerRepel,
+            radialForce = force * 0.32,
+            swirlForce = force * 0.86,
+            normalX = dx / distance,
+            normalY = dy / distance;
+          pointerTargetX = normalX * radialForce - normalY * swirlForce;
+          pointerTargetY = normalY * radialForce + normalX * swirlForce;
         }
       }
-      particle.pointerOffsetX += (pointerTargetX - particle.pointerOffsetX) * 0.14;
-      particle.pointerOffsetY += (pointerTargetY - particle.pointerOffsetY) * 0.14;
+      particle.pointerOffsetX += (pointerTargetX - particle.pointerOffsetX) * 0.2;
+      particle.pointerOffsetY += (pointerTargetY - particle.pointerOffsetY) * 0.2;
       x += particle.pointerOffsetX;
       y += particle.pointerOffsetY;
       particle.x = x;
