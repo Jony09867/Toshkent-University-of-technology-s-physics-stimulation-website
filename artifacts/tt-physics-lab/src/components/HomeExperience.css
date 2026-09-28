@@ -313,6 +313,12 @@
 .linear-sim-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
 .linear-sim-grid .sim-card { border-radius: 12px; background: #0e1114; }
 .linear-sim-grid .sim-card-visual { min-height: 220px; background-color: #0b0e11; }
+.linear-sim-grid .sim-card-visual .sim-art {
+  display: block;
+  width: 100%;
+  height: 168px;
+  margin: 8px auto 0;
+}
 .linear-sim-grid .sim-card-body { padding: 22px; }
 .linear-sim-grid .sim-card h3 { font-size: 18px; }
 .linear-sim-grid .sim-card p { font-size: 12px; line-height: 1.65; }
