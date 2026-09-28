@@ -3841,6 +3841,119 @@ body.home-dark,
   }
 }
 
+.live-calculation {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 18px;
+  margin-top: 10px;
+  padding: 13px 18px;
+  border: 1px solid rgba(241, 89, 42, .2);
+  border-radius: 9px;
+  background: linear-gradient(90deg, rgba(241, 89, 42, .08), rgba(241, 89, 42, .025));
+}
+
+.live-calculation > span {
+  color: #f1592a;
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: .16em;
+  white-space: nowrap;
+}
+
+.live-calculation strong {
+  min-width: 0;
+  overflow-x: auto;
+  color: #e9ecef;
+  font-family: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.6;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.experiment-guide {
+  display: grid;
+  grid-template-columns: minmax(240px, .9fr) minmax(0, 1.5fr);
+  align-items: center;
+  gap: 28px;
+  margin: 0 0 20px;
+  padding: 18px 20px;
+  border: 1px solid #ffffff12;
+  border-radius: 10px;
+  background: #0d1013;
+}
+
+.experiment-guide p {
+  margin-top: 7px;
+  color: #c5cbd1;
+  font-size: 11px;
+  line-height: 1.55;
+}
+
+.experiment-guide ol {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 7px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.experiment-guide li {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 42px;
+  padding: 9px 10px;
+  color: #7f8994;
+  border: 1px solid #ffffff0f;
+  border-radius: 7px;
+  background: #11151a;
+  font-size: 9px;
+  line-height: 1.4;
+  transition: color .2s ease, border-color .2s ease, background .2s ease;
+}
+
+.experiment-guide li i {
+  width: 7px;
+  height: 7px;
+  flex: 0 0 auto;
+  border: 1px solid #68717a;
+  border-radius: 50%;
+}
+
+.experiment-guide li.done {
+  color: #dce1e5;
+  border-color: rgba(45, 212, 163, .22);
+  background: rgba(45, 212, 163, .06);
+}
+
+.experiment-guide li.done i {
+  border-color: #2dd4a3;
+  background: #2dd4a3;
+  box-shadow: 0 0 0 3px rgba(45, 212, 163, .08);
+}
+
+@media (max-width: 900px) {
+  .experiment-guide {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+}
+
+@media (max-width: 680px) {
+  .live-calculation {
+    grid-template-columns: 1fr;
+    gap: 5px;
+  }
+
+  .experiment-guide ol {
+    grid-template-columns: 1fr;
+  }
+}
+
 @media (max-width: 520px) {
   .home-dark .header {
     padding-inline: 0;

@@ -86,6 +86,8 @@ export class LiveChart {
                 boxWidth: 12,
                 usePointStyle: true,
                 color: axisMuted,
+                filter: (item, data) =>
+                  !data.datasets[item.datasetIndex]?.currentMarker,
               },
             },
             tooltip: {
@@ -141,9 +143,31 @@ export class LiveChart {
   }
   updateChart(chart) {
     try {
-      this.updateChart(chart);
+      chart?.update("none");
     } catch (error) {
       console.warn("Graph update failed:", error);
+    }
+  }
+  setCursor(chart, t, state) {
+    chart.data.datasets = chart.data.datasets.filter((ds) => !ds.currentMarker);
+    const sources = chart.data.datasets.filter(
+      (ds) => !ds.focusGuide && ds.key,
+    );
+    for (const [index, source] of sources.entries()) {
+      const raw = state[source.key],
+        y = typeof raw === "number" ? raw * source.scale : NaN;
+      chart.data.datasets.push({
+        label: uz.currentValue,
+        currentMarker: true,
+        data: Number.isFinite(y) ? [{ x: t, y }] : [],
+        pointRadius: 4,
+        pointHoverRadius: 6,
+        pointBackgroundColor: source.borderColor || colors[index],
+        pointBorderColor: "#fff",
+        pointBorderWidth: 1.5,
+        showLine: false,
+        fill: false,
+      });
     }
   }
   curve(p) {
@@ -249,12 +273,27 @@ export class LiveChart {
     if (!force && t - this.last < 0.09) return;
     this.last = t;
     for (const ch of this.charts) {
-      for (const ds of ch.data.datasets) {
+      const sources = ch.data.datasets.filter((ds) => !ds.currentMarker);
+      ch.data.datasets = sources;
+      for (const ds of sources) {
         const raw = state[ds.key],
           y = typeof raw === "number" ? raw * ds.scale : NaN;
         ds.data.push({ x: t, y: Number.isFinite(y) ? y : null });
         if (ds.data.length > 1200) ds.data.shift();
       }
+      this.setCursor(ch, t, state);
+      this.updateChart(ch);
+    }
+  }
+  seek(t, state) {
+    if (this.static || this.destroyed || !state) return;
+    this.last = t;
+    for (const ch of this.charts) {
+      const sources = ch.data.datasets.filter((ds) => !ds.currentMarker);
+      ch.data.datasets = sources;
+      for (const ds of sources)
+        ds.data = ds.data.filter((point) => point.x <= t + 1e-6);
+      this.setCursor(ch, t, state);
       this.updateChart(ch);
     }
   }
@@ -266,6 +305,7 @@ export class LiveChart {
       return;
     }
     for (const ch of this.charts) {
+      ch.data.datasets = ch.data.datasets.filter((ds) => !ds.currentMarker);
       for (const ds of ch.data.datasets) ds.data = [];
       this.updateChart(ch);
     }

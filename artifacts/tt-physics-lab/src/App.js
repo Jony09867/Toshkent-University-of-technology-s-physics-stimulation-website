@@ -1,11 +1,11 @@
-import { uz } from "./i18n/uz.js";
+import { uz, paramNames, resultNames } from "./i18n/uz.js";
 import { allConfigs, defaults } from "./data/configs.js";
 import { sections, sectionFor } from "./data/sections.js";
 import { icon } from "./components/icons.js";
 import { formula } from "./components/FormulaDisplay.js";
 import { parameterSlider } from "./components/ParameterSlider.js";
 import { levelTabs } from "./components/LevelTabs.js";
-import { resultCard, formatResult, NO_VALUE } from "./components/ResultCard.js";
+import { resultCard, format, formatResult, NO_VALUE } from "./components/ResultCard.js";
 import { SimulationCanvas } from "./components/SimulationCanvas.js";
 import { LiveChart } from "./components/LiveChart.js";
 import { attachBorderGlow } from "./components/BorderGlow.js";
@@ -452,6 +452,79 @@ function catalog(query) {
   document.querySelector("#ready-filter").onchange = render;
   render();
 }
+const experimentTasks = {
+  motion: "Tezlanishni o‘zgartiring va tezlik bilan koordinata grafigini taqqoslang.",
+  fall: "Balandlik yoki boshlang‘ich tezlikni o‘zgartirib, tushish vaqti va masofani kuzating.",
+  newton: "Kuch yoki massani o‘zgartirib, tezlanish qaysi nisbatda o‘zgarishini toping.",
+  friction: "Sirtni almashtiring va qutining to‘xtash masofasini solishtiring.",
+  projectile: "Otish burchagini o‘zgartirib, eng uzoq trayektoriyani toping.",
+  energy: "Balandlikni o‘zgartiring va energiyaning bir turdan boshqasiga o‘tishini kuzating.",
+  spring: "Massa yoki qattiqlikni o‘zgartirib, tebranish davrini taqqoslang.",
+  resonance: "Majburlovchi chastotani tabiiy chastotaga yaqinlashtirib, cho‘qqini toping.",
+  buoyancy: "Jism va suyuqlik zichligini o‘zgartirib, suzish holatini aniqlang.",
+  gas: "Harorat yoki hajmni o‘zgartirib, bosim qanday javob berishini kuzating.",
+  coulomb: "Zaryadlar masofasini o‘zgartirib, kuchning kamayish tezligini tekshiring.",
+  ohm: "Kuchlanish yoki qarshilikni o‘zgartirib, tok kuchini taqqoslang.",
+  circuit: "Tashqi qarshilikni o‘zgartirib, tok va foydali ish koeffitsiyentini kuzating.",
+  induction: "Magnit tezligi yoki o‘ramlar sonini o‘zgartirib, EYUKni kuzating.",
+  lens: "Predmetni fokusga yaqinlashtirib, tasvir masofasi va turini kuzating.",
+};
+const experimentFocus = {
+  motion: "a",
+  fall: "h",
+  newton: "force",
+  friction: "mu",
+  projectile: "angle",
+  energy: "h",
+  spring: "m",
+  resonance: "frequency",
+  buoyancy: "rho",
+  gas: "temperature",
+  coulomb: "r",
+  ohm: "voltage",
+  circuit: "resistance",
+  induction: "speed",
+  lens: "object",
+};
+
+const liveEquation = (c, p, state, t) => {
+  const n = (value) => format(value);
+  switch (c.key) {
+    case "motion":
+      return `x = ${n(p.x0)} + ${n(p.v0)}·${n(t)} + ½·${n(p.a)}·${n(t)}² = ${n(state.x)} m`;
+    case "fall":
+      return `x = v₀t = ${n(p.v0)}·${n(t)} = ${n(state.x)} m`;
+    case "newton":
+      return `a = Fₙₑₜ/m = ${n(state.net)}/${n(p.m)} = ${n(state.a)} m/s²`;
+    case "friction":
+      return `Fᵢ = μN = ${n(p.mu)}·${n(p.normal)} = ${n(state.maxFriction)} N`;
+    case "projectile":
+      return `x(t) = v₀ cos(α)t = ${n(state.x)} m · y(t) = ${n(state.y)} m`;
+    case "energy":
+      return `Eₖ + Eₚ${p.friction ? " + Q" : ""} = ${n(state.kinetic)} + ${n(state.potential)}${p.friction ? ` + ${n(state.heat)}` : ""} = ${n(state.initial)} J`;
+    case "spring":
+      return `T = 2π√(m/k) = 2π√(${n(p.m)}/${n(p.k)}) = ${n(state.period)} s`;
+    case "resonance":
+      return `A(ω = ${n(p.frequency)}) = ${n(state.amplitude)} m`;
+    case "buoyancy":
+      return `Fₐ = ρgV = ${n(state.force)} N · mg = ${n(state.weight)} N`;
+    case "gas":
+      return `p = nRT/V = ${n(state.pressure * 0.001)} kPa`;
+    case "coulomb":
+      return `|F| = k|q₁q₂|/r² = ${n(state.force)} N`;
+    case "ohm":
+      return `I = U/R = ${n(p.voltage)}/${n(p.resistance)} = ${n(state.current)} A`;
+    case "circuit":
+      return `I = ε/(R+r) = ${n(p.emf)}/(${n(p.resistance)}+${n(p.internal)}) = ${n(state.current)} A`;
+    case "induction":
+      return `ε(t) = −N·dΦ/dt = ${n(state.emf)} V`;
+    case "lens":
+      return `1/F = 1/d + 1/f → f = ${n(state.image)} m`;
+    default:
+      return `${c.formulaLatex} = ${n(state[c.results[0]?.key])}`;
+  }
+};
+
 function simPage(config, level = 0) {
   const restored = simSessions.get(config.id);
   let p = { ...defaults(config, level), ...(restored?.p || {}) },
@@ -480,6 +553,10 @@ function simPage(config, level = 0) {
   const c = config,
     params = c.params.filter((p) => p.level <= level),
     index = allConfigs.indexOf(allConfigs.find((s) => s.id === c.id));
+  const guideStart = { p: { ...p }, result: state[c.results[0]?.key] },
+    guideParam =
+      params.find((param) => param.key === experimentFocus[c.key]) || params[0],
+    guideResult = c.results[0];
   const extras =
     c.key === "friction"
       ? `<label class="select-label">${uz.surface}<select id="surface"><option value="0.03">${uz.surfaces[0]}</option><option value="0.2">${uz.surfaces[1]}</option><option value="0.7">${uz.surfaces[2]}</option><option value="custom">${uz.currentSurface}</option></select></label>`
@@ -505,7 +582,7 @@ function simPage(config, level = 0) {
       true,
     );
   shell(
-    `<div class="container sim-page"><div class="breadcrumb"><a href="#/topics">${uz.nav[1]}</a><span>/</span><a href="#/topics?section=${c.section}">${sectionName(c.section)}</a><span>/</span><span>${c.title}</span></div><div class="sim-title-row"><div><span class="eyebrow orange">${uz.experimentLabel} ${String(index + 1).padStart(2, "0")} / ${sectionName(c.section).toUpperCase()}</span><h1>${c.title}</h1><p>${c.description}</p></div><button type="button" class="icon-button help-button" aria-label="${uz.help}">${icon("help")}</button></div><div class="formula-banner"><div id="main-formula">${mainFormula()}</div><span>SI · ${uz.levels[level]}</span></div>${levelTabs(level)}<div id="experiment-panel" role="tabpanel" aria-labelledby="level-${level}"><div class="experiment-layout"><section class="experiment-card"><div class="panel-header"><h2>${icon("grid")}${uz.experiment}</h2><span class="live-label"><i></i>${uz.live}</span></div><canvas id="sim-canvas" role="img" aria-label="${uz.canvasLabel}: ${c.title}"></canvas>${transport}<div class="vector-legend">${legendFor(c)}<span id="sim-notice" role="status"></span></div></section><aside class="controls-card"><div class="panel-header"><h2>${uz.parameters}</h2><span>${params.length}</span></div>${extras}<div class="parameter-stack">${params.map((param) => parameterSlider(param, p[param.key])).join("")}</div><div class="controls-note">${icon("help")}<span>${uz.previewText}</span></div></aside></div><section class="results-section"><div class="minor-heading"><h2>${uz.results}</h2><span>SI</span></div><div class="result-grid">${c.results.map((r) => resultCard(r, state[r.key])).join("")}</div><p id="result-status" class="result-status" role="status"></p></section>${chartVisible ? `<section class="chart-section"><div class="minor-heading"><h2>${uz.chart}</h2><span>${["coulomb", "lens", "ohm", "circuit", "gas", "resonance"].includes(c.key) ? uz.relationsLabel : uz.timeRelationsLabel}</span></div><div id="charts" class="charts-grid"></div></section>` : ""}<div class="learning-grid"><section class="learning-card"><span class="section-icon">${icon("book")}</span><h2>${level === 2 ? uz.derivation : uz.explanation}</h2>${level === 2 ? `<ol class="derivation">${c.hard.map((s) => `<li>${formula(s, true)}</li>`).join("")}</ol>` : `<p>${level === 0 ? c.easy : c.medium}</p>`}</section><section class="learning-card engineering"><span class="section-icon">${icon("force")}</span><span class="eyebrow">${uz.engineeringLabel}</span><h2>${uz.engineering}</h2><p>${c.engineering}</p></section></div><details class="model-note"><summary>${uz.model}</summary><p>${c.model}</p></details></div><div class="sim-navigation"><a class="button secondary" href="${simLink(allConfigs[(index - 1 + allConfigs.length) % allConfigs.length])}">← ${uz.previous}</a><button type="button" id="complete" class="button ${completed.has(c.id) ? "completed" : "primary"}">${icon("check")}${completed.has(c.id) ? uz.completed : uz.complete}</button><a class="button secondary" href="${simLink(allConfigs[(index + 1) % allConfigs.length])}">${uz.next} →</a></div><a class="text-link back-link" href="#/topics">${icon("grid")}${uz.back}</a></div>`,
+    `<div class="container sim-page"><div class="breadcrumb"><a href="#/topics">${uz.nav[1]}</a><span>/</span><a href="#/topics?section=${c.section}">${sectionName(c.section)}</a><span>/</span><span>${c.title}</span></div><div class="sim-title-row"><div><span class="eyebrow orange">${uz.experimentLabel} ${String(index + 1).padStart(2, "0")} / ${sectionName(c.section).toUpperCase()}</span><h1>${c.title}</h1><p>${c.description}</p></div><button type="button" class="icon-button help-button" aria-label="${uz.help}">${icon("help")}</button></div><div class="formula-banner"><div id="main-formula">${mainFormula()}</div><span>SI · ${uz.levels[level]}</span></div><section class="live-calculation" aria-live="polite"><span>${uz.liveCalculation}</span><strong id="live-equation">${liveEquation(c, p, state, t)}</strong></section>${levelTabs(level)}<section class="experiment-guide"><div><span class="eyebrow orange">${uz.experimentTask}</span><p>${experimentTasks[c.key]}</p></div><ol><li data-guide-step="change"><i></i>${paramNames[guideParam.key] || guideParam.key}: ${uz.changeParameter}</li><li data-guide-step="observe"><i></i>${uz.observeMotion}</li><li data-guide-step="compare"><i></i>${resultNames[guideResult.key] || guideResult.key}: ${uz.compareResult}</li></ol></section><div id="experiment-panel" role="tabpanel" aria-labelledby="level-${level}"><div class="experiment-layout"><section class="experiment-card"><div class="panel-header"><h2>${icon("grid")}${uz.experiment}</h2><span class="live-label"><i></i>${uz.live}</span></div><canvas id="sim-canvas" role="img" aria-label="${uz.canvasLabel}: ${c.title}"></canvas>${transport}<div class="vector-legend">${legendFor(c)}<span id="sim-notice" role="status"></span></div></section><aside class="controls-card"><div class="panel-header"><h2>${uz.parameters}</h2><span>${params.length}</span></div>${extras}<div class="parameter-stack">${params.map((param) => parameterSlider(param, p[param.key])).join("")}</div><div class="controls-note">${icon("help")}<span>${experimentTasks[c.key]}</span></div></aside></div><section class="results-section"><div class="minor-heading"><h2>${uz.results}</h2><span>SI</span></div><div class="result-grid">${c.results.map((r) => resultCard(r, state[r.key])).join("")}</div><p id="result-status" class="result-status" role="status"></p></section>${chartVisible ? `<section class="chart-section"><div class="minor-heading"><h2>${uz.chart}</h2><span>${["coulomb", "lens", "ohm", "circuit", "gas", "resonance"].includes(c.key) ? uz.relationsLabel : uz.timeRelationsLabel}</span></div><div id="charts" class="charts-grid"></div></section>` : ""}<div class="learning-grid"><section class="learning-card"><span class="section-icon">${icon("book")}</span><h2>${level === 2 ? uz.derivation : uz.explanation}</h2>${level === 2 ? `<ol class="derivation">${c.hard.map((s) => `<li>${formula(s, true)}</li>`).join("")}</ol>` : `<p>${level === 0 ? c.easy : c.medium}</p>`}</section><section class="learning-card engineering"><span class="section-icon">${icon("force")}</span><span class="eyebrow">${uz.engineeringLabel}</span><h2>${uz.engineering}</h2><p>${c.engineering}</p></section></div><details class="model-note"><summary>${uz.model}</summary><p>${c.model}</p></details></div><div class="sim-navigation"><a class="button secondary" href="${simLink(allConfigs[(index - 1 + allConfigs.length) % allConfigs.length])}">← ${uz.previous}</a><button type="button" id="complete" class="button ${completed.has(c.id) ? "completed" : "primary"}">${icon("check")}${completed.has(c.id) ? uz.completed : uz.complete}</button><a class="button secondary" href="${simLink(allConfigs[(index + 1) % allConfigs.length])}">${uz.next} →</a></div><a class="text-link back-link" href="#/topics">${icon("grid")}${uz.back}</a></div>`,
     "topics",
   );
   const canvas = new SimulationCanvas(document.querySelector("#sim-canvas")),
@@ -543,7 +620,7 @@ function simPage(config, level = 0) {
       last = 0;
     }
   };
-  const update = (force) => {
+  const update = (force, chartMode = "add") => {
     if (disposed || !document.querySelector("#sim-canvas")) return;
     try {
       state = c.calculate(p, t);
@@ -578,7 +655,34 @@ function simPage(config, level = 0) {
       status.textContent = state.atFocus ? uz.focus : state.real ? uz.real : uz.virtual;
     if (c.key === "buoyancy" && status)
       status.textContent = uz.floating[state.status] || "";
-    chart?.add(t, state, force);
+    const equation = document.querySelector("#live-equation");
+    if (equation) equation.textContent = liveEquation(c, p, state, t);
+    const changed = params.some(
+        (param) =>
+          Math.abs(Number(p[param.key]) - Number(guideStart.p[param.key])) >
+          1e-9,
+      ),
+      firstResult = c.results[0]?.key,
+      startResult = Number(guideStart.result),
+      currentResult = Number(state[firstResult]),
+      resultChanged =
+        changed &&
+        ((Number.isFinite(startResult) &&
+          Number.isFinite(currentResult) &&
+          Math.abs(currentResult - startResult) > 1e-9) ||
+          state[firstResult] !== guideStart.result),
+      observed = c.static ? changed : t > 0.35;
+    document
+      .querySelector('[data-guide-step="change"]')
+      ?.classList.toggle("done", changed);
+    document
+      .querySelector('[data-guide-step="observe"]')
+      ?.classList.toggle("done", observed);
+    document
+      .querySelector('[data-guide-step="compare"]')
+      ?.classList.toggle("done", resultChanged);
+    if (chartMode === "seek") chart?.seek(t, state);
+    else chart?.add(t, state, force);
   };
   const restart = () => {
     t = 0;
@@ -726,7 +830,7 @@ function simPage(config, level = 0) {
       const value = Number(e.target.value),
         max = Number(e.target.max);
       t = Number.isFinite(value) ? (value >= max - 1e-6 ? max : value) : 0;
-      update(true);
+      update(true, "seek");
     };
   // Preset dropdowns: reflect the restored/current value, and push the chosen
   // preset back through `sync` so range + number + select stay in lockstep.
