@@ -12,7 +12,6 @@ import { attachBorderGlow } from "./components/BorderGlow.js";
 import { attachMagnet } from "./components/Magnet.jsx";
 import { mountHomeExperience } from "./components/HomeExperience.jsx";
 import "./components/BorderGlow.css";
-import "./components/ParticleText.css";
 import "./components/FloatingLines.css";
 
 const app = document.querySelector("#app");

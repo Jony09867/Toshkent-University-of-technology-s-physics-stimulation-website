@@ -7,7 +7,6 @@ import ScrollStack, { ScrollStackItem } from "./ScrollStack.jsx";
 import GradualBlur from "./GradualBlur.jsx";
 import GlareHover from "./GlareHover.jsx";
 import Magnet from "./Magnet.jsx";
-import { mountParticleText } from "./ParticleText.js";
 import { mountFloatingLines } from "./FloatingLines.js";
 import "./HomeExperience.css";
 
@@ -86,37 +85,12 @@ function FeatureWindow({ feature }) {
 }
 
 function HomeExperience({ copy, links, preview, stats, features, featuredCardsHtml }) {
-  const particleRef = useRef(null);
   const linesRef = useRef(null);
 
   useEffect(() => {
-    const cleanParticle = mountParticleText(particleRef.current, {
-      text: `${copy.heroTitle}\n${copy.heroAccent}`,
-      color: "#f8fafc",
-      highlightColor: "#f1592a",
-      align: "center",
-      maxFontSize: 104,
-      fontWeight: 800,
-      lineHeight: 1.05,
-      accentLine: 1,
-      density: 3,
-      particleSize: 2.2,
-      maxParticles: 8400,
-      duration: 1600,
-      scatter: 190,
-      stagger: 420,
-      pointerRepel: 42,
-      repelRadius: 120,
-      idleDrift: 0.8,
-      glow: true,
-      replayOnHover: false,
-    });
     const cleanLines = mountFloatingLines(linesRef.current, { orange: "#f1592a", warm: "#fff8f3" });
-    return () => {
-      cleanParticle();
-      cleanLines();
-    };
-  }, [copy.heroAccent, copy.heroTitle]);
+    return cleanLines;
+  }, []);
 
   return (
     <div className="linear-home">
@@ -125,7 +99,12 @@ function HomeExperience({ copy, links, preview, stats, features, featuredCardsHt
         <div className="linear-grid" aria-hidden="true" />
         <div className="container linear-hero-content">
           <FadeContent duration={700} className="linear-kicker"><i /> INTERAKTIV FIZIKA LABORATORIYASI</FadeContent>
-          <h1 ref={particleRef} className="particle-text linear-particle-title" />
+          <FadeContent duration={760} delay={70} className="linear-hero-title-reveal">
+            <h1 className="linear-hero-title">
+              <span>{copy.heroTitle}</span>
+              <span>{copy.heroAccent}</span>
+            </h1>
+          </FadeContent>
           <FadeContent blur duration={900} delay={120} className="linear-hero-copy">{copy.heroText}</FadeContent>
           <FadeContent duration={800} delay={200} className="linear-actions">
             <Magnet padding={36} magnetStrength={24}>
