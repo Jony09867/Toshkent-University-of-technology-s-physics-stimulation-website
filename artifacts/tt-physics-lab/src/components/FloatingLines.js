@@ -40,7 +40,7 @@ const fragment = `
   void main() {
     float aspect = uResolution.x / max(uResolution.y, 1.0);
     vec2 uv = (vUv - 0.5) * vec2(aspect, 1.0);
-    float time = uTime * 0.34;
+    float time = uTime * 0.52;
     vec3 color = vec3(0.0);
     float bend = pointerBend(uv);
 
@@ -49,7 +49,7 @@ const fragment = `
       float fi = float(i);
       float curve = 0.30 - fi * 0.028 + sin(top.x * 2.1 + time + fi * 0.17) * (0.105 + fi * 0.002);
       float energy = trace(abs(top.y - curve - bend));
-      color += mix(uWarm, uOrange, fi / 9.0) * energy * (0.28 + fi * 0.015);
+      color += mix(uWarm, uOrange, fi / 9.0) * energy * (0.34 + fi * 0.016);
     }
 
     vec2 middle = rotate2d(0.23) * uv;
@@ -57,7 +57,7 @@ const fragment = `
       float fi = float(i);
       float curve = -0.03 - fi * 0.021 + sin(middle.x * 1.8 - time * 0.78 + fi * 0.14) * 0.125;
       float energy = trace(abs(middle.y - curve - bend * 0.72));
-      color += mix(uOrange, uWarm, fi / 11.0) * energy * 0.22;
+      color += mix(uOrange, uWarm, fi / 11.0) * energy * 0.27;
     }
 
     vec2 bottom = rotate2d(-0.62) * uv;
@@ -65,7 +65,7 @@ const fragment = `
       float fi = float(i);
       float curve = -0.32 + fi * 0.033 + sin(bottom.x * 2.45 + time * 0.52 + fi * 0.2) * 0.09;
       float energy = trace(abs(bottom.y - curve - bend * 0.5));
-      color += mix(uOrange, uWarm, fi / 7.0) * energy * 0.17;
+      color += mix(uOrange, uWarm, fi / 7.0) * energy * 0.21;
     }
 
     float peak = max(color.r, max(color.g, color.b));
