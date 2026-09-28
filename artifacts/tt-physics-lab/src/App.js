@@ -908,7 +908,8 @@ async function route() {
   cleanup();
   cleanup = () => {};
   currentRoute = path;
-  document.body.classList.toggle("home-dark", path === "/");
+  document.body.classList.add("home-dark");
+  document.body.classList.toggle("is-home", path === "/");
   if (catalogFailed) {
     shell(
       `<section class="container page-heading"><span class="eyebrow orange">${uz.catalogError}</span><h1>${uz.catalogError}</h1><p>${uz.simulationError}</p><a class="button primary" href="#/">${uz.home}</a></section>`,
@@ -952,7 +953,7 @@ async function route() {
       attachBorderGlow(el, {
         edgeSensitivity: 30,
         glowColor: "14 88 55",
-        backgroundColor: isSection || path === "/" ? "#111820" : el.classList.contains('learning-card') || el.classList.contains('result-card') ? "#f7f8fa" : "#ffffff",
+        backgroundColor: "#111820",
         borderRadius: isSection ? 16 : 18,
         glowRadius: 35,
         glowIntensity: 1.0,

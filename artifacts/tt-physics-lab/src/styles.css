@@ -3872,3 +3872,268 @@ body.home-dark,
     display: none;
   }
 }
+
+/* Shared Linear-inspired dark system for every route. */
+body.home-dark {
+  --ink: #f2f4f6;
+  --muted: #8f98a3;
+  --line: rgba(255, 255, 255, .1);
+  --bg: #080a0c;
+  color: var(--ink);
+  background: var(--bg);
+}
+
+.home-dark:not(.is-home) main {
+  min-height: calc(100vh - 260px);
+  padding-top: 76px;
+  background:
+    radial-gradient(circle at 50% 0, rgba(241, 89, 42, .055), transparent 34rem),
+    #080a0c;
+}
+
+.home-dark:not(.is-home) .page-heading {
+  padding-top: clamp(64px, 7vw, 104px);
+  padding-bottom: 56px;
+}
+
+.home-dark:not(.is-home) .page-heading h1 {
+  max-width: 980px;
+  color: #f5f6f7;
+  font-size: clamp(44px, 5.3vw, 76px);
+  font-weight: 520;
+  letter-spacing: -.06em;
+  line-height: 1.02;
+}
+
+.home-dark:not(.is-home) .page-heading p {
+  max-width: 680px;
+  color: #9098a2;
+  font-size: 15px;
+  line-height: 1.7;
+}
+
+.home-dark .breadcrumb,
+.home-dark .catalog-sub > span,
+.home-dark .minor-heading > span,
+.home-dark .range-labels,
+.home-dark .time-display,
+.home-dark .speed-control,
+.home-dark .formula-banner > span,
+.home-dark .panel-header > span:not(.live-label) {
+  color: #747d88;
+}
+
+.home-dark .secondary,
+.home-dark .icon-button,
+.home-dark select {
+  color: #d7dbe0;
+  border-color: #ffffff18;
+  background: #11151a;
+}
+
+.home-dark .secondary:hover,
+.home-dark .icon-button:hover {
+  color: #fff;
+  border-color: #f1592a80;
+  background: #171b20;
+}
+
+.home-dark .catalog-sidebar,
+.home-dark .search-field,
+.home-dark .topic-list,
+.home-dark .progress-summary,
+.home-dark .empty-state,
+.home-dark .formula-banner,
+.home-dark .level-tabs,
+.home-dark .experiment-card,
+.home-dark .controls-card,
+.home-dark .result-card,
+.home-dark .chart-wrap,
+.home-dark .learning-card,
+.home-dark .model-note {
+  color: #e7eaed;
+  border-color: #ffffff12;
+  background: #101317;
+  box-shadow: inset 0 1px rgba(255, 255, 255, .018);
+}
+
+.home-dark .catalog-sidebar h3,
+.home-dark .catalog-sub h2,
+.home-dark .topic-row h3,
+.home-dark .sim-title-row h1,
+.home-dark .minor-heading h2,
+.home-dark .learning-card h2,
+.home-dark .empty-state h2 {
+  color: #f1f3f5;
+}
+
+.home-dark .catalog-sidebar details,
+.home-dark .topic-row,
+.home-dark .panel-header,
+.home-dark .sim-navigation,
+.home-dark .parameter,
+.home-dark .vector-legend,
+.home-dark .transport,
+.home-dark .static-model-note {
+  border-color: #ffffff0f;
+}
+
+.home-dark .catalog-sidebar .selected {
+  color: #ff7a51;
+  background: #f1592a16;
+}
+
+.home-dark .catalog-sidebar details > div a,
+.home-dark .catalog-sidebar summary span,
+.home-dark .ready-filter,
+.home-dark .topic-number,
+.home-dark .topic-row > .icon {
+  color: #7f8994;
+}
+
+.home-dark .catalog-sidebar summary:hover,
+.home-dark .catalog-sidebar details > div a:hover {
+  color: #fff;
+}
+
+.home-dark .search-field input {
+  color: #eef0f2;
+}
+
+.home-dark .search-field input::placeholder {
+  color: #626b75;
+}
+
+.home-dark .search-field kbd,
+.home-dark .status {
+  color: #858e98;
+  border-color: #ffffff14;
+  background: #0b0e11;
+}
+
+.home-dark .topic-row:hover {
+  background: #15191e;
+}
+
+.home-dark .topic-row-icon {
+  color: #8f9eaa;
+  border-color: #ffffff10;
+  background: #171c22;
+}
+
+.home-dark .status.available,
+.home-dark .completed {
+  color: #7dd8b7;
+  border-color: rgba(45, 212, 163, .25);
+  background: rgba(45, 212, 163, .08);
+}
+
+.home-dark .progress-track {
+  background: #20252b;
+}
+
+.home-dark .formula-banner {
+  background: linear-gradient(90deg, #101317, #15171b, #101317);
+}
+
+.home-dark .formula-banner .katex,
+.home-dark .small-formula .katex,
+.home-dark .derivation .katex-display {
+  color: #e8ebee;
+}
+
+.home-dark .level-tabs {
+  padding: 5px;
+  background: #0c0f12;
+}
+
+.home-dark .level-tab {
+  color: #7f8892;
+}
+
+.home-dark .level-tab.selected {
+  color: #f3f4f5;
+  border-color: #ffffff14;
+  background: #181c21;
+  box-shadow: 0 7px 20px #0004;
+}
+
+.home-dark .experiment-card,
+.home-dark .controls-card {
+  background: #0d1013;
+}
+
+.home-dark .transport,
+.home-dark .vector-legend,
+.home-dark .static-model-note {
+  color: #808a95;
+  background: #0b0e11;
+}
+
+.home-dark .speed-control select,
+.home-dark .select-label select,
+.home-dark .value-wrap input {
+  color: #f1592a;
+  border-color: #ffffff14;
+  background: #0b0e11;
+}
+
+.home-dark input[type="range"]::-webkit-slider-runnable-track {
+  background: linear-gradient(to right, var(--brand) var(--fill), #292e34 var(--fill));
+}
+
+.home-dark input[type="range"]::-moz-range-track {
+  background: #292e34;
+}
+
+.home-dark input[type="range"]::-webkit-slider-thumb,
+.home-dark input[type="range"]::-moz-range-thumb {
+  border-color: #11151a;
+}
+
+.home-dark .parameter-top,
+.home-dark .select-label,
+.home-dark .toggle-label {
+  color: #b8bec5;
+}
+
+.home-dark .controls-note {
+  color: #858e98;
+  border-color: #ffffff0f;
+  background: #15191e;
+}
+
+.home-dark .result-card strong {
+  color: #eef1f3;
+}
+
+.home-dark .learning-card.engineering {
+  border-color: rgba(241, 89, 42, .2);
+  background: linear-gradient(145deg, rgba(241, 89, 42, .08), #101317 55%);
+}
+
+.home-dark .engineering .section-icon {
+  color: #f1592a;
+  border-color: rgba(241, 89, 42, .18);
+  background: rgba(241, 89, 42, .09);
+}
+
+.home-dark .source-notes code {
+  color: #c8d1d9;
+  background: #181d22;
+}
+
+.home-dark .header-search-results a {
+  border-color: #ffffff0f;
+}
+
+@media (max-width: 760px) {
+  .home-dark:not(.is-home) main {
+    padding-top: 68px;
+  }
+
+  .home-dark:not(.is-home) .page-heading {
+    padding-top: 48px;
+    padding-bottom: 40px;
+  }
+}
