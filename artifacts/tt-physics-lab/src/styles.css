@@ -3874,29 +3874,24 @@ body.home-dark,
 }
 
 .experiment-guide {
-  display: grid;
-  grid-template-columns: minmax(240px, .9fr) minmax(0, 1.5fr);
-  align-items: center;
-  gap: 28px;
-  margin: 0 0 20px;
-  padding: 18px 20px;
+  margin: 15px 16px 0;
+  padding: 14px;
   border: 1px solid #ffffff12;
-  border-radius: 10px;
-  background: #0d1013;
+  border-radius: 8px;
+  background: linear-gradient(145deg, rgba(241, 89, 42, .055), #11151a 58%);
 }
 
 .experiment-guide p {
-  margin-top: 7px;
+  margin-top: 6px;
   color: #c5cbd1;
-  font-size: 11px;
+  font-size: 9px;
   line-height: 1.55;
 }
 
 .experiment-guide ol {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 7px;
-  margin: 0;
+  gap: 5px;
+  margin: 11px 0 0;
   padding: 0;
   list-style: none;
 }
@@ -3905,8 +3900,8 @@ body.home-dark,
   display: flex;
   align-items: center;
   gap: 7px;
-  min-height: 42px;
-  padding: 9px 10px;
+  min-height: 32px;
+  padding: 7px 8px;
   color: #7f8994;
   border: 1px solid #ffffff0f;
   border-radius: 7px;
@@ -3936,21 +3931,66 @@ body.home-dark,
   box-shadow: 0 0 0 3px rgba(45, 212, 163, .08);
 }
 
-@media (max-width: 900px) {
-  .experiment-guide {
-    grid-template-columns: 1fr;
-    gap: 14px;
-  }
-}
-
 @media (max-width: 680px) {
   .live-calculation {
     grid-template-columns: 1fr;
     gap: 5px;
   }
 
-  .experiment-guide ol {
-    grid-template-columns: 1fr;
+  .catalog-sidebar {
+    display: flex;
+    gap: 7px;
+    max-height: none;
+    padding: 7px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    border-radius: 9px;
+    scrollbar-width: none;
+  }
+
+  .catalog-sidebar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .catalog-sidebar h3,
+  .catalog-sidebar details > div {
+    display: none;
+  }
+
+  .catalog-sidebar > a,
+  .catalog-sidebar details,
+  .catalog-sidebar summary {
+    flex: 0 0 auto;
+    border: 0;
+    border-radius: 6px;
+  }
+
+  .catalog-sidebar > a,
+  .catalog-sidebar summary {
+    min-height: 40px;
+    padding: 9px 11px;
+    background: #11151a;
+    white-space: nowrap;
+  }
+
+  .catalog-sidebar summary::before,
+  .catalog-sidebar summary::after,
+  .catalog-sidebar summary > span {
+    display: none;
+  }
+
+  .catalog-sidebar details:has(a[aria-current="page"]) summary {
+    background: rgba(241, 89, 42, .13);
+  }
+
+  .catalog-tools {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+  }
+
+  .catalog-tools .search-field {
+    grid-column: 1 / -1;
   }
 }
 
