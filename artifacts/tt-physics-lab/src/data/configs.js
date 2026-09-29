@@ -43,6 +43,8 @@ const configs = {
       P("h", 1, 50, 1, 20, "m"),
       P("v0", 0, 20, 0.5, 8, "m/s"),
       P("g", 1.6, 20, 0.1, 9.8, "m/s²", 1),
+      P("m", 0.05, 5, 0.05, 0.2, "kg", 2),
+      P("drag", 0, 1, 0.01, 0, "kg/s", 2),
     ],
     results: [R("duration", "s"), R("range", "m"), R("height", "m")],
     series: [
@@ -108,6 +110,8 @@ const configs = {
       P("v0", 1, 40, 1, 20, "m/s"),
       P("h", 0, 30, 1, 0, "m", 1),
       P("g", 1.6, 20, 0.1, 9.8, "m/s²", 2),
+      P("m", 0.05, 5, 0.05, 0.5, "kg", 2),
+      P("drag", 0, 1, 0.01, 0, "kg/s", 2),
     ],
     results: [R("range", "m"), R("height", "m"), R("duration", "s")],
     series: [
@@ -146,6 +150,7 @@ const configs = {
       P("k", 1, 100, 1, 20, "N/m"),
       P("amplitude", 0.05, 0.8, 0.05, 0.4, "m", 1),
       P("phase", 0, 6.28, 0.01, 0, "rad", 2),
+      P("damping", 0, 0.4, 0.01, 0, "s⁻¹", 2),
     ],
     results: [R("period", "s"), R("omega", "rad/s"), R("energy", "J")],
     series: [["x", "m"]],

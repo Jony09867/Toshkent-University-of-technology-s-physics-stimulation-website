@@ -493,17 +493,23 @@ const liveEquation = (c, p, state, t) => {
     case "motion":
       return `x = ${n(p.x0)} + ${n(p.v0)}·${n(t)} + ½·${n(p.a)}·${n(t)}² = ${n(state.x)} m`;
     case "fall":
-      return `x = v₀t = ${n(p.v0)}·${n(t)} = ${n(state.x)} m`;
+      return p.drag > 0
+        ? `b/m = ${n(p.drag / p.m)} s⁻¹ · x = ${n(state.x)} m · y = ${n(state.y)} m`
+        : `x = v₀t = ${n(p.v0)}·${n(t)} = ${n(state.x)} m`;
     case "newton":
       return `a = Fₙₑₜ/m = ${n(state.net)}/${n(p.m)} = ${n(state.a)} m/s²`;
     case "friction":
       return `Fᵢ = μN = ${n(p.mu)}·${n(p.normal)} = ${n(state.maxFriction)} N`;
     case "projectile":
-      return `x(t) = v₀ cos(α)t = ${n(state.x)} m · y(t) = ${n(state.y)} m`;
+      return p.drag > 0
+        ? `b/m = ${n(p.drag / p.m)} s⁻¹ · x = ${n(state.x)} m · y = ${n(state.y)} m`
+        : `x(t) = v₀ cos(α)t = ${n(state.x)} m · y(t) = ${n(state.y)} m`;
     case "energy":
       return `Eₖ + Eₚ${p.friction ? " + Q" : ""} = ${n(state.kinetic)} + ${n(state.potential)}${p.friction ? ` + ${n(state.heat)}` : ""} = ${n(state.initial)} J`;
     case "spring":
-      return `T = 2π√(m/k) = 2π√(${n(p.m)}/${n(p.k)}) = ${n(state.period)} s`;
+      return p.damping > 0
+        ? `ωd = √(k/m − β²) = ${n(state.omega)} rad/s · T = ${n(state.period)} s`
+        : `T = 2π√(m/k) = 2π√(${n(p.m)}/${n(p.k)}) = ${n(state.period)} s`;
     case "resonance":
       return `A(ω = ${n(p.frequency)}) = ${n(state.amplitude)} m`;
     case "buoyancy":
@@ -577,6 +583,10 @@ function simPage(config, level = 0) {
     formula(
       c.key === "energy" && p.friction
         ? "E_k+E_p+Q=\\mathrm{const}"
+        : ["fall", "projectile"].includes(c.key) && p.drag > 0
+          ? "m\\dot{\\vec v}=m\\vec g-b\\vec v"
+          : c.key === "spring" && p.damping > 0
+            ? "x=Ae^{-\\beta t}\\cos(\\omega_dt+\\varphi_0)"
         : c.formulaLatex,
       true,
     );

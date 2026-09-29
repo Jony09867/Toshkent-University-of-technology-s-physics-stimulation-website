@@ -34,21 +34,70 @@ export function projectile(p, t = 0) {
   const g = positive(p.g ?? G, "g"),
     angle = ((p.angle ?? 0) * Math.PI) / 180,
     vx = cleanComponent(p.v0 * Math.cos(angle), p.v0),
-    vy = cleanComponent(p.v0 * Math.sin(angle), p.v0);
-  const duration = (vy + Math.sqrt(vy * vy + 2 * g * p.h)) / g,
+    vy = cleanComponent(p.v0 * Math.sin(angle), p.v0),
+    drag = p.drag ?? 0;
+  if (!Number.isFinite(drag) || drag < 0)
+    throw new RangeError("Havo qarshiligi manfiy bo‘lmaydi.");
+  const mass = drag > 0 ? positive(p.m ?? 1, "Massa") : p.m ?? 1,
+    gamma = drag > 0 ? drag / mass : 0,
+    idealDuration = (vy + Math.sqrt(vy * vy + 2 * g * p.h)) / g;
+  const positionAt = (time) => {
+    if (gamma === 0)
+      return {
+        x: vx * time,
+        y: p.h + vy * time - (g * time * time) / 2,
+        vx,
+        vy: vy - g * time,
+      };
+    const decay = Math.exp(-gamma * time),
+      terminal = g / gamma;
+    return {
+      x: (vx * (1 - decay)) / gamma,
+      y:
+        p.h +
+        ((vy + terminal) * (1 - decay)) / gamma -
+        terminal * time,
+      vx: vx * decay,
+      vy: (vy + terminal) * decay - terminal,
+    };
+  };
+  let duration = idealDuration;
+  if (gamma > 0 && idealDuration > 0) {
+    let lo = 0,
+      hi = Math.max(1, idealDuration);
+    while (positionAt(hi).y > 0 && hi < 300) hi *= 2;
+    for (let i = 0; i < 72; i++) {
+      const mid = (lo + hi) / 2;
+      if (positionAt(mid).y > 0) lo = mid;
+      else hi = mid;
+    }
+    duration = hi;
+  }
+  const apexTime =
+      vy > 0
+        ? gamma > 0
+          ? Math.log1p((gamma * vy) / g) / gamma
+          : vy / g
+        : 0,
+    apex = positionAt(apexTime),
     time = simulationTime(t, duration),
-    landed = time >= duration;
+    landed = time >= duration,
+    current = positionAt(time),
+    impact = positionAt(duration);
   return {
-    x: vx * time,
-    y: Math.max(0, p.h + vy * time - (g * time * time) / 2),
-    vx: landed ? 0 : vx,
-    vy: landed ? 0 : vy - g * time,
-    impactVx: vx,
-    impactVy: vy - g * duration,
+    x: current.x,
+    y: Math.max(0, current.y),
+    vx: landed ? 0 : current.vx,
+    vy: landed ? 0 : current.vy,
+    speed: landed ? 0 : Math.hypot(current.vx, current.vy),
+    impactVx: impact.vx,
+    impactVy: impact.vy,
+    impactSpeed: Math.hypot(impact.vx, impact.vy),
     landed,
     duration,
-    range: vx * duration,
-    height: p.h + (vy * vy) / (2 * g),
+    range: impact.x,
+    height: Math.max(p.h, apex.y),
+    drag,
   };
 }
 export function newton(p, t = 0) {
@@ -140,16 +189,29 @@ export function energy(p, t = 0) {
 export function spring(p, t = 0) {
   positive(p.m, "Massa");
   positive(p.k, "Qattiqlik");
-  const omega = Math.sqrt(p.k / p.m),
+  const naturalOmega = Math.sqrt(p.k / p.m),
+    damping = p.damping ?? 0;
+  if (!Number.isFinite(damping) || damping < 0)
+    throw new RangeError("So‘nish manfiy bo‘lmaydi.");
+  if (damping >= naturalOmega)
+    throw new RangeError("Bu tajribada so‘nish kritik qiymatdan kichik bo‘lishi kerak.");
+  const omega = Math.sqrt(naturalOmega * naturalOmega - damping * damping),
     A = p.amplitude ?? 0.4,
     phase = p.phase ?? 0;
-  const time = simulationTime(t);
+  const time = simulationTime(t),
+    envelope = Math.exp(-damping * time),
+    theta = omega * time + phase,
+    x = A * envelope * Math.cos(theta),
+    v = -A * envelope * (damping * Math.cos(theta) + omega * Math.sin(theta));
   return {
     period: TAU / omega,
     omega,
-    x: A * Math.cos(omega * time + phase),
-    v: -A * omega * Math.sin(omega * time + phase),
-    energy: (p.k * A * A) / 2,
+    naturalOmega,
+    damping,
+    x,
+    v,
+    energy: (p.m * v * v) / 2 + (p.k * x * x) / 2,
+    envelope: A * envelope,
     equilibrium: (p.m * G) / p.k,
   };
 }
@@ -239,6 +301,7 @@ export function gas(p) {
   positive(p.volume, "Hajm");
   positive(p.temperature, "Harorat");
   positive(p.moles, "Modda miqdori");
+  positive(p.molarMass ?? 0.028, "Molyar massa");
   return {
     pressure: (p.moles * GAS * p.temperature) / (p.volume / 1000),
     rms: Math.sqrt((3 * GAS * p.temperature) / (p.molarMass ?? 0.028)),
@@ -269,6 +332,7 @@ export function circuit(p) {
     voltage: current * p.resistance,
     power: current * current * p.resistance,
     loss: current * current * p.internal,
+    sourcePower: p.emf * current,
     efficiency:
       p.emf === 0
         ? null

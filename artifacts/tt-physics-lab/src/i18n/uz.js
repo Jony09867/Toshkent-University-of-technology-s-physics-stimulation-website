@@ -200,6 +200,7 @@ export const paramNames = {
   k: "Prujina qattiqligi",
   amplitude: "Amplituda",
   phase: "Boshlang‘ich faza",
+  drag: "Havo qarshiligi",
   natural: "Tabiiy chastota",
   frequency: "Majburlovchi chastota",
   damping: "So‘nish koeffitsiyenti",
@@ -293,11 +294,12 @@ export const content = {
       "y=0 \\Rightarrow t^2=2h_0/g",
       "t_f=\\sqrt{2h_0/g}",
       "L=v_0\\sqrt{2h_0/g}",
+      "m\\dot{\\vec v}=m\\vec g-b\\vec v",
     ],
     engineering:
       "Konveyerdan tushadigan materialning qayerga borishini oldindan aniqlashda ishlatiladi. Qabul qiluvchi idish masofasi shu hisob orqali tanlanadi.",
     model:
-      "Havo qarshiligi yo‘q; boshlang‘ich vertikal tezlik nol. Balandlik y yuqoriga musbat, g esa pastga yo‘nalgan.",
+      "Boshlang‘ich vertikal tezlik nol. Oson va o‘rta darajada havo qarshiligi yo‘q; qiyin darajada chiziqli qarshilik b·v va jism massasi hisobga olinadi.",
   },
   newton: {
     title: "Nyutonning ikkinchi qonuni",
@@ -347,11 +349,12 @@ export const content = {
       "x=v_xt,\\quad y=h_0+v_{y0}t-gt^2/2",
       "t_f=(v_{y0}+\\sqrt{v_{y0}^2+2gh_0})/g",
       "L=v_xt_f,\\quad H=h_0+v_{y0}^2/(2g)",
+      "m\\dot{\\vec v}=m\\vec g-b\\vec v",
     ],
     engineering:
       "Suv purkagichlar va material uloqtirish mexanizmlarining ish hududini aniqlashda qo‘llanadi. Saqlangan izlar turli burchaklarni bir masshtabda solishtiradi.",
     model:
-      "Nuqtaviy jism, tekis yer va havo qarshiligisiz harakat. Saqlangan izlar o‘z boshlang‘ich parametrlarini saqlaydi.",
+      "Nuqtaviy jism va tekis yer. Qiyin darajada chiziqli havo qarshiligi b·v qo‘shiladi; b=0 ideal vakuum modelini beradi. Saqlangan izlar o‘z boshlang‘ich parametrlarini saqlaydi.",
   },
   energy: {
     title: "Mexanik energiyaning saqlanishi",
@@ -383,11 +386,12 @@ export const content = {
       "\\ddot{x}+\\omega^2x=0,\\quad \\omega=\\sqrt{k/m}",
       "x=A\\cos(\\omega t+\\varphi_0)",
       "T=2\\pi/\\omega=2\\pi\\sqrt{m/k}",
+      "x=Ae^{-\\beta t}\\cos(\\omega_dt+\\varphi_0),\\quad \\omega_d=\\sqrt{k/m-\\beta^2}",
     ],
     engineering:
       "Avtomobil osmasi va tebranishni ajratuvchi tayanchlar shu modeldan boshlanadi. Massa va prujina qattiqligi kerakli chastotaga mos tanlanadi.",
     model:
-      "Ideal chiziqli, massasiz prujina; so‘nish yo‘q. Siljish gravitatsion muvozanat holatidan o‘lchanadi; prujina tasviri sxematik.",
+      "Chiziqli, massasiz prujina. Oson va o‘rta darajada so‘nish yo‘q; qiyin darajada β orqali muhit qarshiligi va amplitudaning eksponensial kamayishi hisobga olinadi. Siljish gravitatsion muvozanat holatidan o‘lchanadi.",
   },
   resonance: {
     title: "Rezonans",
