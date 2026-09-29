@@ -487,6 +487,38 @@ const experimentFocus = {
   lens: "object",
 };
 
+const everydayExamples = {
+  motion: "Shahar velosipedi odatda 5–8 m/s, yengil avtomobil esa 14–28 m/s tezlikda yuradi.",
+  fall: "Oddiy stol balandligi taxminan 0.75 m; 20 m esa olti qavatli bino balandligiga yaqin.",
+  newton: "20 N kuch taxminan 2 kg yukning Yerda og‘irligiga teng.",
+  friction: "Muzda μ ≈ 0.03, yog‘ochda ≈ 0.2, quruq asfaltda ≈ 0.7 bo‘lishi mumkin.",
+  projectile: "Futbol to‘pi taxminan 0.43 kg; kuchli zarbada uning tezligi 20–30 m/s ga yetadi.",
+  energy: "2 kg jismni 3 m balandlikka ko‘tarish uchun taxminan 59 J energiya kerak.",
+  spring: "Avtomobil osmasida qattiqroq prujina tezroq, ammo kichikroq tebranish beradi.",
+  resonance: "Binolar, ko‘priklar va mexanizmlarda ish chastotasi rezonansdan uzoq tanlanadi.",
+  buoyancy: "Suv zichligi 1000 kg/m³, yog‘niki taxminan 900 kg/m³.",
+  gas: "Xona harorati taxminan 293–298 K, avtomobil shinasida bosim odatda 200–250 kPa.",
+  coulomb: "Mikrokulon diapazoni elektrostatik tajribalar uchun mos, kundalik jismlarda esa zaryad ko‘pincha kichikroq.",
+  ohm: "Telefon USB manbasi 5 V; kichik LED zanjirlarida tok ko‘pincha 0.01–0.02 A bo‘ladi.",
+  circuit: "Haqiqiy batareyada ichki qarshilik yuk oshganda klemmadagi kuchlanishni pasaytiradi.",
+  induction: "Velosiped dinamosi va generatorlarda magnit oqimining o‘zgarishi kuchlanish hosil qiladi.",
+  lens: "Telefon kamerasi fokus masofasi millimetrlar, o‘quv linzalariniki esa odatda santimetrlar diapazonida.",
+};
+
+const experimentTools = (c, params) => {
+  const focus =
+      params.find((param) => param.key === experimentFocus[c.key]) || params[0],
+    span = focus ? focus.max - focus.min : 0,
+    presets = focus
+      ? [
+          ["Standart", focus.value],
+          ["Past", focus.min + span * 0.25],
+          ["Yuqori", focus.min + span * 0.75],
+        ]
+      : [];
+  return `<section class="lab-tools" aria-label="Tajriba yordamchilari"><div class="lab-tool preset-tool"><div><span class="eyebrow orange">TAYYOR HOLATLAR</span><p>${focus ? `${focus.label} uchun tez sozlamalar` : "Tayyor sozlamalar"}</p></div><div class="tool-actions">${presets.map(([label, value]) => `<button type="button" class="tool-chip" data-preset-key="${focus.key}" data-preset-value="${value}">${label}</button>`).join("")}</div></div><div class="lab-tool prediction-tool"><div><span class="eyebrow">AVVAL TAXMIN QILING</span><p>${resultNames[c.results[0]?.key] || c.results[0]?.key} qanday o‘zgaradi?</p></div><div class="tool-actions"><button type="button" class="tool-chip" data-prediction="up">Ortadi</button><button type="button" class="tool-chip" data-prediction="down">Kamayadi</button><button type="button" class="tool-chip" data-prediction="same">O‘zgarmaydi</button></div><strong id="prediction-feedback" class="tool-feedback" aria-live="polite"></strong></div><div class="lab-tool compare-tool"><div><span class="eyebrow">SOLISHTIRISH</span><p>Joriy natija va grafikni saqlang</p></div><div class="tool-actions"><button type="button" class="tool-chip active" id="save-snapshot">+ Natijani saqlash</button><button type="button" class="tool-chip" id="clear-snapshots">Tozalash</button></div><div id="snapshot-list" class="snapshot-list" aria-live="polite"></div></div><div class="lab-tool real-example"><span class="eyebrow">REAL HAYOTDA</span><p>${everydayExamples[c.key]}</p><strong id="auto-insight" class="tool-feedback" aria-live="polite">Parametrni o‘zgartiring — xulosa shu yerda chiqadi.</strong></div></section>`;
+};
+
 const liveEquation = (c, p, state, t) => {
   const n = (value) => format(value);
   switch (c.key) {
@@ -554,6 +586,10 @@ function simPage(config, level = 0) {
     frame,
     last = 0,
     trails = restored?.trails ? restored.trails.map((trail) => ({ ...trail })) : [],
+    snapshots = restored?.snapshots
+      ? restored.snapshots.map((snapshot) => ({ ...snapshot }))
+      : [],
+    milestonePaused = false,
     disposed = false,
     levelSwitching = false;
   const c = config,
@@ -563,6 +599,9 @@ function simPage(config, level = 0) {
     guideParam =
       params.find((param) => param.key === experimentFocus[c.key]) || params[0],
     guideResult = c.results[0];
+  let prediction = null,
+    predictionBaseline = Number(guideStart.result),
+    predictionParams = { ...p };
   const extras =
     c.key === "friction"
       ? `<label class="select-label">${uz.surface}<select id="surface"><option value="0.03">${uz.surfaces[0]}</option><option value="0.2">${uz.surfaces[1]}</option><option value="0.7">${uz.surfaces[2]}</option><option value="custom">${uz.currentSurface}</option></select></label>`
@@ -576,7 +615,7 @@ function simPage(config, level = 0) {
   // at all, and the explanation replaces the transport row.
   const transport = c.static
     ? `<div class="static-model-note" role="note">${icon("help")}<span>${uz.staticModel}</span></div>`
-    : `<div class="transport"><div><button type="button" class="icon-button" id="play" aria-label="${playing ? uz.pause : uz.play}">${icon(playing ? "pause" : "play")}</button><button type="button" class="icon-button" id="reset" aria-label="${uz.reset}">${icon("reset")}</button><span class="time-display">t = <b id="sim-time">${t.toFixed(2)}</b> s</span></div><div>${c.key === "projectile" ? `<button type="button" id="save-trail" class="subtle-button">+ ${uz.saveTrail}</button><button type="button" id="clear-trail" class="icon-button" aria-label="${uz.clearTrail}">${icon("close")}</button>` : ""}<label class="speed-control"><span>${uz.speed}</span><select id="sim-speed" aria-label="${uz.animationSpeed}"><option value="0.25">0.25×</option><option value="0.5">0.5×</option><option value="1">1×</option><option value="2">2×</option></select></label></div></div><label class="time-scrubber"><span>${uz.timeline}</span><input id="timeline" type="range" min="0" max="${c.duration}" step="any" value="${t}" aria-label="${uz.timeline}"></label>`;
+    : `<div class="transport"><div><button type="button" class="icon-button" id="play" aria-label="${playing ? uz.pause : uz.play}">${icon(playing ? "pause" : "play")}</button><button type="button" class="icon-button" id="reset" aria-label="${uz.reset}">${icon("reset")}</button><button type="button" class="time-step" id="step-back" aria-label="0.1 soniya orqaga">−0.1</button><button type="button" class="time-step" id="step-forward" aria-label="0.1 soniya oldinga">+0.1</button><span class="time-display">t = <b id="sim-time">${t.toFixed(2)}</b> s</span></div><div>${c.key === "projectile" ? `<button type="button" id="save-trail" class="subtle-button">+ ${uz.saveTrail}</button><button type="button" id="clear-trail" class="icon-button" aria-label="${uz.clearTrail}">${icon("close")}</button>` : ""}<label class="speed-control"><span>${uz.speed}</span><select id="sim-speed" aria-label="${uz.animationSpeed}"><option value="0.25">0.25×</option><option value="0.5">0.5×</option><option value="1">1×</option><option value="2">2×</option></select></label></div></div><label class="time-scrubber"><span>${uz.timeline}</span><input id="timeline" type="range" min="0" max="${c.duration}" step="any" value="${t}" aria-label="${uz.timeline}"></label>`;
   // The energy model swaps its banner when friction is on, so the formula has to
   // follow the live (or restored) state instead of the static config.
   const mainFormula = () =>
@@ -591,7 +630,7 @@ function simPage(config, level = 0) {
       true,
     );
   shell(
-    `<div class="container sim-page"><div class="breadcrumb"><a href="#/topics">${uz.nav[1]}</a><span>/</span><a href="#/topics?section=${c.section}">${sectionName(c.section)}</a><span>/</span><span>${c.title}</span></div><div class="sim-title-row"><div><span class="eyebrow orange">${uz.experimentLabel} ${String(index + 1).padStart(2, "0")} / ${sectionName(c.section).toUpperCase()}</span><h1>${c.title}</h1><p>${c.description}</p></div><button type="button" class="icon-button help-button" aria-label="${uz.help}">${icon("help")}</button></div><div class="formula-banner"><div id="main-formula">${mainFormula()}</div><span>SI · ${uz.levels[level]}</span></div><section class="live-calculation" aria-live="polite"><span>${uz.liveCalculation}</span><strong id="live-equation">${liveEquation(c, p, state, t)}</strong></section>${levelTabs(level)}<div id="experiment-panel" role="tabpanel" aria-labelledby="level-${level}"><div class="experiment-layout"><section class="experiment-card engineering-console"><div class="panel-header"><h2>${icon("grid")}${uz.experiment}</h2><span class="live-label"><i></i>${uz.live}</span></div><div class="engineering-console-grid"><div class="simulation-stage"><canvas id="sim-canvas" role="img" aria-label="${uz.canvasLabel}: ${c.title}"></canvas>${transport}<div class="vector-legend">${legendFor(c)}<span id="sim-notice" role="status"></span></div></div><aside class="telemetry-panel"><div class="telemetry-heading"><div><span>${uz.chart}</span><strong>${["coulomb", "lens", "ohm", "circuit", "gas", "resonance"].includes(c.key) ? uz.relationsLabel : uz.timeRelationsLabel}</strong></div><small>LIVE · SI</small></div><div id="charts" class="charts-grid telemetry-charts"></div><div class="telemetry-results">${c.results.map((r) => `<div><span>${resultNames[r.key] || r.key}</span><p><strong data-telemetry-result="${r.key}">${formatResult(r, state[r.key])}</strong><small data-telemetry-unit${formatResult(r, state[r.key]) === NO_VALUE ? " hidden" : ""}>${r.unit}</small></p></div>`).join("")}<p id="result-status" class="result-status telemetry-status" role="status"></p></div></aside></div></section><aside class="controls-card"><div class="panel-header"><h2>${uz.parameters}</h2><span>${params.length}</span></div><section class="experiment-guide"><div><span class="eyebrow orange">${uz.experimentTask}</span><p>${experimentTasks[c.key]}</p></div><ol><li data-guide-step="change"><i></i>${paramNames[guideParam.key] || guideParam.key}: ${uz.changeParameter}</li><li data-guide-step="observe"><i></i>${uz.observeMotion}</li><li data-guide-step="compare"><i></i>${resultNames[guideResult.key] || guideResult.key}: ${uz.compareResult}</li></ol></section>${extras}<div class="parameter-stack">${params.map((param) => parameterSlider(param, p[param.key])).join("")}</div><div class="controls-note">${icon("help")}<span>${experimentTasks[c.key]}</span></div></aside></div><div class="learning-grid"><section class="learning-card"><span class="section-icon">${icon("book")}</span><h2>${level === 2 ? uz.derivation : uz.explanation}</h2>${level === 2 ? `<ol class="derivation">${c.hard.map((s) => `<li>${formula(s, true)}</li>`).join("")}</ol>` : `<p>${level === 0 ? c.easy : c.medium}</p>`}</section><section class="learning-card engineering"><span class="section-icon">${icon("force")}</span><span class="eyebrow">${uz.engineeringLabel}</span><h2>${uz.engineering}</h2><p>${c.engineering}</p></section></div><details class="model-note"><summary>${uz.model}</summary><p>${c.model}</p></details></div><div class="sim-navigation"><a class="button secondary" href="${simLink(allConfigs[(index - 1 + allConfigs.length) % allConfigs.length])}">← ${uz.previous}</a><button type="button" id="complete" class="button ${completed.has(c.id) ? "completed" : "primary"}">${icon("check")}${completed.has(c.id) ? uz.completed : uz.complete}</button><a class="button secondary" href="${simLink(allConfigs[(index + 1) % allConfigs.length])}">${uz.next} →</a></div><a class="text-link back-link" href="#/topics">${icon("grid")}${uz.back}</a></div>`,
+    `<div class="container sim-page"><div class="breadcrumb"><a href="#/topics">${uz.nav[1]}</a><span>/</span><a href="#/topics?section=${c.section}">${sectionName(c.section)}</a><span>/</span><span>${c.title}</span></div><div class="sim-title-row"><div><span class="eyebrow orange">${uz.experimentLabel} ${String(index + 1).padStart(2, "0")} / ${sectionName(c.section).toUpperCase()}</span><h1>${c.title}</h1><p>${c.description}</p></div><button type="button" class="icon-button help-button" aria-label="${uz.help}">${icon("help")}</button></div><div class="formula-banner"><div id="main-formula">${mainFormula()}</div><span>SI · ${uz.levels[level]}</span></div><section class="live-calculation" aria-live="polite"><span>${uz.liveCalculation}</span><strong id="live-equation">${liveEquation(c, p, state, t)}</strong></section>${levelTabs(level)}<div id="experiment-panel" role="tabpanel" aria-labelledby="level-${level}"><div class="experiment-layout"><section class="experiment-card engineering-console"><div class="panel-header"><h2>${icon("grid")}${uz.experiment}</h2><span class="live-label"><i></i>${uz.live}</span></div><div class="engineering-console-grid"><div class="simulation-stage"><canvas id="sim-canvas" role="img" aria-label="${uz.canvasLabel}: ${c.title}"></canvas>${transport}<div class="vector-legend">${legendFor(c)}<span id="sim-notice" role="status"></span></div></div><aside class="telemetry-panel"><div class="telemetry-heading"><div><span>${uz.chart}</span><strong>${["coulomb", "lens", "ohm", "circuit", "gas", "resonance"].includes(c.key) ? uz.relationsLabel : uz.timeRelationsLabel}</strong></div><small>LIVE · SI</small></div><div id="charts" class="charts-grid telemetry-charts"></div><div class="telemetry-results">${c.results.map((r) => `<div><span>${resultNames[r.key] || r.key}</span><p><strong data-telemetry-result="${r.key}">${formatResult(r, state[r.key])}</strong><small data-telemetry-unit${formatResult(r, state[r.key]) === NO_VALUE ? " hidden" : ""}>${r.unit}</small></p></div>`).join("")}<p id="result-status" class="result-status telemetry-status" role="status"></p></div></aside></div></section><aside class="controls-card"><div class="panel-header"><h2>${uz.parameters}</h2><span>${params.length}</span></div><section class="experiment-guide"><div><span class="eyebrow orange">${uz.experimentTask}</span><p>${experimentTasks[c.key]}</p></div><ol><li data-guide-step="change"><i></i>${paramNames[guideParam.key] || guideParam.key}: ${uz.changeParameter}</li><li data-guide-step="observe"><i></i>${uz.observeMotion}</li><li data-guide-step="compare"><i></i>${resultNames[guideResult.key] || guideResult.key}: ${uz.compareResult}</li></ol></section>${extras}<div class="parameter-stack">${params.map((param) => parameterSlider(param, p[param.key])).join("")}</div><div class="controls-note">${icon("help")}<span>${experimentTasks[c.key]}</span></div></aside></div>${experimentTools(c, params)}<div class="learning-grid"><section class="learning-card"><span class="section-icon">${icon("book")}</span><h2>${level === 2 ? uz.derivation : uz.explanation}</h2>${level === 2 ? `<ol class="derivation">${c.hard.map((s) => `<li>${formula(s, true)}</li>`).join("")}</ol>` : `<p>${level === 0 ? c.easy : c.medium}</p>`}</section><section class="learning-card engineering"><span class="section-icon">${icon("force")}</span><span class="eyebrow">${uz.engineeringLabel}</span><h2>${uz.engineering}</h2><p>${c.engineering}</p></section></div><details class="model-note"><summary>${uz.model}</summary><p>${c.model}</p></details></div><div class="sim-navigation"><a class="button secondary" href="${simLink(allConfigs[(index - 1 + allConfigs.length) % allConfigs.length])}">← ${uz.previous}</a><button type="button" id="complete" class="button ${completed.has(c.id) ? "completed" : "primary"}">${icon("check")}${completed.has(c.id) ? uz.completed : uz.complete}</button><a class="button secondary" href="${simLink(allConfigs[(index + 1) % allConfigs.length])}">${uz.next} →</a></div><a class="text-link back-link" href="#/topics">${icon("grid")}${uz.back}</a></div>`,
     "topics",
   );
   const canvas = new SimulationCanvas(document.querySelector("#sim-canvas")),
@@ -700,14 +739,64 @@ function simPage(config, level = 0) {
     document
       .querySelector('[data-guide-step="compare"]')
       ?.classList.toggle("done", resultChanged);
+    const insight = document.querySelector("#auto-insight");
+    if (insight && changed) {
+      const delta = currentResult - startResult,
+        tolerance = Math.max(1e-9, Math.abs(startResult) * 1e-4),
+        direction = Math.abs(delta) <= tolerance ? "o‘zgarmadi" : delta > 0 ? "oshdi" : "kamaydi",
+        percent =
+          Number.isFinite(startResult) && Math.abs(startResult) > 1e-9
+            ? ` (${format(Math.abs((delta / startResult) * 100))}%)`
+            : "";
+      insight.textContent = `${resultNames[firstResult] || firstResult} ${direction}${percent}.`;
+    }
+    const predictionFeedback = document.querySelector("#prediction-feedback"),
+      predictionParamChanged = params.some(
+        (param) =>
+          Math.abs(
+            Number(p[param.key]) - Number(predictionParams[param.key]),
+          ) > 1e-9,
+      );
+    if (prediction && predictionFeedback && predictionParamChanged) {
+      let predictionCurrent = NaN;
+      try {
+        const referenceTime = c.static ? 0 : Math.min(1, endTime());
+        predictionCurrent = Number(
+          c.calculate(p, referenceTime)[guideResult.key],
+        );
+      } catch {
+        predictionCurrent = NaN;
+      }
+      const delta = predictionCurrent - predictionBaseline,
+        tolerance = Math.max(1e-9, Math.abs(predictionBaseline) * 1e-4),
+        actual = Math.abs(delta) <= tolerance ? "same" : delta > 0 ? "up" : "down";
+      if (Number.isFinite(predictionCurrent))
+        predictionFeedback.textContent =
+          actual === prediction
+            ? "Taxminingiz to‘g‘ri chiqdi."
+            : `Natija ${actual === "up" ? "oshdi" : actual === "down" ? "kamaydi" : "o‘zgarmadi"}.`;
+    }
     if (chartMode === "seek") chart?.seek(t, state);
     else chart?.add(t, state, force);
   };
   const restart = () => {
     t = 0;
+    milestonePaused = false;
     document.querySelector("#sim-notice")?.replaceChildren();
     chart?.reset(p);
     update(true);
+  };
+  const renderSnapshots = () => {
+    const list = document.querySelector("#snapshot-list");
+    if (!list) return;
+    list.innerHTML = snapshots.length
+      ? snapshots
+          .map(
+            (snapshot, index) =>
+              `<article><span>#${index + 1} · ${paramNames[snapshot.focusKey] || snapshot.focusKey}: ${format(snapshot.focusValue)}</span>${c.results.map((result) => `<strong>${resultNames[result.key] || result.key}: ${formatResult(result, snapshot.results[result.key])} ${result.unit}</strong>`).join("")}</article>`,
+          )
+          .join("")
+      : "";
   };
   const decimals = (step) => (String(step).split(".")[1] || "").length;
   /**
@@ -806,11 +895,24 @@ function simPage(config, level = 0) {
       if (value === null) {
         // Empty or half typed: keep the last applied value, flag the field.
         markValid(false);
+        const notice = document.querySelector("#sim-notice");
+        if (notice) notice.textContent = "Raqam kiriting.";
         return;
       }
-      markValid(true);
-      if (value >= Number(input.min) && value <= Number(input.max))
+      const inRange = value >= Number(input.min) && value <= Number(input.max);
+      markValid(inRange);
+      if (inRange) {
+        const notice = document.querySelector("#sim-notice");
+        if (notice) notice.textContent = "";
         sync(input.dataset.number, value);
+      } else {
+        const definition = params.find(
+          (param) => param.key === input.dataset.number,
+        );
+        const notice = document.querySelector("#sim-notice");
+        if (notice)
+          notice.textContent = `${paramNames[input.dataset.number] || definition?.label || input.dataset.number} ${input.min}–${input.max} oralig‘ida bo‘lishi kerak.`;
+      }
     };
     input.onchange = () => {
       const value = parseNumber(input);
@@ -851,6 +953,16 @@ function simPage(config, level = 0) {
       t = Number.isFinite(value) ? (value >= max - 1e-6 ? max : value) : 0;
       update(true, "seek");
     };
+  const stepTime = (amount) => {
+    if (c.static) return;
+    setPlayState(false);
+    t = Math.max(0, Math.min(endTime(), t + amount));
+    update(true, "seek");
+  };
+  const stepBack = document.querySelector("#step-back"),
+    stepForward = document.querySelector("#step-forward");
+  if (stepBack) stepBack.onclick = () => stepTime(-0.1);
+  if (stepForward) stepForward.onclick = () => stepTime(0.1);
   // Preset dropdowns: reflect the restored/current value, and push the chosen
   // preset back through `sync` so range + number + select stay in lockstep.
   syncPreset("mu", p.mu);
@@ -863,6 +975,37 @@ function simPage(config, level = 0) {
       // "custom" only marks the current value as user defined; it changes nothing.
       if (e.target.value === "custom" || !Number.isFinite(value)) return;
       sync(key, value);
+    };
+  });
+  document.querySelectorAll("[data-preset-key]").forEach((button) => {
+    button.onclick = () => {
+      document
+        .querySelectorAll("[data-preset-key]")
+        .forEach((item) => item.classList.toggle("selected", item === button));
+      sync(button.dataset.presetKey, Number(button.dataset.presetValue));
+    };
+  });
+  document.querySelectorAll("[data-prediction]").forEach((button) => {
+    button.onclick = () => {
+      setPlayState(false);
+      t = 0;
+      chart?.reset(p);
+      update(true, "seek");
+      prediction = button.dataset.prediction;
+      predictionParams = { ...p };
+      try {
+        const referenceTime = c.static ? 0 : Math.min(1, endTime());
+        predictionBaseline = Number(
+          c.calculate(predictionParams, referenceTime)[guideResult.key],
+        );
+      } catch {
+        predictionBaseline = Number(state[guideResult.key]);
+      }
+      document
+        .querySelectorAll("[data-prediction]")
+        .forEach((item) => item.classList.toggle("selected", item === button));
+      const feedback = document.querySelector("#prediction-feedback");
+      if (feedback) feedback.textContent = "Taxmin saqlandi. Endi parametrni o‘zgartiring.";
     };
   });
   const frictionToggle = document.querySelector("#friction-toggle");
@@ -888,6 +1031,22 @@ function simPage(config, level = 0) {
     const notice = document.querySelector("#sim-notice");
     if (notice) notice.textContent = "";
     update(true);
+  });
+  document.querySelector("#save-snapshot")?.addEventListener("click", () => {
+    const snapshot = {
+      focusKey: guideParam.key,
+      focusValue: p[guideParam.key],
+      results: Object.fromEntries(c.results.map((result) => [result.key, state[result.key]])),
+    };
+    snapshots.push(snapshot);
+    if (snapshots.length > 4) snapshots.shift();
+    chart?.saveSnapshot(`#${snapshots.length}`);
+    renderSnapshots();
+  });
+  document.querySelector("#clear-snapshots")?.addEventListener("click", () => {
+    snapshots = [];
+    chart?.clearSnapshots();
+    renderSnapshots();
   });
   document.querySelectorAll("[data-level]").forEach(
     (button) =>
@@ -947,6 +1106,7 @@ function simPage(config, level = 0) {
   const loop = (now) => {
     if (disposed) return;
     if (last && playing && !c.static && !document.hidden) {
+      const previousVy = Number(state?.vy);
       t += Math.min((now - last) / 1000, 0.25) * speed;
       const end = endTime();
       if (t >= end) {
@@ -956,12 +1116,26 @@ function simPage(config, level = 0) {
         if (notice) notice.textContent = uz.finished;
       }
       update(false);
+      if (
+        c.key === "projectile" &&
+        !milestonePaused &&
+        previousVy > 0 &&
+        Number(state?.vy) <= 0 &&
+        t < end - 1e-6
+      ) {
+        milestonePaused = true;
+        setPlayState(false);
+        const notice = document.querySelector("#sim-notice");
+        if (notice)
+          notice.textContent = "Jism maksimal balandlikka yetdi. Davom ettirish uchun Play tugmasini bosing.";
+      }
     }
     last = now;
     if (playing && !c.static) frame = requestAnimationFrame(loop);
     else frame = null;
   };
   update(true);
+  renderSnapshots();
   if (playing && !c.static) frame = requestAnimationFrame(loop);
   cleanup = () => {
     if (disposed) return;
@@ -972,6 +1146,10 @@ function simPage(config, level = 0) {
       speed,
       playing,
       trails: trails.map((trail) => ({ ...trail })),
+      snapshots: snapshots.map((snapshot) => ({
+        ...snapshot,
+        results: { ...snapshot.results },
+      })),
     });
     cancelAnimationFrame(frame);
     chart?.destroy();

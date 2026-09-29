@@ -151,7 +151,7 @@ export class LiveChart {
   setCursor(chart, t, state) {
     chart.data.datasets = chart.data.datasets.filter((ds) => !ds.currentMarker);
     const sources = chart.data.datasets.filter(
-      (ds) => !ds.focusGuide && ds.key,
+      (ds) => !ds.focusGuide && !ds.snapshot && ds.key,
     );
     for (const [index, source] of sources.entries()) {
       const raw = state[source.key],
@@ -212,10 +212,12 @@ export class LiveChart {
     }
     for (const chart of this.charts) {
       chart.options.scales.x.title.text = label;
-      chart.data.datasets = chart.data.datasets.filter(
-        (ds) => !ds.currentMarker && !ds.focusGuide,
-      );
-      for (const ds of chart.data.datasets) {
+      const snapshots = chart.data.datasets.filter((ds) => ds.snapshot),
+        sources = chart.data.datasets.filter(
+          (ds) => !ds.currentMarker && !ds.focusGuide && !ds.snapshot,
+        );
+      chart.data.datasets = [...sources, ...snapshots];
+      for (const ds of sources) {
         ds.data = Array.from({ length: 181 }, (_, i) => {
           const x = min + ((max - min) * i) / 180,
             q = { ...p, [param]: x },
@@ -250,7 +252,7 @@ export class LiveChart {
           fill: false,
         });
       }
-      const ds = chart.data.datasets[0],
+      const ds = sources[0],
         r = this.safeCalculate(p),
         value = r ? (key === "resonance" ? r.amplitude : r[ds.key]) * ds.scale : NaN;
       chart.data.datasets.push({
@@ -273,8 +275,11 @@ export class LiveChart {
     if (!force && t - this.last < 0.09) return;
     this.last = t;
     for (const ch of this.charts) {
-      const sources = ch.data.datasets.filter((ds) => !ds.currentMarker);
-      ch.data.datasets = sources;
+      const snapshots = ch.data.datasets.filter((ds) => ds.snapshot);
+      const sources = ch.data.datasets.filter(
+        (ds) => !ds.currentMarker && !ds.snapshot,
+      );
+      ch.data.datasets = [...sources, ...snapshots];
       for (const ds of sources) {
         const raw = state[ds.key],
           y = typeof raw === "number" ? raw * ds.scale : NaN;
@@ -289,8 +294,11 @@ export class LiveChart {
     if (this.static || this.destroyed || !state) return;
     this.last = t;
     for (const ch of this.charts) {
-      const sources = ch.data.datasets.filter((ds) => !ds.currentMarker);
-      ch.data.datasets = sources;
+      const snapshots = ch.data.datasets.filter((ds) => ds.snapshot);
+      const sources = ch.data.datasets.filter(
+        (ds) => !ds.currentMarker && !ds.snapshot,
+      );
+      ch.data.datasets = [...sources, ...snapshots];
       for (const ds of sources)
         ds.data = ds.data.filter((point) => point.x <= t + 1e-6);
       this.setCursor(ch, t, state);
@@ -305,9 +313,49 @@ export class LiveChart {
       return;
     }
     for (const ch of this.charts) {
-      ch.data.datasets = ch.data.datasets.filter((ds) => !ds.currentMarker);
-      for (const ds of ch.data.datasets) ds.data = [];
+      const snapshots = ch.data.datasets.filter((ds) => ds.snapshot),
+        live = ch.data.datasets.filter(
+          (ds) => !ds.currentMarker && !ds.snapshot,
+        );
+      ch.data.datasets = [...live, ...snapshots];
+      for (const ds of live) ds.data = [];
       this.updateChart(ch);
+    }
+  }
+  saveSnapshot(label) {
+    if (this.destroyed) return;
+    for (const chart of this.charts) {
+      const live = chart.data.datasets.filter(
+        (ds) => !ds.currentMarker && !ds.focusGuide && !ds.snapshot,
+      );
+      for (const [index, source] of live.entries()) {
+        chart.data.datasets.push({
+          ...source,
+          label: `${label} · ${source.label}`,
+          data: source.data.map((point) => ({ ...point })),
+          snapshot: true,
+          fill: false,
+          borderWidth: 1.5,
+          borderDash: [6, 5],
+          borderColor: colors[(index + 1) % colors.length] + "b8",
+          pointRadius: 0,
+        });
+      }
+      const snapshots = chart.data.datasets.filter((ds) => ds.snapshot);
+      if (snapshots.length > 12) {
+        const remove = snapshots.slice(0, snapshots.length - 12);
+        chart.data.datasets = chart.data.datasets.filter(
+          (ds) => !remove.includes(ds),
+        );
+      }
+      this.updateChart(chart);
+    }
+  }
+  clearSnapshots() {
+    if (this.destroyed) return;
+    for (const chart of this.charts) {
+      chart.data.datasets = chart.data.datasets.filter((ds) => !ds.snapshot);
+      this.updateChart(chart);
     }
   }
   destroy() {
