@@ -1,4 +1,5 @@
-import { format } from "./ResultCard.js";
+import { format, formatResult } from "./ResultCard.js";
+import { resultNames } from "../i18n/uz.js";
 
 /**
  * Virtual Laboratory Instruments:
@@ -102,12 +103,12 @@ export class VirtualInstruments {
       <!-- Virtual Probe Element -->
       <div class="virtual-instrument virtual-probe" id="inst-probe" style="display: none;">
         <div class="probe-header">
-          <span class="probe-title">⚡ Fizik Datchik</span>
+          <span class="probe-title">⚡ Jism holati datchigi</span>
           <button type="button" class="inst-mini-btn" id="probe-close" title="Yopish">✕</button>
         </div>
         <div class="probe-hud" id="probe-hud-content">
-          <div><small>X:</small> <strong id="probe-val-x">0.00 m</strong></div>
-          <div><small>Y:</small> <strong id="probe-val-y">0.00 m</strong></div>
+          <div><small>Jism X:</small> <strong id="probe-val-x">—</strong></div>
+          <div><small>Jism Y:</small> <strong id="probe-val-y">—</strong></div>
           <div><small>Qiymat:</small> <strong id="probe-val-dynamic">0.00</strong></div>
         </div>
         <div class="probe-target-pin" id="probe-pin">
@@ -307,12 +308,12 @@ export class VirtualInstruments {
     btnStart?.addEventListener("click", () => {
       if (!this.stopwatch.running) {
         this.stopwatch.running = true;
-        this.stopwatch.lastTick = performance.now();
+        this.stopwatch.lastTick = this.getState()?.t ?? 0;
         btnStart.textContent = "To‘xtatish";
         btnStart.classList.add("active");
         this.stopwatch.timerId = setInterval(() => {
-          const now = performance.now();
-          this.stopwatch.elapsedMs += (now - this.stopwatch.lastTick);
+          const now = this.getState()?.t ?? this.stopwatch.lastTick;
+          this.stopwatch.elapsedMs += Math.max(0, now - this.stopwatch.lastTick) * 1000;
           this.stopwatch.lastTick = now;
           updateDisplay();
         }, 30);
@@ -357,12 +358,9 @@ export class VirtualInstruments {
     const valY = this.wrapper.querySelector("#probe-val-y");
     const valDyn = this.wrapper.querySelector("#probe-val-dynamic");
 
-    // Logical coordinates mapped to physics scale (center is 0 or ground)
-    const meterX = ((this.probe.x - 400) / 80).toFixed(2);
-    const meterY = ((380 - this.probe.y) / 80).toFixed(2);
-
-    if (valX) valX.textContent = `${meterX} m`;
-    if (valY) valY.textContent = `${meterY} m`;
+    // Datchik oynasi siljishi jismning fizik koordinatasini o‘zgartirmaydi.
+    if (valX) valX.textContent = Number.isFinite(sim.s?.x) ? `${format(sim.s.x)} m` : "—";
+    if (valY) valY.textContent = Number.isFinite(sim.s?.y) ? `${format(sim.s.y)} m` : "—";
 
     if (valDyn && sim.s) {
       if (sim.s.v !== undefined) {
@@ -378,7 +376,7 @@ export class VirtualInstruments {
       } else {
         const first = sim.config?.results?.[0];
         if (first && sim.s[first.key] !== undefined) {
-          valDyn.textContent = `${first.key} = ${format(sim.s[first.key])} ${first.unit || ""}`;
+          valDyn.textContent = `${resultNames[first.key] || first.key} = ${formatResult(first, sim.s[first.key])} ${first.unit || ""}`;
         }
       }
     }

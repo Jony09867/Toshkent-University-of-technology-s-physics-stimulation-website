@@ -302,7 +302,7 @@ export class LiveChart {
   }
   add(t, state, force = false) {
     if (this.static || this.destroyed || !state) return;
-    if (!force && t - this.last < 0.09) return;
+    if (!force && t - this.last < Math.min(0.09, this.config.duration / 240)) return;
     this.last = t;
     for (const ch of this.charts) {
       const snapshots = ch.data.datasets.filter((ds) => ds.snapshot);

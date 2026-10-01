@@ -243,7 +243,7 @@ export const paramNames = {
   intensity: "Yorug‘lik intensivligi",
   halfLife: "Yarim yemirilish davri",
   initialN: "Boshlang‘ich yadrolar soni",
-  activity: "Aktivlik",
+  cathodeArea: "Katod yuzi",
   radius: "Orbita / aylana radiusi",
   omega: "Burchak tezlik",
   altitude: "Orbita balandligi",
@@ -316,7 +316,7 @@ export const resultNames = {
   workFunc: "Elektronning chiqish ishi",
   kineticMax: "Maksimal kinetik energiya",
   stoppingU: "To‘xtatuvchi kuchlanish",
-  photoCurrent: "Fototok kuchi",
+  photoCurrent: "Nisbiy fototok",
   remaining: "Qolgan aktiv yadrolar",
   decayed: "Yemirilgan yadrolar",
   ratio: "Qolgan ulush",
@@ -651,7 +651,7 @@ export const content = {
       "\\delta = \\frac{m}{\\rho S}",
     ],
     engineering: "Galvanika, metallarni korroziyadan himoyalash uchun xromlash, oltin suvi yuritish va sof mis olish elektroliz orqali amalga oshiriladi.",
-    model: "Faradeyning 1-qonuni. Zaryad tashuvchi ionlar soni va doimiy tok kuchi asosidagi analitik masshtab.",
+    model: "Faradeyning 1-qonuni. Qoplama qalinligi m/(ρS) bo‘yicha, tanlangan katod yuzi va metall zichligi bilan hisoblanadi; tok samaradorligi 100% deb olingan.",
   },
   circuitOsc: {
     title: "Elektromagnit tebranish konturi (Tomson)",
@@ -661,11 +661,11 @@ export const content = {
     hard: [
       "T = 2\\pi\\sqrt{LC}",
       "\\omega_0 = 1/\\sqrt{LC}",
-      "q(t) = q_0 e^{-\\beta t} \\cos(\\omega t)",
-      "W = \\frac{q^2}{2C} + \\frac{L I^2}{2} = const",
+      "q(t) = q_0 e^{-\\beta t} (\\cos\\omega t + \\frac{\\beta}{\\omega}\\sin\\omega t),\\quad \\beta=\\frac{R}{2L}",
+      "W_C + W_L + Q_R = W_0,\\quad R=0 \\Rightarrow W_C+W_L=const",
     ],
     engineering: "Radio va televizor qabul qilgichlari, Wi-Fi routerlar, chastota filtrlari va mikroto‘lqinli aloqa konturlari shu asosda ishlaydi.",
-    model: "LC va RLC rezonans konturi. Oson rejimda R=0 (so‘nmas tebranish), qiyin darajada faol qarshilik R bo‘yicha so‘nish kiritiladi.",
+    model: "LC va RLC konturi. T=2π√(LC) so‘nmas kontur davri; R>0 bo‘lganda energiyaning bir qismi issiqlikka o‘tadi, katta R da tebranish bo‘lmaydi.",
   },
   photoelectric: {
     title: "Fotoeffekt uchun Eynshteyn tenglamasi",
@@ -679,7 +679,7 @@ export const content = {
       "I_{ph} \\propto \\text{Intensivlik}",
     ],
     engineering: "Quyosh batareyalari, tungi ko‘rish datchiklari, fotodiodlar va raqamli kameralar matritsalari fotoeffektga asoslangan.",
-    model: "Tashqi fotoeffekt modeli. Metallar uchun odatiy chiqish ishlari: Cs (1.9 eV), K (2.3 eV), Zn (4.3 eV).",
+    model: "Tashqi fotoeffekt modeli. Metallar uchun odatiy chiqish ishlari: Cs (1.9 eV), K (2.3 eV), Zn (4.3 eV). Fototok nisbiy ko‘rsatkich; optik quvvat, yoritilgan yuza va kvant samaradorligi berilmagani uchun μA da aniq tok hisoblanmaydi.",
   },
   radioactive: {
     title: "Radioaktiv yemirilish qonuni",
@@ -693,7 +693,7 @@ export const content = {
       "\\Delta N = N_0 - N(t)",
     ],
     engineering: "Arxeologiyada radiouglerodli sana aniqlash, yadro reaktorlarida yoqilg‘i sarfini hisoblash va tibbiy radioterapiyada qo‘llanadi.",
-    model: "Statistik radioaktiv parchalanish modeli. Panjaradagi atom yadrolarining diskret o‘zgarishi va aktivlik tezligi hisoblanadi.",
+    model: "Yadrolar sonining kutilayotgan qiymati N=N₀e^(−λt), faollik A=λN (Bq). Rasmda yadro soni butun songa yaxlitlanadi; u alohida tasodifiy atom parchalanishini modellashtirmaydi.",
   },
   circular: {
     title: "Aylana bo‘ylab tekis harakat",
@@ -749,7 +749,7 @@ export const content = {
       "T_{ip} = m\\left(g\\cos\\theta + \\frac{v^2}{l}\\right)",
     ],
     engineering: "Seysmograflar, mayatnikli soatlar, baland binolardagi zilzila so‘ndiruvchi mayatniklar (Tuned Mass Damper) ushbu modelga asoslanadi.",
-    model: "Vaznsiz cho‘zilmaydigan ip, nuqtaviy og‘irlik. Havo qarshiligisiz kichik tebranishlar approksimatsiyasi.",
+      model: "Vaznsiz cho‘zilmaydigan ip, nuqtaviy og‘irlik, havo qarshiligisiz harakat. Harakat sinθ qatnashgan to‘liq tenglama bilan hisoblanadi. T ≈ 2π√(l/g) faqat kichik burchaklarda amal qiladi; katta burchakda davr uzayadi.",
   },
 };
 

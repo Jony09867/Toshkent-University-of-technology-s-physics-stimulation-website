@@ -107,7 +107,7 @@ export class EnergyConservationBar {
       Ep = s.potential ?? 0;
       Q = s.heat ?? 0;
     } else if (configKey === "pendulum") {
-      const g = 9.8;
+      const g = p.g ?? 9.8;
       const m = p.mass ?? 1;
       const L = p.length ?? 1.2;
       const thetaRad = ((s.theta ?? 0) * Math.PI) / 180;
@@ -125,7 +125,10 @@ export class EnergyConservationBar {
       Ep = 0.5 * k * x * x;
       const v = s.v ?? 0;
       Ek = 0.5 * m * v * v;
-      const initialTotal = 0.5 * k * (p.amplitude ?? 0.3) ** 2;
+      const A = p.amplitude ?? 0.4, phase = p.phase ?? 0, gamma = p.damping ?? 0;
+      const omega = Math.sqrt(k / m - gamma * gamma);
+      const initialV = -A * (gamma * Math.cos(phase) + omega * Math.sin(phase));
+      const initialTotal = 0.5 * k * (A * Math.cos(phase)) ** 2 + 0.5 * m * initialV ** 2;
       Q = Math.max(0, initialTotal - (Ek + Ep));
       labelQ = "So‘nish yo‘qotishi (Q)";
     } else if (configKey === "fall" || configKey === "projectile") {
@@ -171,7 +174,7 @@ export class EnergyConservationBar {
       Q = 0;
     }
 
-    const total = Math.max(1e-9, Ek + Ep + Q);
+    const total = Ek + Ep + Q;
     return { Ek, Ep, Q, total, unit, labelK, labelP, labelQ };
   }
 
@@ -184,9 +187,9 @@ export class EnergyConservationBar {
     if (this.element.style.display !== "block") this.element.style.display = "block";
 
     const energy = this.computeEnergy(config.key, p, s, t);
-    const pctK = Math.max(0, Math.min(100, (energy.Ek / energy.total) * 100));
-    const pctP = Math.max(0, Math.min(100, (energy.Ep / energy.total) * 100));
-    const pctQ = Math.max(0, Math.min(100, (energy.Q / energy.total) * 100));
+    const pctK = Math.max(0, Math.min(100, (energy.Ek / (energy.total || 1)) * 100));
+    const pctP = Math.max(0, Math.min(100, (energy.Ep / (energy.total || 1)) * 100));
+    const pctQ = Math.max(0, Math.min(100, (energy.Q / (energy.total || 1)) * 100));
 
     const r = this.refs;
     if (!r) return;

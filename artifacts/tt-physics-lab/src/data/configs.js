@@ -311,7 +311,7 @@ const configs = {
       P("m1", 1, 20, 0.5, 6, "kg"),
       P("l1", 0.2, 2.5, 0.1, 1.5, "m"),
       P("m2", 1, 20, 0.5, 9, "kg"),
-      P("l2", 0.2, 2.5, 0.1, 1.0, "m", 1),
+      P("l2", 0.2, 3, 0.1, 1.0, "m", 1),
     ],
     results: [
       R("mLeft", "N·m"),
@@ -380,6 +380,7 @@ const configs = {
       P("current", 0.5, 20, 0.5, 5, "A"),
       P("voltage", 1, 24, 0.5, 12, "V", 1),
       P("metal", 0, 2, 1, 0, "", 2),
+      P("cathodeArea", 10, 200, 10, 100, "cm²", 2),
     ],
     results: [
       R("mass", "g"),
@@ -432,9 +433,9 @@ const configs = {
       R("photonEnergy", "eV"),
       R("workFunc", "eV"),
       R("kineticMax", "eV"),
-      R("photoCurrent", "μA"),
+      R("photoCurrent", "nisbiy"),
     ],
-    series: [["photoCurrent", "μA"]],
+    series: [["photoCurrent", "nisbiy"]],
     calculate: physics.photoelectric,
   },
   radioactive: {
@@ -447,13 +448,12 @@ const configs = {
     params: [
       P("halfLife", 1, 20, 1, 5, "s"),
       P("initialN", 100, 1000, 50, 500, "", 1),
-      P("activity", 10, 100, 5, 50, "kBq", 2),
     ],
     results: [
       R("remaining", ""),
       R("decayed", ""),
       R("ratio", "%"),
-      R("rate", "kBq"),
+      R("rate", "Bq"),
     ],
     series: [["remaining", ""]],
     calculate: physics.radioactive,
@@ -528,7 +528,7 @@ const configs = {
     section: "tebranish",
     topicNumbers: [49, 51, 52],
     icon: "wave",
-    formulaLatex: "T = 2\\pi\\sqrt{\\frac{l}{g}}",
+    formulaLatex: "T \\approx 2\\pi\\sqrt{\\frac{l}{g}}\\quad(\\theta_0\\ll1)",
     duration: 8,
     params: [
       P("length", 0.2, 3, 0.1, 1.2, "m"),
@@ -542,7 +542,7 @@ const configs = {
       R("maxSpeed", "m/s"),
       R("tension", "N"),
     ],
-    series: [["maxSpeed", "m/s"]],
+    series: [["v", "m/s"]],
     calculate: physics.pendulum,
   },
 };
