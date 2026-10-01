@@ -29,6 +29,11 @@ export class LiveChart {
       "circuit",
       "gas",
       "resonance",
+      "lever",
+      "thermo",
+      "photoelectric",
+      "gravitation",
+      "hydraulic",
     ].includes(config.key);
     if (!globalThis.Chart) {
       container.textContent = uz.chartUnavailable;
@@ -199,6 +204,31 @@ export class LiveChart {
       min = 5;
       max = 50;
       label = "V (L)";
+    } else if (key === "lever") {
+      param = "m1";
+      min = 1;
+      max = 20;
+      label = "m₁ (kg)";
+    } else if (key === "thermo") {
+      param = "t1";
+      min = 350;
+      max = 1000;
+      label = "T₁ (K)";
+    } else if (key === "photoelectric") {
+      param = "wavelength";
+      min = 200;
+      max = 750;
+      label = "λ (nm)";
+    } else if (key === "gravitation") {
+      param = "altitude";
+      min = 200;
+      max = 36000;
+      label = "h (km)";
+    } else if (key === "hydraulic") {
+      param = "f1";
+      min = 10;
+      max = 500;
+      label = "F₁ (N)";
     } else {
       param = "frequency";
       min = 0.1;

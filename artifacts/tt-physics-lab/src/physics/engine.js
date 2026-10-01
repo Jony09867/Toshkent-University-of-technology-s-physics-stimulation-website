@@ -366,3 +366,309 @@ export function lens(p) {
     real: image > 0,
   };
 }
+
+export function lever(p) {
+  positive(p.l1, "Chap yelka");
+  positive(p.l2, "O‘ng yelka");
+  const g = 9.8;
+  const mLeft = p.m1 * g * p.l1;
+  const mRight = p.m2 * g * p.l2;
+  const netTorque = mLeft - mRight;
+  const tilt = clamp(netTorque / (g * Math.max(0.5, p.l1 + p.l2) * 2), -15, 15);
+  return {
+    mLeft,
+    mRight,
+    netTorque,
+    tilt,
+    balanced: Math.abs(netTorque) < 0.1,
+    gain: p.l1 / p.l2,
+  };
+}
+
+export function collision(p, t = 0) {
+  positive(p.m1, "Massa 1");
+  positive(p.m2, "Massa 2");
+  const time = simulationTime(t);
+  const e = clamp(p.elasticity ?? 1, 0, 1);
+  const m1 = p.m1, m2 = p.m2, v1 = p.v1, v2 = p.v2;
+  const pTotal = m1 * v1 + m2 * v2;
+
+  // Final velocities according to momentum & restitution e
+  const v1After = ((m1 - e * m2) * v1 + (1 + e) * m2 * v2) / (m1 + m2);
+  const v2After = ((m2 - e * m1) * v2 + (1 + e) * m1 * v1) / (m1 + m2);
+
+  const eInit = 0.5 * m1 * v1 * v1 + 0.5 * m2 * v2 * v2;
+  const eFinal = 0.5 * m1 * v1After * v1After + 0.5 * m2 * v2After * v2After;
+  const energyLoss = Math.max(0, eInit - eFinal);
+
+  // Initial separation: 8 meters centered around 0
+  const x1_0 = -4;
+  const x2_0 = 4;
+  const relV = v1 - v2;
+  const canCollide = relV > 0.001;
+  const tHit = canCollide ? (x2_0 - x1_0) / relV : Infinity;
+
+  let x1, x2, currentV1, currentV2;
+  const hasCollided = canCollide && time >= tHit;
+
+  if (!hasCollided) {
+    x1 = x1_0 + v1 * time;
+    x2 = x2_0 + v2 * time;
+    currentV1 = v1;
+    currentV2 = v2;
+  } else {
+    const xHit = x1_0 + v1 * tHit;
+    const dt = time - tHit;
+    x1 = xHit + v1After * dt;
+    x2 = xHit + v2After * dt;
+    currentV1 = v1After;
+    currentV2 = v2After;
+  }
+
+  return {
+    pTotal,
+    v1After,
+    v2After,
+    energyLoss,
+    x1,
+    x2,
+    currentV1,
+    currentV2,
+    hasCollided,
+    tHit: Number.isFinite(tHit) ? tHit : null,
+  };
+}
+
+export function thermo(p) {
+  positive(p.t1, "Isitkich harorati");
+  positive(p.t2, "Sovutgich harorati");
+  const isLawViolated = p.t1 <= p.t2;
+  const efficiency = isLawViolated ? 0 : (1 - p.t2 / p.t1) * 100;
+  const work = isLawViolated ? 0 : (efficiency / 100) * p.q1;
+  const q2 = isLawViolated ? p.q1 : p.q1 - work;
+  return {
+    efficiency,
+    work,
+    q2,
+    deltaU: 0,
+    carnotMax: efficiency,
+    isLawViolated,
+    notice: isLawViolated
+      ? "T₁ ≤ T₂: Termodinamika II qonuni bo‘yicha isitkich harorati sovutgichdan katta bo‘lishi shart!"
+      : null,
+  };
+}
+
+export function electrolysis(p, t = 0) {
+  positive(p.current, "Tok kuchi");
+  const time = simulationTime(t);
+  // k in g/C: Cu = 0.000329, Ag = 0.001118, Ni = 0.000304
+  const kTable = [0.000329, 0.001118, 0.000304];
+  const names = ["Mis (Cu)", "Kumush (Ag)", "Nikel (Ni)"];
+  const metalIdx = clamp(p.metal ?? 0, 0, 2);
+  const k = kTable[metalIdx];
+  const q = p.current * time;
+  const mass = k * q;
+  const energy = (p.voltage * p.current * time) / 1000;
+  const layer = mass * 12.5; // proportional thickness in microns
+
+  return {
+    mass,
+    charge: q,
+    energy,
+    layer,
+    metalName: names[metalIdx],
+  };
+}
+
+export function circuitOsc(p, t = 0) {
+  positive(p.inductance, "Induktivlik");
+  positive(p.capacitance, "Sig‘im");
+  const time = simulationTime(t) / 1000; // t in seconds
+  const L = p.inductance * 1e-3;
+  const C = p.capacitance * 1e-6;
+  const R = p.resistance ?? 0;
+
+  const omega0 = 1 / Math.sqrt(L * C);
+  const period = 2 * Math.PI * Math.sqrt(L * C) * 1000; // ms
+  const frequency = 1 / (period / 1000) / 1000; // kHz
+  const beta = R / (2 * L);
+  const omega = Math.sqrt(Math.max(0, omega0 * omega0 - beta * beta));
+
+  const q0 = C * p.voltage0 * 1e6; // microCoulombs
+  const decay = Math.exp(-beta * time);
+  const charge = q0 * decay * Math.cos(omega * time);
+  const current = (q0 * 1e-6) * decay * (-beta * Math.cos(omega * time) - omega * Math.sin(omega * time));
+
+  const energyCap = (0.5 * (charge * 1e-6) ** 2) / C * 1000; // mJ
+  const energyInd = (0.5 * L * current ** 2) * 1000; // mJ
+
+  return {
+    period,
+    frequency,
+    charge,
+    current,
+    energyCap,
+    energyInd,
+    totalEnergy: energyCap + energyInd,
+  };
+}
+
+export function photoelectric(p) {
+  positive(p.wavelength, "To‘lqin uzunligi");
+  // E_photon = hc / lambda = 1240 / lambda(nm) in eV
+  const photonEnergy = 1240 / p.wavelength;
+  const workFuncs = [1.9, 2.3, 4.3];
+  const metals = ["Seziy (Cs)", "Kaliy (K)", "Sink (Zn)"];
+  const idx = clamp(p.metal ?? 0, 0, 2);
+  const workFunc = workFuncs[idx];
+  const kineticMax = Math.max(0, photonEnergy - workFunc);
+  const stoppingU = kineticMax; // e*U0 = E_kmax -> U0 in Volts
+  const canEmit = photonEnergy >= workFunc;
+
+  const effectiveVoltage = p.voltage ?? 0;
+  const netEnergy = kineticMax + effectiveVoltage;
+  const photoCurrent = canEmit && netEnergy > 0 ? (p.intensity ?? 50) * Math.min(1.5, Math.sqrt(netEnergy)) * 0.4 : 0;
+
+  return {
+    photonEnergy,
+    workFunc,
+    kineticMax,
+    stoppingU,
+    photoCurrent,
+    canEmit,
+    metalName: metals[idx],
+  };
+}
+
+export function radioactive(p, t = 0) {
+  positive(p.halfLife, "Yarim yemirilish davri");
+  const time = simulationTime(t);
+  const n0 = p.initialN ?? 500;
+  const decayFraction = Math.pow(2, -time / p.halfLife);
+  const remaining = Math.round(n0 * decayFraction);
+  const decayed = n0 - remaining;
+  const ratio = decayFraction * 100;
+  const rate = (p.activity ?? 50) * decayFraction;
+
+  return {
+    remaining,
+    decayed,
+    ratio,
+    rate,
+  };
+}
+
+export function circular(p, t = 0) {
+  positive(p.radius, "Radius");
+  positive(p.omega, "Burchak tezlik");
+  const time = simulationTime(t);
+  const v = p.omega * p.radius;
+  const an = p.omega * p.omega * p.radius;
+  const period = (2 * Math.PI) / p.omega;
+  const freq = 1 / period;
+  const angle = (p.omega * time) % (2 * Math.PI);
+  const x = p.radius * Math.cos(angle);
+  const y = p.radius * Math.sin(angle);
+
+  return {
+    v,
+    an,
+    period,
+    freq,
+    angle: (angle * 180) / Math.PI,
+    x,
+    y,
+  };
+}
+
+export function gravitation(p, t = 0) {
+  positive(p.altitude, "Balandlik");
+  const time = simulationTime(t);
+  // Planets: Earth, Moon, Mars
+  const planets = [
+    { name: "Yer", mass: 5.972e24, radius: 6371e3 },
+    { name: "Oy", mass: 7.342e22, radius: 1737e3 },
+    { name: "Mars", mass: 6.417e23, radius: 3389e3 },
+  ];
+  const G = 6.6743e-11;
+  const idx = clamp(p.planet ?? 0, 0, 2);
+  const pl = planets[idx];
+  const r = pl.radius + p.altitude * 1000;
+  const satMass = p.satelliteMass ?? 500;
+
+  const gravityForce = (G * pl.mass * satMass) / (r * r);
+  const orbitalSpeed = Math.sqrt((G * pl.mass) / r) / 1000; // km/s
+  const orbitalPeriod = (2 * Math.PI * Math.sqrt((r * r * r) / (G * pl.mass))) / 60; // minutes
+  const gAtHeight = (G * pl.mass) / (r * r);
+  const omega = (orbitalSpeed * 1000) / r; // rad/s
+  // Visual orbit animation angle
+  const angle = (omega * time * 60) % (2 * Math.PI);
+
+  return {
+    gravityForce,
+    orbitalSpeed,
+    orbitalPeriod,
+    gAtHeight,
+    planetName: pl.name,
+    angle,
+    omega,
+  };
+}
+
+export function hydraulic(p) {
+  positive(p.f1, "Birinchi porshen kuchi");
+  positive(p.s1, "Birinchi porshen yuzi");
+  positive(p.s2, "Ikkinchi porshen yuzi");
+  const gain = p.s2 / p.s1;
+  const f2 = p.f1 * gain;
+  const pressure = (p.f1 / (p.s1 * 1e-4)) / 1000; // kPa
+  const liftMass = f2 / 9.8;
+  const h1 = 0.1; // 10 cm small piston displacement
+  const h2 = h1 / gain; // large piston displacement (m)
+  const work1 = p.f1 * h1; // J
+  const work2 = f2 * h2; // J, A1 = A2 by golden rule of mechanics
+
+  return {
+    f2,
+    gain,
+    pressure,
+    liftMass,
+    h1: h1 * 100, // cm
+    h2: h2 * 100, // cm
+    work: work1,
+  };
+}
+
+export function pendulum(p, t = 0) {
+  positive(p.length, "Mayatnik uzunligi");
+  positive(p.mass, "Massa");
+  const g = p.g ?? 9.8;
+  const time = simulationTime(t);
+  const omega = Math.sqrt(g / p.length);
+  const period = (2 * Math.PI) / omega;
+  const frequency = 1 / period;
+
+  const theta0Rad = ((p.angle ?? 20) * Math.PI) / 180;
+  const thetaRad = theta0Rad * Math.cos(omega * time);
+  const v = -omega * p.length * theta0Rad * Math.sin(omega * time);
+  const maxSpeed = omega * p.length * theta0Rad;
+  const tension = p.mass * (g * Math.cos(thetaRad) + (v * v) / p.length);
+
+  const ePotential = p.mass * g * p.length * (1 - Math.cos(thetaRad));
+  const eKinetic = 0.5 * p.mass * v * v;
+  const eTotal = p.mass * g * p.length * (1 - Math.cos(theta0Rad));
+
+  return {
+    period,
+    frequency,
+    maxSpeed,
+    tension,
+    theta: (thetaRad * 180) / Math.PI,
+    v,
+    energyKinetic: eKinetic,
+    energyPotential: ePotential,
+    energyTotal: eTotal,
+  };
+}
+

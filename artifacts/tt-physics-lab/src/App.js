@@ -11,6 +11,11 @@ import { LiveChart } from "./components/LiveChart.js";
 import { attachBorderGlow } from "./components/BorderGlow.js";
 import { attachMagnet } from "./components/Magnet.jsx";
 import { mountHomeExperience } from "./components/HomeExperience.jsx";
+import { VirtualInstruments } from "./components/VirtualInstruments.js";
+import { EnergyConservationBar } from "./components/EnergyConservationBar.js";
+import { SafetyAlerts } from "./components/SafetyAlerts.js";
+import { ChallengeMode } from "./components/ChallengeMode.js";
+import { LabReportModal } from "./components/LabReportModal.js";
 import "./components/BorderGlow.css";
 import "./components/FloatingLines.css";
 
@@ -164,8 +169,53 @@ function legendFor(c) {
       [green, uz.centralRay],
       [blue, uz.image],
     ],
+    lever: [
+      [orange, "Chap kuch momenti (M₁)"],
+      [blue, "O‘ng kuch momenti (M₂)"],
+    ],
+    collision: [
+      [orange, "1-jism tezligi (v₁)"],
+      [blue, "2-jism tezligi (v₂)"],
+    ],
+    thermo: [
+      [orange, "Isitkich (Q₁)"],
+      [blue, "Sovutgich (Q₂)"],
+      [green, "Foydali ish (A)"],
+    ],
+    electrolysis: [
+      [orange, "Tok kuchi (I)"],
+      [blue, "Katod qatlami (δ)"],
+    ],
+    circuitOsc: [
+      [orange, "Elektr maydon (W_e)"],
+      ["#fbbf24", "Magnit maydon (W_m)"],
+    ],
+    photoelectric: [
+      ["#a855f7", "Tushuvchi fotonlar"],
+      [blue, "Urib chiqarilgan elektronlar"],
+    ],
+    radioactive: [
+      [orange, "Faol radioaktiv yadrolar"],
+      [blue, "Barqaror qiz yadrolar"],
+    ],
+    circular: [
+      [blue, uz.velocity],
+      [green, "Markazga intilma tezlanish"],
+    ],
+    gravitation: [
+      [blue, "Orbital tezlik (v₁)"],
+      [orange, "Gravitatsiya kuchi (F_g)"],
+    ],
+    hydraulic: [
+      [orange, "Kichik porshen (F₁)"],
+      [green, "Katta porshen (F₂)"],
+    ],
+    pendulum: [
+      [blue, uz.velocity],
+      [green, "Ip tarangligi (T)"],
+    ],
   };
-  return vectors[c.key]
+  return (vectors[c.key] || [])
     .map(
       ([color, label]) =>
         `<span><i style="background:${color}"></i>${label}</span>`,
@@ -310,6 +360,40 @@ function artwork(key) {
   else if (key === "coulomb")
     art =
       '<circle cx="89" cy="80" r="28" fill="#F1592A"/><circle cx="230" cy="80" r="28" fill="#3883d9"/><path d="M77 80h24m-12-12v24m129-12h24" stroke="white" stroke-width="3"/><path d="M120 80h32m-7-7 7 7-7 7m54-7h-32m7-7-7 7 7 7" stroke="#e3594a" fill="none" stroke-width="2"/>';
+  else if (key === "lever")
+    art =
+      '<path d="M40 100l240-40" stroke="#F1592A" stroke-width="4"/><polygon points="160,80 148,115 172,115" fill="#a4b5c1"/><rect x="65" y="72" width="30" height="24" rx="3" fill="#F1592A"/><rect x="225" y="44" width="40" height="32" rx="3" fill="#3883d9"/><path d="M80 96v25m0-5l-4-6m4 6l4-6" stroke="#F1592A" stroke-width="2"/><path d="M245 76v35m0-5l-4-6m4 6l4-6" stroke="#3883d9" stroke-width="2"/>';
+  else if (key === "collision")
+    art =
+      '<path d="M20 115h280" stroke="#a4b5c1"/><rect x="50" y="70" width="55" height="38" rx="4" fill="#F1592A"/><rect x="215" y="70" width="55" height="38" rx="4" fill="#3883d9"/><circle cx="65" cy="112" r="6" fill="#64748b"/><circle cx="90" cy="112" r="6" fill="#64748b"/><circle cx="230" cy="112" r="6" fill="#64748b"/><circle cx="255" cy="112" r="6" fill="#64748b"/><path d="M110 89h40m-6-6l6 6-6 6" stroke="#F1592A" stroke-width="2.5"/><path d="M210 89h-40m6-6l-6 6 6 6" stroke="#3883d9" stroke-width="2.5"/>';
+  else if (key === "thermo")
+    art =
+      '<rect x="90" y="20" width="140" height="28" rx="4" fill="#F1592A"/><rect x="90" y="106" width="140" height="28" rx="4" fill="#3883d9"/><circle cx="160" cy="77" r="24" fill="#1e293b" stroke="#fbbf24" stroke-width="2.5"/><path d="M160 48v15m-4-5l4 5 4-5" stroke="#F1592A" stroke-width="2"/><path d="M160 89v17m-4-5l4 5 4-5" stroke="#3883d9" stroke-width="2"/><path d="M184 77h35m-6-5l6 5-6 5" stroke="#2dd4a3" stroke-width="2"/>';
+  else if (key === "electrolysis")
+    art =
+      '<path d="M70 40v80h180V40" fill="none" stroke="#64748b" stroke-width="3"/><path d="M72 65h176v53H72z" fill="#3883d925"/><rect x="105" y="30" width="14" height="75" fill="#F1592A"/><rect x="200" y="30" width="14" height="75" fill="#3883d9"/><path d="M112 30V15h96v15" fill="none" stroke="#94a3b8" stroke-width="2"/>';
+  else if (key === "circuitOsc")
+    art =
+      '<rect x="60" y="35" width="200" height="84" rx="4" fill="none" stroke="#64748b" stroke-width="3"/><path d="M100 25v30m10-30v30" stroke="#F1592A" stroke-width="3"/><path d="M210 50q15-20 30 0t30 0" fill="none" stroke="#fbbf24" stroke-width="2.5"/>';
+  else if (key === "photoelectric")
+    art =
+      '<rect x="50" y="30" width="220" height="94" rx="14" fill="#1e293b" stroke="#64748b" stroke-width="2"/><rect x="75" y="45" width="10" height="64" fill="#F1592A"/><rect x="235" y="45" width="10" height="64" fill="#3883d9"/><path d="M40 35l40 30m-25-30l40 30" stroke="#a855f7" stroke-width="2" stroke-dasharray="3 3"/><circle cx="120" cy="77" r="4" fill="#3883d9"/><circle cx="160" cy="72" r="4" fill="#3883d9"/><circle cx="200" cy="82" r="4" fill="#3883d9"/>';
+  else if (key === "radioactive")
+    art =
+      '<g fill="#F1592A">' + Array.from({length: 12}, (_, i) => `<circle cx="${70 + (i%4)*22}" cy="${50 + Math.floor(i/4)*22}" r="6"/>`).join("") + '</g><g fill="#3883d9">' + Array.from({length: 12}, (_, i) => `<circle cx="${180 + (i%4)*22}" cy="${50 + Math.floor(i/4)*22}" r="6"/>`).join("") + '</g>';
+  else if (key === "circular")
+    art =
+      '<circle cx="160" cy="77" r="50" fill="none" stroke="#64748b" stroke-width="2" stroke-dasharray="4 4"/><circle cx="160" cy="77" r="4" fill="#94a3b8"/><circle cx="195" cy="42" r="10" fill="#F1592A"/><path d="M195 42l25 25m-4-7l4 7-7-4" stroke="#3883d9" stroke-width="2.5"/><path d="M195 42l-22 22m2-7l-2 7 7-2" stroke="#2dd4a3" stroke-width="2.5"/>';
+  else if (key === "gravitation")
+    art =
+      '<circle cx="140" cy="77" r="38" fill="#1e3a8a" stroke="#3883d9" stroke-width="2"/><circle cx="140" cy="77" r="56" fill="none" stroke="#64748b" stroke-width="1.5" stroke-dasharray="4 4"/><rect x="188" y="44" width="14" height="14" rx="2" fill="#F1592A"/><path d="M188 51h-24m6-4l-6 4 6 4" stroke="#F1592A" stroke-width="2"/>';
+  else if (key === "hydraulic")
+    art =
+      '<path d="M70 45v60h180V45" fill="none" stroke="#64748b" stroke-width="3"/><path d="M72 75h176v28H72z" fill="#3883d925"/><rect x="80" y="60" width="35" height="15" fill="#F1592A"/><rect x="170" y="45" width="70" height="20" fill="#2dd4a3"/><path d="M97 30v30m-5-8l5 8 5-8" stroke="#F1592A" stroke-width="2.5"/><path d="M205 45V15m-5 8l5-8 5 8" stroke="#2dd4a3" stroke-width="2.5"/>';
+  else if (key === "pendulum")
+    art =
+      '<line x1="160" y1="20" x2="160" y2="28" stroke="#94a3b8" stroke-width="4"/><line x1="160" y1="28" x2="210" y2="95" stroke="#94a3b8" stroke-width="2"/><circle cx="210" cy="95" r="14" fill="#F1592A"/><path d="M140 105q20 15 50 0" fill="none" stroke="#64748b" stroke-dasharray="3 3"/>';
+
   else
     art =
       '<rect x="73" y="20" width="176" height="115" rx="5" fill="#3883d908" stroke="#91aabd" stroke-width="2"/>' +
@@ -394,7 +478,7 @@ function home() {
       art: artwork(newton.key),
     },
     stats: [
-      ["15", uz.simulations],
+      [String(allConfigs.length), uz.simulations],
       ["143", uz.topics],
       ["15", uz.sections],
       ["3", uz.learningLevels],
@@ -468,6 +552,17 @@ const experimentTasks = {
   circuit: "Tashqi qarshilikni o‘zgartirib, tok va foydali ish koeffitsiyentini kuzating.",
   induction: "Magnit tezligi yoki o‘ramlar sonini o‘zgartirib, EYUKni kuzating.",
   lens: "Predmetni fokusga yaqinlashtirib, tasvir masofasi va turini kuzating.",
+  lever: "Massalar yoki yelkalarni o‘zgartirib, richagni muvozanatga keltiring.",
+  collision: "Tezliklar yoki elastiklikni o‘zgartirib, to‘qnashuvdan keyingi impuls va energiyani kuzating.",
+  thermo: "Isitkich va sovutgich haroratlarini o‘zgartirib, Karno sikli FIKini taqqoslang.",
+  electrolysis: "Tok kuchi va vaqtni o‘zgartirib, ajralgan metall massasini hisoblang.",
+  circuitOsc: "Induktivlik yoki sig‘imni o‘zgartirib, konturning tebranish davrini o‘rganing.",
+  photoelectric: "To‘lqin uzunligi va metallni o‘zgartirib, fotoeffekt chegarasini aniqlang.",
+  radioactive: "Yarim yemirilish davrini o‘zgartirib, yadrolarning kamayish grafigini tahlil qiling.",
+  circular: "Radius yoki burchak tezlikni o‘zgartirib, markazga intilma tezlanishni solishtiring.",
+  gravitation: "Balandlikni o‘zgartirib, birinchi kosmik tezlik va erkin tushish tezlanishini kuzating.",
+  hydraulic: "Porshenlar yuzi va kuchni o‘zgartirib, kuchdagi yutuqni tekshiring.",
+  pendulum: "Ip uzunligi va burchakni o‘zgartirib, tebranish davri qanday o‘zgarishini kuzating.",
 };
 const experimentFocus = {
   motion: "a",
@@ -485,6 +580,17 @@ const experimentFocus = {
   circuit: "resistance",
   induction: "speed",
   lens: "object",
+  lever: "l1",
+  collision: "v1",
+  thermo: "t1",
+  electrolysis: "current",
+  circuitOsc: "capacitance",
+  photoelectric: "wavelength",
+  radioactive: "halfLife",
+  circular: "omega",
+  gravitation: "altitude",
+  hydraulic: "f1",
+  pendulum: "length",
 };
 
 const everydayExamples = {
@@ -503,6 +609,17 @@ const everydayExamples = {
   circuit: "Haqiqiy batareyada ichki qarshilik yuk oshganda klemmadagi kuchlanishni pasaytiradi.",
   induction: "Velosiped dinamosi va generatorlarda magnit oqimining o‘zgarishi kuchlanish hosil qiladi.",
   lens: "Telefon kamerasi fokus masofasi millimetrlar, o‘quv linzalariniki esa odatda santimetrlar diapazonida.",
+  lever: "Qurilish krani va qaychi richag prinsipida ishlaydi: uzun yelka kuchni ko‘p marta tejaydi.",
+  collision: "Bilyard to‘plari to‘qnashuvi yoki avtomobil to‘qnashuvida impuls saqlanadi.",
+  thermo: "Zamonaviy avtomobil ichki yonuv dvigatellari FIKi 25–40% atrofida bo‘ladi.",
+  electrolysis: "Metall buyumlarga oltin yoki kumush qoplash, akkumulyatorlarni zaryadlash elektrolizga asoslangan.",
+  circuitOsc: "Mobil telefon antennasi gigagersli elektromagnit konturlar orqali signallarni qabul qiladi.",
+  photoelectric: "Kalkulyator quyosh panellari va tungi chiroqlarning yorug‘lik datchiklari fotoeffekt asosida ishlaydi.",
+  radioactive: "Tibbiyotda saraton hujayralarini yo‘q qilish va tog‘ jinslari yoshini aniqlashda qo‘llanadi.",
+  circular: "Karusel yoki velosiped g‘ildiragi chetida markazga intilma tezlanish sezilarli bo‘ladi.",
+  gravitation: "Xalqaro Kosmik Stansiya (XKS) 400 km balandlikda ~7.7 km/s tezlik bilan Yer atrofida aylanadi.",
+  hydraulic: "Avtomobil servislaridagi yuk ko‘targich va tormoz pedali suyuqlik bosimi yordamida kuchni 10–50 barobar oshiradi.",
+  pendulum: "Qadimiy devor soatlari va seysmik mayatniklar aynan matematik mayatnik qonuniga bo‘ysunadi.",
 };
 
 const experimentTools = (c, params) => {
@@ -516,7 +633,7 @@ const experimentTools = (c, params) => {
           ["Yuqori", focus.min + span * 0.75],
         ]
       : [];
-  return `<section class="lab-tools" aria-label="Tajriba yordamchilari"><div class="lab-tool preset-tool"><div><span class="eyebrow orange">TAYYOR HOLATLAR</span><p>${focus ? `${focus.label} uchun tez sozlamalar` : "Tayyor sozlamalar"}</p></div><div class="tool-actions">${presets.map(([label, value]) => `<button type="button" class="tool-chip" data-preset-key="${focus.key}" data-preset-value="${value}">${label}</button>`).join("")}</div></div><div class="lab-tool prediction-tool"><div><span class="eyebrow">AVVAL TAXMIN QILING</span><p>${resultNames[c.results[0]?.key] || c.results[0]?.key} qanday o‘zgaradi?</p></div><div class="tool-actions"><button type="button" class="tool-chip" data-prediction="up">Ortadi</button><button type="button" class="tool-chip" data-prediction="down">Kamayadi</button><button type="button" class="tool-chip" data-prediction="same">O‘zgarmaydi</button></div><strong id="prediction-feedback" class="tool-feedback" aria-live="polite"></strong></div><div class="lab-tool compare-tool"><div><span class="eyebrow">SOLISHTIRISH</span><p>Joriy natija va grafikni saqlang</p></div><div class="tool-actions"><button type="button" class="tool-chip active" id="save-snapshot">+ Natijani saqlash</button><button type="button" class="tool-chip" id="clear-snapshots">Tozalash</button></div><div id="snapshot-list" class="snapshot-list" aria-live="polite"></div></div><div class="lab-tool real-example"><span class="eyebrow">REAL HAYOTDA</span><p>${everydayExamples[c.key]}</p><strong id="auto-insight" class="tool-feedback" aria-live="polite">Parametrni o‘zgartiring — xulosa shu yerda chiqadi.</strong></div></section>`;
+  return `<section class="lab-tools" aria-label="Tajriba yordamchilari"><div class="lab-tool preset-tool"><div><span class="eyebrow orange">TAYYOR HOLATLAR</span><p>${focus ? `${focus.label} uchun tez sozlamalar` : "Tayyor sozlamalar"}</p></div><div class="tool-actions">${presets.map(([label, value]) => `<button type="button" class="tool-chip" data-preset-key="${focus.key}" data-preset-value="${value}">${label}</button>`).join("")}</div></div><div class="lab-tool prediction-tool"><div><span class="eyebrow">AVVAL TAXMIN QILING</span><p>${resultNames[c.results[0]?.key] || c.results[0]?.key} qanday o‘zgaradi?</p></div><div class="tool-actions"><button type="button" class="tool-chip" data-prediction="up">Ortadi</button><button type="button" class="tool-chip" data-prediction="down">Kamayadi</button><button type="button" class="tool-chip" data-prediction="same">O‘zgarmaydi</button></div><strong id="prediction-feedback" class="tool-feedback" aria-live="polite"></strong></div><div class="lab-tool compare-tool"><div><span class="eyebrow">SOLISHTIRISH & HISOBOT</span><p>Joriy natija, grafik va hisobot</p></div><div class="tool-actions"><button type="button" class="tool-chip active" id="save-snapshot">+ Natijani saqlash</button><button type="button" class="tool-chip" id="clear-snapshots">Tozalash</button><button type="button" class="tool-chip" id="open-lab-report" style="border-color:var(--brand);color:#fff;background:rgba(241,91,43,0.22);font-weight:600;">📄 Laboratoriya hisoboti (PDF/CSV)</button></div><div id="snapshot-list" class="snapshot-list" aria-live="polite"></div></div><div class="lab-tool real-example"><span class="eyebrow">REAL HAYOTDA</span><p>${everydayExamples[c.key] || ""}</p><strong id="auto-insight" class="tool-feedback" aria-live="polite">Parametrni o‘zgartiring — xulosa shu yerda chiqadi.</strong></div></section><div id="challenge-mount"></div>`;
 };
 
 const liveEquation = (c, p, state, t) => {
@@ -558,6 +675,28 @@ const liveEquation = (c, p, state, t) => {
       return `ε(t) = −N·dΦ/dt = ${n(state.emf)} V`;
     case "lens":
       return `1/F = 1/d + 1/f → f = ${n(state.image)} m`;
+    case "lever":
+      return `M₁ = ${n(p.m1 * 9.8 * p.l1)} N·m · M₂ = ${n(p.m2 * 9.8 * p.l2)} N·m · ΔM = ${n(state.netTorque)} N·m`;
+    case "collision":
+      return `p = m₁v₁ + m₂v₂ = ${n(state.pTotal)} kg·m/s · v₁' = ${n(state.v1After)} m/s · v₂' = ${n(state.v2After)} m/s`;
+    case "thermo":
+      return `η = (T₁−T₂)/T₁ = (${n(p.t1)}−${n(p.t2)})/${n(p.t1)} = ${n(state.efficiency)}% · A = ${n(state.work)} J`;
+    case "electrolysis":
+      return `m = k·I·t = ${n(state.mass)} g · q = ${n(state.charge)} C · W = ${n(state.energy)} kJ`;
+    case "circuitOsc":
+      return `T = 2π√(LC) = ${n(state.period)} ms · ν = ${n(state.frequency)} kHz · W = ${n(state.energyCap + state.energyInd)} mJ`;
+    case "photoelectric":
+      return `hν = ${n(state.photonEnergy)} eV · A = ${n(state.workFunc)} eV · Eₖ = ${n(state.kineticMax)} eV`;
+    case "radioactive":
+      return `N(t) = N₀·2^(−t/T) = ${n(state.remaining)} ta · Qolgani: ${n(state.ratio)}%`;
+    case "circular":
+      return `v = ωR = ${n(state.v)} m/s · aₙ = ω²R = ${n(state.an)} m/s² · T = ${n(state.period)} s`;
+    case "gravitation":
+      return `F = GMm/r² = ${n(state.gravityForce)} N · v₁ = ${n(state.orbitalSpeed)} km/s · g = ${n(state.gAtHeight)} m/s²`;
+    case "hydraulic":
+      return `F₂ = F₁·(S₂/S₁) = ${n(p.f1)}·${n(state.gain)} = ${n(state.f2)} N (m = ${n(state.liftMass)} kg)`;
+    case "pendulum":
+      return `T = 2π√(l/g) = ${n(state.period)} s · ν = ${n(state.frequency)} Hz · vₘₐₓ = ${n(state.maxSpeed)} m/s`;
     default:
       return `${c.formulaLatex} = ${n(state[c.results[0]?.key])}`;
   }
@@ -578,11 +717,8 @@ function simPage(config, level = 0) {
   }
   let speed =
       Number.isFinite(restored?.speed) && restored.speed > 0 ? restored.speed : 1,
-    // Static models have no time axis, so they never autoplay.
-    playing = config.static
-      ? false
-      : (restored?.playing ??
-        !matchMedia("(prefers-reduced-motion: reduce)").matches),
+    // Every simulation plays actively by default
+    playing = restored?.playing ?? !matchMedia("(prefers-reduced-motion: reduce)").matches,
     frame,
     last = 0,
     trails = restored?.trails ? restored.trails.map((trail) => ({ ...trail })) : [],
@@ -611,11 +747,7 @@ function simPage(config, level = 0) {
           ? `<label class="toggle-label"><input id="friction-toggle" type="checkbox">${uz.frictionToggle}</label>`
           : "";
   const chartVisible = Boolean(c.series?.length);
-  // Static models have no time axis: they must not expose a play/pause control
-  // at all, and the explanation replaces the transport row.
-  const transport = c.static
-    ? `<div class="static-model-note" role="note">${icon("help")}<span>${uz.staticModel}</span></div>`
-    : `<div class="transport"><div><button type="button" class="icon-button" id="play" aria-label="${playing ? uz.pause : uz.play}">${icon(playing ? "pause" : "play")}</button><button type="button" class="icon-button" id="reset" aria-label="${uz.reset}">${icon("reset")}</button><button type="button" class="time-step" id="step-back" aria-label="0.1 soniya orqaga">−0.1</button><button type="button" class="time-step" id="step-forward" aria-label="0.1 soniya oldinga">+0.1</button><span class="time-display">t = <b id="sim-time">${t.toFixed(2)}</b> s</span></div><div>${c.key === "projectile" ? `<button type="button" id="save-trail" class="subtle-button">+ ${uz.saveTrail}</button><button type="button" id="clear-trail" class="icon-button" aria-label="${uz.clearTrail}">${icon("close")}</button>` : ""}<label class="speed-control"><span>${uz.speed}</span><select id="sim-speed" aria-label="${uz.animationSpeed}"><option value="0.25">0.25×</option><option value="0.5">0.5×</option><option value="1">1×</option><option value="2">2×</option></select></label></div></div><label class="time-scrubber"><span>${uz.timeline}</span><input id="timeline" type="range" min="0" max="${c.duration}" step="any" value="${t}" aria-label="${uz.timeline}"></label>`;
+  const transport = `<div class="transport"><div><button type="button" class="icon-button" id="play" aria-label="${playing ? uz.pause : uz.play}">${icon(playing ? "pause" : "play")}</button><button type="button" class="icon-button" id="reset" aria-label="${uz.reset}">${icon("reset")}</button><button type="button" class="time-step" id="step-back" title="0.05 soniya orqaga" aria-label="0.05 soniya orqaga">−0.05</button><button type="button" class="time-step" id="step-forward" title="0.05 soniya oldinga (kadrma-kadr)" aria-label="0.05 soniya oldinga">+0.05</button><span class="time-display">t = <b id="sim-time">${t.toFixed(2)}</b> s</span></div><div>${c.key === "projectile" ? `<button type="button" id="save-trail" class="subtle-button">+ ${uz.saveTrail}</button><button type="button" id="clear-trail" class="icon-button" aria-label="${uz.clearTrail}">${icon("close")}</button>` : ""}<label class="speed-control"><span>${uz.speed}</span><select id="sim-speed" aria-label="${uz.animationSpeed}"><option value="0.1">0.1× (Sekin)</option><option value="0.25">0.25×</option><option value="0.5">0.5×</option><option value="1">1×</option><option value="2">2×</option></select></label></div></div><label class="time-scrubber"><span>${uz.timeline}</span><input id="timeline" type="range" min="0" max="${c.duration}" step="any" value="${t}" aria-label="${uz.timeline}"></label>`;
   // The energy model swaps its banner when friction is on, so the formula has to
   // follow the live (or restored) state instead of the static config.
   const mainFormula = () =>
@@ -630,13 +762,36 @@ function simPage(config, level = 0) {
       true,
     );
   shell(
-    `<div class="container sim-page"><div class="breadcrumb"><a href="#/topics">${uz.nav[1]}</a><span>/</span><a href="#/topics?section=${c.section}">${sectionName(c.section)}</a><span>/</span><span>${c.title}</span></div><div class="sim-title-row"><div><span class="eyebrow orange">${uz.experimentLabel} ${String(index + 1).padStart(2, "0")} / ${sectionName(c.section).toUpperCase()}</span><h1>${c.title}</h1><p>${c.description}</p></div><button type="button" class="icon-button help-button" aria-label="${uz.help}">${icon("help")}</button></div><div class="formula-banner"><div id="main-formula">${mainFormula()}</div><span>SI · ${uz.levels[level]}</span></div><section class="live-calculation" aria-live="polite"><span>${uz.liveCalculation}</span><strong id="live-equation">${liveEquation(c, p, state, t)}</strong></section>${levelTabs(level)}<div id="experiment-panel" role="tabpanel" aria-labelledby="level-${level}"><div class="experiment-layout"><section class="experiment-card engineering-console"><div class="panel-header"><h2>${icon("grid")}${uz.experiment}</h2><span class="live-label"><i></i>${uz.live}</span></div><div class="engineering-console-grid"><div class="simulation-stage"><canvas id="sim-canvas" role="img" aria-label="${uz.canvasLabel}: ${c.title}"></canvas>${transport}<div class="vector-legend">${legendFor(c)}<span id="sim-notice" role="status"></span></div></div><aside class="telemetry-panel"><div class="telemetry-heading"><div><span>${uz.chart}</span><strong>${["coulomb", "lens", "ohm", "circuit", "gas", "resonance"].includes(c.key) ? uz.relationsLabel : uz.timeRelationsLabel}</strong></div><small>LIVE · SI</small></div><div id="charts" class="charts-grid telemetry-charts"></div><div class="telemetry-results">${c.results.map((r) => `<div><span>${resultNames[r.key] || r.key}</span><p><strong data-telemetry-result="${r.key}">${formatResult(r, state[r.key])}</strong><small data-telemetry-unit${formatResult(r, state[r.key]) === NO_VALUE ? " hidden" : ""}>${r.unit}</small></p></div>`).join("")}<p id="result-status" class="result-status telemetry-status" role="status"></p></div></aside></div></section><aside class="controls-card"><div class="panel-header"><h2>${uz.parameters}</h2><span>${params.length}</span></div><section class="experiment-guide"><div><span class="eyebrow orange">${uz.experimentTask}</span><p>${experimentTasks[c.key]}</p></div><ol><li data-guide-step="change"><i></i>${paramNames[guideParam.key] || guideParam.key}: ${uz.changeParameter}</li><li data-guide-step="observe"><i></i>${uz.observeMotion}</li><li data-guide-step="compare"><i></i>${resultNames[guideResult.key] || guideResult.key}: ${uz.compareResult}</li></ol></section>${extras}<div class="parameter-stack">${params.map((param) => parameterSlider(param, p[param.key])).join("")}</div><div class="controls-note">${icon("help")}<span>${experimentTasks[c.key]}</span></div></aside></div>${experimentTools(c, params)}<div class="learning-grid"><section class="learning-card"><span class="section-icon">${icon("book")}</span><h2>${level === 2 ? uz.derivation : uz.explanation}</h2>${level === 2 ? `<ol class="derivation">${c.hard.map((s) => `<li>${formula(s, true)}</li>`).join("")}</ol>` : `<p>${level === 0 ? c.easy : c.medium}</p>`}</section><section class="learning-card engineering"><span class="section-icon">${icon("force")}</span><span class="eyebrow">${uz.engineeringLabel}</span><h2>${uz.engineering}</h2><p>${c.engineering}</p></section></div><details class="model-note"><summary>${uz.model}</summary><p>${c.model}</p></details></div><div class="sim-navigation"><a class="button secondary" href="${simLink(allConfigs[(index - 1 + allConfigs.length) % allConfigs.length])}">← ${uz.previous}</a><button type="button" id="complete" class="button ${completed.has(c.id) ? "completed" : "primary"}">${icon("check")}${completed.has(c.id) ? uz.completed : uz.complete}</button><a class="button secondary" href="${simLink(allConfigs[(index + 1) % allConfigs.length])}">${uz.next} →</a></div><a class="text-link back-link" href="#/topics">${icon("grid")}${uz.back}</a></div>`,
+    `<div class="container sim-page"><div class="breadcrumb"><a href="#/topics">${uz.nav[1]}</a><span>/</span><a href="#/topics?section=${c.section}">${sectionName(c.section)}</a><span>/</span><span>${c.title}</span></div><div class="sim-title-row"><div><span class="eyebrow orange">${uz.experimentLabel} ${String(index + 1).padStart(2, "0")} / ${sectionName(c.section).toUpperCase()}</span><h1>${c.title}</h1><p>${c.description}</p></div><button type="button" class="icon-button help-button" aria-label="${uz.help}">${icon("help")}</button></div><div class="formula-banner"><div id="main-formula">${mainFormula()}</div><span>SI · ${uz.levels[level]}</span></div><section class="live-calculation" aria-live="polite"><span>${uz.liveCalculation}</span><strong id="live-equation">${liveEquation(c, p, state, t)}</strong></section>${levelTabs(level)}<div id="experiment-panel" role="tabpanel" aria-labelledby="level-${level}"><div class="experiment-layout"><section class="experiment-card engineering-console"><div class="panel-header"><h2>${icon("grid")}${uz.experiment}</h2><span class="live-label"><i></i>${uz.live}</span></div><div class="engineering-console-grid"><div class="simulation-stage"><canvas id="sim-canvas" role="img" aria-label="${uz.canvasLabel}: ${c.title}"></canvas>${transport}<div class="vector-legend">${legendFor(c)}<span id="sim-notice" role="status"></span></div></div><aside class="telemetry-panel"><div class="telemetry-heading"><div><span>${uz.chart}</span><strong>${["coulomb", "lens", "ohm", "circuit", "gas", "resonance", "lever", "thermo", "photoelectric", "gravitation", "hydraulic"].includes(c.key) ? uz.relationsLabel : uz.timeRelationsLabel}</strong></div><small>LIVE · SI</small></div><div id="charts" class="charts-grid telemetry-charts"></div><div class="telemetry-results">${c.results.map((r) => `<div><span>${resultNames[r.key] || r.key}</span><p><strong data-telemetry-result="${r.key}">${formatResult(r, state[r.key])}</strong><small data-telemetry-unit${formatResult(r, state[r.key]) === NO_VALUE ? " hidden" : ""}>${r.unit}</small></p></div>`).join("")}<p id="result-status" class="result-status telemetry-status" role="status"></p></div></aside></div></section><aside class="controls-card"><div class="panel-header"><h2>${uz.parameters}</h2><span>${params.length}</span></div><section class="experiment-guide"><div><span class="eyebrow orange">${uz.experimentTask}</span><p>${experimentTasks[c.key]}</p></div><ol><li data-guide-step="change"><i></i>${paramNames[guideParam.key] || guideParam.key}: ${uz.changeParameter}</li><li data-guide-step="observe"><i></i>${uz.observeMotion}</li><li data-guide-step="compare"><i></i>${resultNames[guideResult.key] || guideResult.key}: ${uz.compareResult}</li></ol></section>${extras}<div class="parameter-stack">${params.map((param) => parameterSlider(param, p[param.key])).join("")}</div><div class="controls-note">${icon("help")}<span>${experimentTasks[c.key]}</span></div></aside></div>${experimentTools(c, params)}<div class="learning-grid"><section class="learning-card"><span class="section-icon">${icon("book")}</span><h2>${level === 2 ? uz.derivation : uz.explanation}</h2>${level === 2 ? `<ol class="derivation">${c.hard.map((s) => `<li>${formula(s, true)}</li>`).join("")}</ol>` : `<p>${level === 0 ? c.easy : c.medium}</p>`}</section><section class="learning-card engineering"><span class="section-icon">${icon("force")}</span><span class="eyebrow">${uz.engineeringLabel}</span><h2>${uz.engineering}</h2><p>${c.engineering}</p></section></div><details class="model-note"><summary>${uz.model}</summary><p>${c.model}</p></details></div><div class="sim-navigation"><a class="button secondary" href="${simLink(allConfigs[(index - 1 + allConfigs.length) % allConfigs.length])}">← ${uz.previous}</a><button type="button" id="complete" class="button ${completed.has(c.id) ? "completed" : "primary"}">${icon("check")}${completed.has(c.id) ? uz.completed : uz.complete}</button><a class="button secondary" href="${simLink(allConfigs[(index + 1) % allConfigs.length])}">${uz.next} →</a></div><a class="text-link back-link" href="#/topics">${icon("grid")}${uz.back}</a></div>`,
     "topics",
   );
-  const canvas = new SimulationCanvas(document.querySelector("#sim-canvas")),
+  const canvas = new SimulationCanvas(
+      document.querySelector("#sim-canvas"),
+      (key, val) => sync(key, val),
+    ),
     chart = chartVisible
       ? new LiveChart(document.querySelector("#charts"), c, p)
       : null;
+
+  const stageEl = document.querySelector(".simulation-stage");
+  const safetyAlerts = new SafetyAlerts(stageEl);
+  const energyBar = new EnergyConservationBar(stageEl);
+  const instruments = new VirtualInstruments(
+    stageEl,
+    document.querySelector("#sim-canvas"),
+    () => ({ config: c, p, s: state, t }),
+  );
+  const challengeMount = document.querySelector("#challenge-mount");
+  const challengeMode = new ChallengeMode(
+    challengeMount || document.querySelector(".lab-tools"),
+    c,
+    () => ({ p, s: state }),
+  );
+  const reportModal = new LabReportModal(
+    c,
+    () => ({ p, s: state, t }),
+    () => snapshots,
+  );
   const endTime = () => {
     let end = c.duration;
     if (["fall", "projectile"].includes(c.key)) end = state.duration;
@@ -649,17 +804,12 @@ function simPage(config, level = 0) {
     return Number.isFinite(end) && end > 0 ? end : Math.max(0.01, c.duration);
   };
   const setPlayState = (next) => {
-    if (c.static) {
-      // Static models never run, so there is no control to reflect.
-      playing = false;
-      return;
-    }
     playing = next;
     const button = document.querySelector("#play");
     if (!button) return;
     button.innerHTML = icon(playing ? "pause" : "play");
     button.setAttribute("aria-label", playing ? uz.pause : uz.play);
-    if (next && !c.static && frame == null) {
+    if (next && frame == null) {
       last = 0;
       frame = requestAnimationFrame(loop);
     } else if (!next && frame != null) {
@@ -668,123 +818,154 @@ function simPage(config, level = 0) {
       last = 0;
     }
   };
+  const dom = {
+    canvas: document.querySelector("#sim-canvas"),
+    timeOutput: document.querySelector("#sim-time"),
+    timeline: document.querySelector("#timeline"),
+    status: document.querySelector("#result-status"),
+    equation: document.querySelector("#live-equation"),
+    notice: document.querySelector("#sim-notice"),
+    guideChange: document.querySelector('[data-guide-step="change"]'),
+    guideObserve: document.querySelector('[data-guide-step="observe"]'),
+    guideCompare: document.querySelector('[data-guide-step="compare"]'),
+    autoInsight: document.querySelector("#auto-insight"),
+    predictionFeedback: document.querySelector("#prediction-feedback"),
+    results: c.results.map((r) => {
+      const output = document.querySelector(`[data-result="${r.key}"]`);
+      const telem = document.querySelector(`[data-telemetry-result="${r.key}"]`);
+      return {
+        key: r.key,
+        r,
+        output,
+        unit: output?.parentElement?.querySelector("[data-result-unit]"),
+        telem,
+        telemUnit: telem?.parentElement?.querySelector("[data-telemetry-unit]"),
+        lastFormatted: null,
+      };
+    }),
+  };
+
   const update = (force, chartMode = "add") => {
-    if (disposed || !document.querySelector("#sim-canvas")) return;
+    if (disposed || !dom.canvas) return;
+    const end = endTime();
+    const isContinuous = [
+      "gas", "ohm", "circuit", "coulomb", "thermo", "photoelectric",
+      "gravitation", "hydraulic", "lens", "lever", "pendulum", "spring",
+      "resonance", "circular", "induction", "circuitOsc", "electrolysis", "buoyancy"
+    ].includes(c.key);
+    const simTime = isContinuous ? t : Math.min(t, end);
+
     try {
-      state = c.calculate(p, t);
+      state = c.calculate(p, simTime);
     } catch (error) {
       console.error("Simulation calculation failed:", error);
       setPlayState(false);
-      const notice = document.querySelector("#sim-notice");
-      if (notice) notice.textContent = uz.simulationError;
+      if (dom.notice) dom.notice.textContent = uz.simulationError;
       return;
     }
-    canvas.update({ config: c, p, s: state, t, trails, level });
-    for (const r of c.results) {
-      const output = document.querySelector(`[data-result="${r.key}"]`);
-      const formatted = formatResult(r, state[r.key]);
-      if (output) {
-        output.textContent = formatted;
-        const unit = output.parentElement?.querySelector("[data-result-unit]");
-        if (unit) unit.hidden = formatted === NO_VALUE;
-      }
-      const telemetryOutput = document.querySelector(
-        `[data-telemetry-result="${r.key}"]`,
-      );
-      if (telemetryOutput) {
-        telemetryOutput.textContent = formatted;
-        const unit = telemetryOutput.parentElement?.querySelector(
-          "[data-telemetry-unit]",
-        );
-        if (unit) unit.hidden = formatted === NO_VALUE;
+
+    canvas.update({ config: c, p, s: state, t: simTime, trails, level });
+
+    for (const item of dom.results) {
+      const formatted = formatResult(item.r, state[item.key]);
+      if (formatted !== item.lastFormatted) {
+        item.lastFormatted = formatted;
+        const noVal = formatted === NO_VALUE;
+        if (item.output) {
+          item.output.textContent = formatted;
+          if (item.unit) item.unit.hidden = noVal;
+        }
+        if (item.telem) {
+          item.telem.textContent = formatted;
+          if (item.telemUnit) item.telemUnit.hidden = noVal;
+        }
       }
     }
-    const timeOutput = document.querySelector("#sim-time"),
-      timeline = document.querySelector("#timeline"),
-      end = endTime();
-    if (timeOutput) timeOutput.textContent = t.toFixed(2);
-    if (timeline) {
-      timeline.max = end;
-      timeline.value = Math.min(t, end);
-      timeline.style.setProperty("--fill", `${(Math.min(t, end) / end) * 100}%`);
+
+    if (dom.timeOutput) dom.timeOutput.textContent = simTime.toFixed(2);
+    if (dom.timeline) {
+      dom.timeline.max = end;
+      dom.timeline.value = Math.min(t, end);
+      dom.timeline.style.setProperty("--fill", `${(Math.min(t, end) / end) * 100}%`);
     }
-    const status = document.querySelector("#result-status");
-    if (c.key === "lens" && status)
-      status.textContent = state.atFocus ? uz.focus : state.real ? uz.real : uz.virtual;
-    if (c.key === "buoyancy" && status)
-      status.textContent = uz.floating[state.status] || "";
-    const equation = document.querySelector("#live-equation");
-    if (equation) equation.textContent = liveEquation(c, p, state, t);
-    const changed = params.some(
-        (param) =>
-          Math.abs(Number(p[param.key]) - Number(guideStart.p[param.key])) >
-          1e-9,
-      ),
-      firstResult = c.results[0]?.key,
-      startResult = Number(guideStart.result),
-      currentResult = Number(state[firstResult]),
-      resultChanged =
-        changed &&
-        ((Number.isFinite(startResult) &&
-          Number.isFinite(currentResult) &&
-          Math.abs(currentResult - startResult) > 1e-9) ||
-          state[firstResult] !== guideStart.result),
-      observed = c.static ? changed : t > 0.35;
-    document
-      .querySelector('[data-guide-step="change"]')
-      ?.classList.toggle("done", changed);
-    document
-      .querySelector('[data-guide-step="observe"]')
-      ?.classList.toggle("done", observed);
-    document
-      .querySelector('[data-guide-step="compare"]')
-      ?.classList.toggle("done", resultChanged);
-    const insight = document.querySelector("#auto-insight");
-    if (insight && changed) {
-      const delta = currentResult - startResult,
-        tolerance = Math.max(1e-9, Math.abs(startResult) * 1e-4),
-        direction = Math.abs(delta) <= tolerance ? "o‘zgarmadi" : delta > 0 ? "oshdi" : "kamaydi",
-        percent =
-          Number.isFinite(startResult) && Math.abs(startResult) > 1e-9
-            ? ` (${format(Math.abs((delta / startResult) * 100))}%)`
-            : "";
-      insight.textContent = `${resultNames[firstResult] || firstResult} ${direction}${percent}.`;
-    }
-    const predictionFeedback = document.querySelector("#prediction-feedback"),
-      predictionParamChanged = params.some(
+    if (c.key === "lens" && dom.status)
+      dom.status.textContent = state.atFocus ? uz.focus : state.real ? uz.real : uz.virtual;
+    if (c.key === "buoyancy" && dom.status)
+      dom.status.textContent = uz.floating[state.status] || "";
+    if (dom.equation) dom.equation.textContent = liveEquation(c, p, state, simTime);
+
+    if (force) {
+      const changed = params.some(
+          (param) =>
+            Math.abs(Number(p[param.key]) - Number(guideStart.p[param.key])) >
+            1e-9,
+        ),
+        firstResult = c.results[0]?.key,
+        startResult = Number(guideStart.result),
+        currentResult = Number(state[firstResult]),
+        resultChanged =
+          changed &&
+          ((Number.isFinite(startResult) &&
+            Number.isFinite(currentResult) &&
+            Math.abs(currentResult - startResult) > 1e-9) ||
+            state[firstResult] !== guideStart.result);
+
+      dom.guideChange?.classList.toggle("done", changed);
+      dom.guideCompare?.classList.toggle("done", resultChanged);
+
+      if (dom.autoInsight && changed) {
+        const delta = currentResult - startResult,
+          tolerance = Math.max(1e-9, Math.abs(startResult) * 1e-4),
+          direction = Math.abs(delta) <= tolerance ? "o‘zgarmadi" : delta > 0 ? "oshdi" : "kamaydi",
+          percent =
+            Number.isFinite(startResult) && Math.abs(startResult) > 1e-9
+              ? ` (${format(Math.abs((delta / startResult) * 100))}%)`
+              : "";
+        dom.autoInsight.textContent = `${resultNames[firstResult] || firstResult} ${direction}${percent}.`;
+      }
+      const predictionParamChanged = params.some(
         (param) =>
           Math.abs(
             Number(p[param.key]) - Number(predictionParams[param.key]),
           ) > 1e-9,
       );
-    if (prediction && predictionFeedback && predictionParamChanged) {
-      let predictionCurrent = NaN;
-      try {
-        const referenceTime = c.static ? 0 : Math.min(1, endTime());
-        predictionCurrent = Number(
-          c.calculate(p, referenceTime)[guideResult.key],
-        );
-      } catch {
-        predictionCurrent = NaN;
+      if (prediction && dom.predictionFeedback && predictionParamChanged) {
+        let predictionCurrent = NaN;
+        try {
+          const referenceTime = c.static ? 0 : Math.min(1, endTime());
+          predictionCurrent = Number(
+            c.calculate(p, referenceTime)[guideResult.key],
+          );
+        } catch {
+          predictionCurrent = NaN;
+        }
+        const delta = predictionCurrent - predictionBaseline,
+          tolerance = Math.max(1e-9, Math.abs(predictionBaseline) * 1e-4),
+          actual = Math.abs(delta) <= tolerance ? "same" : delta > 0 ? "up" : "down";
+        if (Number.isFinite(predictionCurrent))
+          dom.predictionFeedback.textContent =
+            actual === prediction
+              ? "Taxminingiz to‘g‘ri chiqdi."
+              : `Natija ${actual === "up" ? "oshdi" : actual === "down" ? "kamaydi" : "o‘zgarmadi"}.`;
       }
-      const delta = predictionCurrent - predictionBaseline,
-        tolerance = Math.max(1e-9, Math.abs(predictionBaseline) * 1e-4),
-        actual = Math.abs(delta) <= tolerance ? "same" : delta > 0 ? "up" : "down";
-      if (Number.isFinite(predictionCurrent))
-        predictionFeedback.textContent =
-          actual === prediction
-            ? "Taxminingiz to‘g‘ri chiqdi."
-            : `Natija ${actual === "up" ? "oshdi" : actual === "down" ? "kamaydi" : "o‘zgarmadi"}.`;
     }
-    if (chartMode === "seek") chart?.seek(t, state);
-    else chart?.add(t, state, force);
+    if (t > 0.35 && dom.guideObserve && !dom.guideObserve.classList.contains("done")) {
+      dom.guideObserve.classList.add("done");
+    }
+
+    safetyAlerts?.check(c.key, p, state);
+    energyBar?.update(c, p, state, simTime);
+    instruments?.update({ config: c, p, s: state, t: simTime });
+    if (chartMode === "seek") chart?.seek(simTime, state);
+    else chart?.add(simTime, state, force);
   };
-  const restart = () => {
+  const restart = (autoPlay = true) => {
     t = 0;
     milestonePaused = false;
-    document.querySelector("#sim-notice")?.replaceChildren();
+    dom.notice?.replaceChildren();
     chart?.reset(p);
     update(true);
+    if (autoPlay && !playing) setPlayState(true);
   };
   const renderSnapshots = () => {
     const list = document.querySelector("#snapshot-list");
@@ -929,15 +1110,15 @@ function simPage(config, level = 0) {
     };
   });
   const play = document.querySelector("#play");
-  if (play && !c.static)
+  if (play)
     play.onclick = () => {
-      if (!playing && t >= endTime() - 1e-6) restart();
+      if (!playing && t >= endTime() - 1e-6) restart(true);
       setPlayState(!playing);
     };
   const reset = document.querySelector("#reset"),
     speedInput = document.querySelector("#sim-speed"),
     timeline = document.querySelector("#timeline");
-  if (reset) reset.onclick = restart;
+  if (reset) reset.onclick = () => restart(true);
   if (speedInput) {
     speedInput.value = String(speed);
     speedInput.onchange = (e) => {
@@ -954,15 +1135,18 @@ function simPage(config, level = 0) {
       update(true, "seek");
     };
   const stepTime = (amount) => {
-    if (c.static) return;
     setPlayState(false);
     t = Math.max(0, Math.min(endTime(), t + amount));
     update(true, "seek");
   };
   const stepBack = document.querySelector("#step-back"),
     stepForward = document.querySelector("#step-forward");
-  if (stepBack) stepBack.onclick = () => stepTime(-0.1);
-  if (stepForward) stepForward.onclick = () => stepTime(0.1);
+  if (stepBack) stepBack.onclick = () => stepTime(-0.05);
+  if (stepForward) stepForward.onclick = () => stepTime(0.05);
+
+  document.querySelector("#open-lab-report")?.addEventListener("click", () => {
+    reportModal.open();
+  });
   // Preset dropdowns: reflect the restored/current value, and push the chosen
   // preset back through `sync` so range + number + select stay in lockstep.
   syncPreset("mu", p.mu);
@@ -1105,15 +1289,29 @@ function simPage(config, level = 0) {
   if (!read("tt-onboarded", false)) onboarding();
   const loop = (now) => {
     if (disposed) return;
-    if (last && playing && !c.static && !document.hidden) {
+    if (last && playing && !document.hidden) {
       const previousVy = Number(state?.vy);
-      t += Math.min((now - last) / 1000, 0.25) * speed;
+      const dt = Math.min((now - last) / 1000, 0.05);
+      t += dt * speed;
       const end = endTime();
-      if (t >= end) {
-        t = end;
-        setPlayState(false);
-        const notice = document.querySelector("#sim-notice");
-        if (notice) notice.textContent = uz.finished;
+      const isContinuous = [
+        "gas", "ohm", "circuit", "coulomb", "thermo", "photoelectric",
+        "gravitation", "hydraulic", "lens", "lever", "pendulum", "spring",
+        "resonance", "circular", "induction", "circuitOsc", "electrolysis", "buoyancy"
+      ].includes(c.key);
+
+      if (isContinuous) {
+        if (t >= end) {
+          t = t % end;
+        }
+      } else {
+        const DWELL = 0.8;
+        if (t >= end + DWELL) {
+          t = 0;
+          milestonePaused = false;
+          if (dom.notice) dom.notice.replaceChildren();
+          chart?.reset(p);
+        }
       }
       update(false);
       if (
@@ -1124,19 +1322,17 @@ function simPage(config, level = 0) {
         t < end - 1e-6
       ) {
         milestonePaused = true;
-        setPlayState(false);
-        const notice = document.querySelector("#sim-notice");
-        if (notice)
-          notice.textContent = "Jism maksimal balandlikka yetdi. Davom ettirish uchun Play tugmasini bosing.";
+        if (dom.notice)
+          dom.notice.textContent = `H_max = ${format(state.height)} m`;
       }
     }
     last = now;
-    if (playing && !c.static) frame = requestAnimationFrame(loop);
+    if (playing) frame = requestAnimationFrame(loop);
     else frame = null;
   };
   update(true);
   renderSnapshots();
-  if (playing && !c.static) frame = requestAnimationFrame(loop);
+  if (playing) frame = requestAnimationFrame(loop);
   cleanup = () => {
     if (disposed) return;
     disposed = true;
@@ -1152,6 +1348,11 @@ function simPage(config, level = 0) {
       })),
     });
     cancelAnimationFrame(frame);
+    instruments?.destroy();
+    energyBar?.destroy();
+    safetyAlerts?.destroy();
+    challengeMode?.destroy();
+    reportModal?.close();
     chart?.destroy();
     canvas.destroy();
   };
@@ -1159,7 +1360,7 @@ function simPage(config, level = 0) {
 function progress() {
   const done = allConfigs.filter((c) => completed.has(c.id));
   shell(
-    `<section class="container page-heading"><span class="eyebrow orange">${uz.personalLab}</span><h1>${uz.progressTitle}</h1><p>${uz.progressText}</p></section><section class="container progress-content"><div class="progress-summary"><div><strong>${done.length}<small> / 15</small></strong><p>${uz.progressLabel}</p></div><div class="progress-track"><span style="width:${(done.length / 15) * 100}%"></span></div><b>${Math.round((done.length / 15) * 100)}%</b></div>${done.length ? `<div class="sim-grid">${done.map(card).join("")}</div>` : `<div class="empty-state">${icon("book")}<h2>${uz.progressEmpty}</h2><a class="button primary" href="${simLink(allConfigs[2])}">${uz.start}${icon("arrow")}</a></div>`}</section>`,
+    `<section class="container page-heading"><span class="eyebrow orange">${uz.personalLab}</span><h1>${uz.progressTitle}</h1><p>${uz.progressText}</p></section><section class="container progress-content"><div class="progress-summary"><div><strong>${done.length}<small> / ${allConfigs.length}</small></strong><p>${allConfigs.length} ${uz.progressLabel}</p></div><div class="progress-track"><span style="width:${(done.length / allConfigs.length) * 100}%"></span></div><b>${Math.round((done.length / allConfigs.length) * 100)}%</b></div>${done.length ? `<div class="sim-grid">${done.map(card).join("")}</div>` : `<div class="empty-state">${icon("book")}<h2>${uz.progressEmpty}</h2><a class="button primary" href="${simLink(allConfigs[2])}">${uz.start}${icon("arrow")}</a></div>`}</section>`,
     "progress",
   );
 }

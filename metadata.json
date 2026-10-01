@@ -1,0 +1,7 @@
+{
+  "name": "TT Physics Lab",
+  "description": "TT Physics Lab — muhandislik talabalari uchun interaktiv fizika laboratoriyasi. Formulalarni jonlantiring, parametrlarni o‘zgartiring va natijani kuzating.",
+  "capabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

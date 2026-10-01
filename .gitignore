@@ -41,6 +41,9 @@ testem.log
 .DS_Store
 Thumbs.db
 
+.migration-backup/
+artifacts/*/dist/
+
 .cursor/rules/nx-rules.mdc
 .github/instructions/nx.instructions.md
 
