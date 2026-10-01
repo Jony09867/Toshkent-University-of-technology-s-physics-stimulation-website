@@ -470,7 +470,10 @@ export function electrolysis(p, t = 0) {
   const q = p.current * time;
   const mass = k * q;
   const energy = (p.voltage * p.current * time) / 1000;
-  const layer = mass * 12.5; // proportional thickness in microns
+  // m = ρSδ; zichlik g/cm³, yuza cm², 1 cm = 10 000 μm.
+  const density = [8.96, 10.5, 8.9][metalIdx];
+  const area = positive(p.cathodeArea ?? 100, "Katod yuzi");
+  const layer = mass / (density * area) * 10000;
 
   return {
     mass,
@@ -559,11 +562,14 @@ export function radioactive(p, t = 0) {
   positive(p.halfLife, "Yarim yemirilish davri");
   const time = simulationTime(t);
   const n0 = p.initialN ?? 500;
+  positive(n0, "Boshlang‘ich yadrolar soni");
+  const lambda = Math.LN2 / p.halfLife;
   const decayFraction = Math.pow(2, -time / p.halfLife);
   const remaining = Math.round(n0 * decayFraction);
   const decayed = n0 - remaining;
   const ratio = decayFraction * 100;
-  const rate = (p.activity ?? 50) * decayFraction;
+  // Aktivlik analitik kutilma bo‘yicha A=λN; diskret rasm yumaloqlanadi.
+  const rate = lambda * n0 * decayFraction;
 
   return {
     remaining,
@@ -617,7 +623,7 @@ export function gravitation(p, t = 0) {
   const gAtHeight = (G * pl.mass) / (r * r);
   const omega = (orbitalSpeed * 1000) / r; // rad/s
   // Visual orbit animation angle
-  const angle = (omega * time * 60) % (2 * Math.PI);
+  const angle = (omega * time) % (2 * Math.PI);
 
   return {
     gravityForce,

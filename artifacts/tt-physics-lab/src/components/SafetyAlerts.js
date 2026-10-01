@@ -65,13 +65,13 @@ export class SafetyAlerts {
     } else if (configKey === "resonance") {
       const damping = p.damping ?? 0.1;
       const omega = p.frequency ?? 1;
-      const omega0 = s.omega0 ?? 1;
+      const omega0 = s.natural ?? 1;
       if (damping <= 0.05 && Math.abs(omega - omega0) < 0.1) {
         alert = {
           type: "danger",
           icon: "⚡",
           title: "Xavfli rezonans halokati (Mexanik sinish xavfi)!",
-          text: `Majburiy tebranish chastotasi (ω = ${format(omega)}) xususiy chastotaga (ω₀ = ${format(omega0)}) teng va so‘nish juda kichik. Amplituda cheksiz ortib ketadi — texnikada (masalan, ko‘priklar yoki binolarda) bu konstruksiyaning butunlay yemirilishiga olib keladi!`,
+          text: `Majburiy tebranish chastotasi (ω = ${format(omega)}) xususiy chastotaga (ω₀ = ${format(omega0)}) yaqin, so‘nish kichik. Amplituda sezilarli ortishi mumkin; beta > 0 bo‘lsa u cheksiz emas.`,
         };
       }
     } else if (configKey === "spring") {

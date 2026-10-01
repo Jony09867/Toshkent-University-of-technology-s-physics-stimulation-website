@@ -40,3 +40,23 @@ test('Vazifa shartlari va richagning yechimi boshqaruv diapazonida tekshiriladi'
  const spring=simulationChallenges.spring[0];assert.equal(spring.check({k:10,m:.25,damping:0},physics.spring({k:10,m:.25,damping:0,amplitude:.4})).passed,false);
  const config=allConfigs.find(c=>c.key==='motion'),auto=createParameterChallenge(config),base=defaults(config),wrong={...base,[config.params[0].key]:config.params[0].min};assert.equal(auto.check(wrong,config.calculate(wrong,0)).passed,false);
 });
+test('Radioaktiv faollik yarim davr va yadrolar soni bilan bog‘langan',()=>{
+ const p={halfLife:5,initialN:500}, start=physics.radioactive(p,0), halfway=physics.radioactive(p,5);
+ close(start.rate,Math.LN2*p.initialN/p.halfLife);
+ close(halfway.rate,start.rate/2);
+ assert.equal(halfway.remaining,250);
+ const config=allConfigs.find(c=>c.key==='radioactive');
+ assert.equal(config.results.find(r=>r.key==='rate').unit,'Bq');
+ assert.ok(!config.params.some(param=>param.key==='activity'));
+});
+test('Sun’iy yo‘ldosh sekunddagi burchak tezlik bilan aylanadi',()=>{
+ const p={altitude:1000,satelliteMass:800,planet:0},start=physics.gravitation(p,0),after=physics.gravitation(p,10);
+ close(after.angle,start.omega*10);
+ close(after.orbitalPeriod,2*Math.PI/start.omega/60);
+});
+test('Elektroliz qoplamasi massa, zichlik va katod yuziga mos',()=>{
+ const p={current:5,voltage:12,metal:0,cathodeArea:100},s=physics.electrolysis(p,10);
+ close(s.layer,s.mass/(8.96*100)*10000);
+ close(physics.electrolysis({...p,cathodeArea:200},10).layer,s.layer/2);
+ assert.ok(allConfigs.find(c=>c.key==='electrolysis').params.some(param=>param.key==='cathodeArea'));
+});
