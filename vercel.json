@@ -1,5 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "buildCommand": "pnpm --filter @workspace/tt-physics-lab run test && pnpm --filter @workspace/tt-physics-lab run build",
+  "installCommand": "npm install",
+  "buildCommand": "npm run test --workspace=@workspace/tt-physics-lab && npm run build --workspace=@workspace/tt-physics-lab",
   "outputDirectory": "artifacts/tt-physics-lab/dist/public"
 }
