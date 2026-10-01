@@ -1,6 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "installCommand": "npm install",
+  "installCommand": "npm install --legacy-peer-deps",
   "buildCommand": "npm run test --workspace=@workspace/tt-physics-lab && npm run build --workspace=@workspace/tt-physics-lab",
   "outputDirectory": "artifacts/tt-physics-lab/dist/public"
 }
