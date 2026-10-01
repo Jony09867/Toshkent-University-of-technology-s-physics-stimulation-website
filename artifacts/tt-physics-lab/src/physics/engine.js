@@ -484,24 +484,36 @@ export function electrolysis(p, t = 0) {
 export function circuitOsc(p, t = 0) {
   positive(p.inductance, "Induktivlik");
   positive(p.capacitance, "Sig‘im");
-  const time = simulationTime(t) / 1000; // t in seconds
-  const L = p.inductance * 1e-3;
-  const C = p.capacitance * 1e-6;
+  const time = simulationTime(t); // Fizik vaqt soniyalarda.
+  const L = p.inductance * 1e-3, C = p.capacitance * 1e-6;
   const R = p.resistance ?? 0;
-
-  const omega0 = 1 / Math.sqrt(L * C);
-  const period = 2 * Math.PI * Math.sqrt(L * C) * 1000; // ms
-  const frequency = 1 / (period / 1000) / 1000; // kHz
-  const beta = R / (2 * L);
-  const omega = Math.sqrt(Math.max(0, omega0 * omega0 - beta * beta));
-
-  const q0 = C * p.voltage0 * 1e6; // microCoulombs
-  const decay = Math.exp(-beta * time);
-  const charge = q0 * decay * Math.cos(omega * time);
-  const current = (q0 * 1e-6) * decay * (-beta * Math.cos(omega * time) - omega * Math.sin(omega * time));
-
-  const energyCap = (0.5 * (charge * 1e-6) ** 2) / C * 1000; // mJ
-  const energyInd = (0.5 * L * current ** 2) * 1000; // mJ
+  if (!Number.isFinite(R) || R < 0) throw new RangeError("Qarshilik manfiy bo‘lmaydi.");
+  const omega0 = 1 / Math.sqrt(L * C), beta = R / (2 * L);
+  const period = 2 * Math.PI / omega0 * 1000;
+  const frequency = omega0 / (2 * Math.PI) / 1000;
+  const q0 = C * p.voltage0;
+  const d = omega0 * omega0 - beta * beta;
+  let q, current;
+  // Boshlang‘ich shartlar: q(0)=CU₀, I(0)=0; uch so‘nish rejimi.
+  if (Math.abs(d) < omega0 * omega0 * 1e-10) {
+    const decay = Math.exp(-beta * time);
+    q = q0 * decay * (1 + beta * time);
+    current = -q0 * beta * beta * time * decay;
+  } else if (d > 0) {
+    const omega = Math.sqrt(d), phase = omega * time, decay = Math.exp(-beta * time);
+    q = q0 * decay * (Math.cos(phase) + beta / omega * Math.sin(phase));
+    current = -q0 * omega0 * omega0 / omega * decay * Math.sin(phase);
+  } else {
+    const z = Math.sqrt(-d), r1 = -omega0 * omega0 / (beta + z), r2 = -beta - z;
+    const A = -r2 / (r1 - r2), B = r1 / (r1 - r2);
+    q = q0 * (A * Math.exp(r1 * time) + B * Math.exp(r2 * time));
+    current = q0 * (A * r1 * Math.exp(r1 * time) + B * r2 * Math.exp(r2 * time));
+  }
+  const charge = q * 1e6;
+  const energyCap = q * q / (2 * C) * 1000;
+  const energyInd = L * current * current / 2 * 1000;
+  const energyInitial = C * p.voltage0 * p.voltage0 / 2 * 1000;
+  const energyHeat = Math.max(0, energyInitial - energyCap - energyInd);
 
   return {
     period,
@@ -511,6 +523,8 @@ export function circuitOsc(p, t = 0) {
     energyCap,
     energyInd,
     totalEnergy: energyCap + energyInd,
+    energyInitial,
+    energyHeat,
   };
 }
 
@@ -643,16 +657,32 @@ export function hydraulic(p) {
 export function pendulum(p, t = 0) {
   positive(p.length, "Mayatnik uzunligi");
   positive(p.mass, "Massa");
-  const g = p.g ?? 9.8;
-  const time = simulationTime(t);
+  const g = positive(p.g ?? 9.8, "Erkin tushish tezlanishi");
   const omega = Math.sqrt(g / p.length);
-  const period = (2 * Math.PI) / omega;
-  const frequency = 1 / period;
-
   const theta0Rad = ((p.angle ?? 20) * Math.PI) / 180;
-  const thetaRad = theta0Rad * Math.cos(omega * time);
-  const v = -omega * p.length * theta0Rad * Math.sin(omega * time);
-  const maxSpeed = omega * p.length * theta0Rad;
+  // Elliptik integralning AGM usuli katta burchakdagi davrni ham hisoblaydi.
+  let agmA = 1, agmB = Math.cos(theta0Rad / 2);
+  for (let i = 0; i < 12; i++) {
+    const next = (agmA + agmB) / 2;
+    agmB = Math.sqrt(agmA * agmB); agmA = next;
+  }
+  const period = TAU / (omega * agmA), frequency = 1 / period;
+  const time = simulationTime(t) % period;
+  const steps = Math.max(1, Math.ceil(time * omega / 0.02)), dt = time / steps;
+  let thetaRad = theta0Rad, angularV = 0;
+  // θ'' = −(g/l)sinθ: to‘rtinchi tartibli Runge–Kutta integratori.
+  const acceleration = theta => -omega * omega * Math.sin(theta);
+  for (let i = 0; i < steps; i++) {
+    const k1x = angularV, k1v = acceleration(thetaRad);
+    const k2x = angularV + dt * k1v / 2, k2v = acceleration(thetaRad + dt * k1x / 2);
+    const k3x = angularV + dt * k2v / 2, k3v = acceleration(thetaRad + dt * k2x / 2);
+    const k4x = angularV + dt * k3v, k4v = acceleration(thetaRad + dt * k3x);
+    thetaRad += dt * (k1x + 2 * k2x + 2 * k3x + k4x) / 6;
+    angularV += dt * (k1v + 2 * k2v + 2 * k3v + k4v) / 6;
+  }
+  const v = p.length * angularV;
+  const maxSpeed = Math.sqrt(2 * g * p.length * (1 - Math.cos(theta0Rad)));
+
   const tension = p.mass * (g * Math.cos(thetaRad) + (v * v) / p.length);
 
   const ePotential = p.mass * g * p.length * (1 - Math.cos(thetaRad));

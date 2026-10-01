@@ -311,7 +311,7 @@ const configs = {
       P("m1", 1, 20, 0.5, 6, "kg"),
       P("l1", 0.2, 2.5, 0.1, 1.5, "m"),
       P("m2", 1, 20, 0.5, 9, "kg"),
-      P("l2", 0.2, 2.5, 0.1, 1.0, "m", 1),
+      P("l2", 0.2, 3, 0.1, 1.0, "m", 1),
     ],
     results: [
       R("mLeft", "N·m"),
@@ -542,7 +542,7 @@ const configs = {
       R("maxSpeed", "m/s"),
       R("tension", "N"),
     ],
-    series: [["maxSpeed", "m/s"]],
+    series: [["v", "m/s"]],
     calculate: physics.pendulum,
   },
 };

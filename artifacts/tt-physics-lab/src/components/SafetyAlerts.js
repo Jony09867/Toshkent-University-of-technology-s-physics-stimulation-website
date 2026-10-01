@@ -87,7 +87,7 @@ export class SafetyAlerts {
     }
 
     if (alert) {
-      const key = `${alert.type}-${alert.title}`;
+      const key = `${alert.type}-${alert.title}-${alert.text}`;
       if (this.activeAlertKey !== key) {
         this.activeAlertKey = key;
         this.element.style.display = "flex";

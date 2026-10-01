@@ -747,7 +747,8 @@ function simPage(config, level = 0) {
           ? `<label class="toggle-label"><input id="friction-toggle" type="checkbox">${uz.frictionToggle}</label>`
           : "";
   const chartVisible = Boolean(c.series?.length);
-  const transport = `<div class="transport"><div><button type="button" class="icon-button" id="play" aria-label="${playing ? uz.pause : uz.play}">${icon(playing ? "pause" : "play")}</button><button type="button" class="icon-button" id="reset" aria-label="${uz.reset}">${icon("reset")}</button><button type="button" class="time-step" id="step-back" title="0.05 soniya orqaga" aria-label="0.05 soniya orqaga">−0.05</button><button type="button" class="time-step" id="step-forward" title="0.05 soniya oldinga (kadrma-kadr)" aria-label="0.05 soniya oldinga">+0.05</button><span class="time-display">t = <b id="sim-time">${t.toFixed(2)}</b> s</span></div><div>${c.key === "projectile" ? `<button type="button" id="save-trail" class="subtle-button">+ ${uz.saveTrail}</button><button type="button" id="clear-trail" class="icon-button" aria-label="${uz.clearTrail}">${icon("close")}</button>` : ""}<label class="speed-control"><span>${uz.speed}</span><select id="sim-speed" aria-label="${uz.animationSpeed}"><option value="0.1">0.1× (Sekin)</option><option value="0.25">0.25×</option><option value="0.5">0.5×</option><option value="1">1×</option><option value="2">2×</option></select></label></div></div><label class="time-scrubber"><span>${uz.timeline}</span><input id="timeline" type="range" min="0" max="${c.duration}" step="any" value="${t}" aria-label="${uz.timeline}"></label>`;
+  const stepLabel = format(0.05 * (c.timeScale || 1));
+  const transport = `<div class="transport"><div><button type="button" class="icon-button" id="play" aria-label="${playing ? uz.pause : uz.play}">${icon(playing ? "pause" : "play")}</button><button type="button" class="icon-button" id="reset" aria-label="${uz.reset}">${icon("reset")}</button><button type="button" class="time-step" id="step-back" title="${stepLabel} soniya orqaga" aria-label="${stepLabel} soniya orqaga">−${stepLabel}</button><button type="button" class="time-step" id="step-forward" title="${stepLabel} soniya oldinga (kadrma-kadr)" aria-label="${stepLabel} soniya oldinga">+${stepLabel}</button><span class="time-display">t = <b id="sim-time">${format(t)}</b> s</span></div><div>${c.key === "projectile" ? `<button type="button" id="save-trail" class="subtle-button">+ ${uz.saveTrail}</button><button type="button" id="clear-trail" class="icon-button" aria-label="${uz.clearTrail}">${icon("close")}</button>` : ""}<label class="speed-control"><span>${uz.speed}</span><select id="sim-speed" aria-label="${uz.animationSpeed}"><option value="0.1">0.1× (Sekin)</option><option value="0.25">0.25×</option><option value="0.5">0.5×</option><option value="1">1×</option><option value="2">2×</option></select></label></div></div><label class="time-scrubber"><span>${uz.timeline}</span><input id="timeline" type="range" min="0" max="${c.duration}" step="any" value="${t}" aria-label="${uz.timeline}"></label>`;
   // The energy model swaps its banner when friction is on, so the formula has to
   // follow the live (or restored) state instead of the static config.
   const mainFormula = () =>
@@ -786,6 +787,11 @@ function simPage(config, level = 0) {
     challengeMount || document.querySelector(".lab-tools"),
     c,
     () => ({ p, s: state }),
+    (values) => {
+      for (const [key, value] of Object.entries(values)) sync(key, value);
+      setPlayState(false);
+      document.querySelector("#level-2")?.click();
+    },
   );
   const reportModal = new LabReportModal(
     c,
@@ -882,7 +888,7 @@ function simPage(config, level = 0) {
       }
     }
 
-    if (dom.timeOutput) dom.timeOutput.textContent = simTime.toFixed(2);
+    if (dom.timeOutput) dom.timeOutput.textContent = format(simTime);
     if (dom.timeline) {
       dom.timeline.max = end;
       dom.timeline.value = Math.min(t, end);
@@ -1136,7 +1142,7 @@ function simPage(config, level = 0) {
     };
   const stepTime = (amount) => {
     setPlayState(false);
-    t = Math.max(0, Math.min(endTime(), t + amount));
+    t = Math.max(0, Math.min(endTime(), t + amount * (c.timeScale || 1)));
     update(true, "seek");
   };
   const stepBack = document.querySelector("#step-back"),
@@ -1292,7 +1298,7 @@ function simPage(config, level = 0) {
     if (last && playing && !document.hidden) {
       const previousVy = Number(state?.vy);
       const dt = Math.min((now - last) / 1000, 0.05);
-      t += dt * speed;
+      t += dt * speed * (c.timeScale || 1);
       const end = endTime();
       const isContinuous = [
         "gas", "ohm", "circuit", "coulomb", "thermo", "photoelectric",
@@ -1303,6 +1309,7 @@ function simPage(config, level = 0) {
       if (isContinuous) {
         if (t >= end) {
           t = t % end;
+          chart?.reset(p);
         }
       } else {
         const DWELL = 0.8;

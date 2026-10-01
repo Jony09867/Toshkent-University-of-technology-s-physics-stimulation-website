@@ -173,11 +173,39 @@ export const simulationChallenges = {
   ],
 };
 
+// Berilgan shartlar saqlanmasa, boshqa tajriba natijasi vazifani bajarmaydi.
+const fixedConditions = {
+  lever: {m1:4, l1:1.5, m2:2}, projectile: {v0:20, h:0, g:9.8, drag:0},
+  spring: {k:40, damping:0}, thermo: {t2:300}, circuit: {emf:12, internal:1},
+  lens: {focal:0.5}, collision: {v1:3, v2:0, elasticity:1},
+};
+for (const [key, values] of Object.entries(fixedConditions)) {
+  for (const challenge of simulationChallenges[key]) {
+    challenge.initialParams = values;
+    const check = challenge.check;
+    challenge.check = (p, state) => {
+      const wrong = Object.entries(values).find(([name,value]) => Math.abs((p[name] ?? value) - value) > 1e-8);
+      if (wrong) return {passed:false,score:0,actual:"Vazifa shartlari o‘zgartirilgan",msg:"Vazifani boshlash tugmasi bilan berilgan shartlarni tiklang."};
+      const result = check(p,state);
+      if (!result.passed) result.score = 0;
+      return result;
+    };
+  }
+}
+export function createParameterChallenge(config) {
+  const param = config.params[0];
+  const target = Math.min(param.max, Math.max(param.min, param.min + Math.round((param.max-param.min)/2/param.step)*param.step));
+  const label = param.label || param.key;
+  return {id:config.key+"-auto", title:"Parametr bilan tadqiqot",desc:label+" qiymatini "+format(target)+" "+param.unit+" ga sozlang va natijani kuzating.",hint:"Slayder yoki sonli kiritish maydonidan foydalaning.",targetText:label+" = "+format(target)+" "+param.unit,
+    check:(p,state)=>{const passed=Number.isFinite(p[param.key]) && Math.abs(p[param.key]-target)<param.step/2 && Number.isFinite(state[config.results[0].key]);return {passed,score:passed?100:0,actual:format(p[param.key])+" "+param.unit,msg:passed?"Parametr to‘g‘ri sozlandi.":"Parametrni maqsadli qiymatga sozlang."};}};
+}
+
 export class ChallengeMode {
-  constructor(container, config, getSimState) {
+  constructor(container, config, getSimState, applyParams) {
     this.container = container;
     this.config = config;
     this.getState = getSimState;
+    this.applyParams = applyParams;
     this.challenges = simulationChallenges[config.key] || [];
     this.activeIdx = 0;
     this.element = null;
@@ -191,22 +219,7 @@ export class ChallengeMode {
     this.element.className = "challenge-mode-container";
 
     if (!this.challenges.length) {
-      // Generic challenge for other simulations
-      this.challenges = [
-        {
-          id: `${this.config.key}-auto`,
-          title: `Laboratoriya tadqiqoti: ${this.config.title}`,
-          desc: "Parametrlarni o‘zgartirib, tizimning maksimal natijadorligini kuzating va tahlil qiling.",
-          hint: "Barcha darajalarda parametrlarning ta’sirini tahlil qiling.",
-          targetText: "O‘lchovlarni bajarish",
-          check: (p, s) => ({
-            passed: true,
-            actual: "Tahlil yakunlandi",
-            score: 100,
-            msg: "Laboratoriya o‘lchovlari muvaffaqiyatli bajarildi! ✓",
-          }),
-        },
-      ];
+      this.challenges = [createParameterChallenge(this.config)];
     }
 
     const ch = this.challenges[this.activeIdx];
@@ -226,8 +239,9 @@ export class ChallengeMode {
           <strong id="ch-target">${ch.targetText}</strong>
         </div>
         <div class="challenge-actions">
+          <button type="button" class="subtle-button" id="btn-start-challenge">Vazifani boshlash</button>
           <button type="button" class="button primary challenge-verify-btn" id="btn-check-challenge">
-            Tekshirish (Check)
+            Tekshirish
           </button>
           <button type="button" class="subtle-button challenge-hint-btn" id="btn-show-hint">
             💡 Maslahat
@@ -242,6 +256,9 @@ export class ChallengeMode {
   }
 
   bindEvents() {
+    this.element.querySelector("#btn-start-challenge")?.addEventListener("click", () => {
+      this.applyParams?.(this.challenges[this.activeIdx].initialParams || {});
+    });
     const btnCheck = this.element.querySelector("#btn-check-challenge");
     const btnHint = this.element.querySelector("#btn-show-hint");
     const feedback = this.element.querySelector("#ch-feedback");

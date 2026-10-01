@@ -1,6 +1,18 @@
 import { format, formatResult } from "./ResultCard.js";
 import { paramNames, resultNames } from "../i18n/uz.js";
 
+// CSV natijalari interfeysdagi o‘lchov birliklari bilan bir xil bo‘ladi.
+export const reportCSV = (config, sim, snapshots = []) => {
+  const values = (state) => config.results.map((r) => {
+    const value = state[r.key];
+    return Number.isFinite(value) ? value * (r.scale ?? 1) : "";
+  });
+  const rows = [["O‘lchov", "Parametrlar", ...config.results.map((r) => `${resultNames[r.key] || r.key} (${r.unit})`)]];
+  if (sim) rows.push(["Hozirgi", Object.entries(sim.p).map(([k, v]) => `${paramNames[k] || k}=${v}`).join(";"), ...values(sim.s)]);
+  snapshots.forEach((snap, idx) => rows.push([`Saqlangan_${idx + 1}`, `${paramNames[snap.focusKey] || snap.focusKey}=${snap.focusValue}`, ...values(snap.results)]));
+  return "\uFEFF" + rows.map((row) => row.map((value) => `"${String(value).replaceAll('"', '""')}"`).join(",")).join("\r\n");
+};
+
 /**
  * LabReportModal Component
  * Generates an official university physics laboratory report with student info,
@@ -169,31 +181,14 @@ export class LabReportModal {
   }
 
   exportCSV(sim, snapshots) {
-    const headers = ["Olchov", "Parametrlar", ...this.config.results.map((r) => `${resultNames[r.key] || r.key} (${r.unit})`)];
-    const rows = [headers.join(",")];
-
-    if (sim) {
-      const pStr = Object.entries(sim.p)
-        .map(([k, v]) => `${k}=${v}`)
-        .join(";");
-      const resVals = this.config.results.map((r) => sim.s[r.key] ?? "");
-      rows.push([`"Hozirgi"`, `"${pStr}"`, ...resVals].join(","));
-    }
-
-    snapshots.forEach((snap, idx) => {
-      const pStr = `${snap.focusKey}=${snap.focusValue}`;
-      const resVals = this.config.results.map((r) => snap.results[r.key] ?? "");
-      rows.push([`"Saqlangan_${idx + 1}"`, `"${pStr}"`, ...resVals].join(","));
-    });
-
-    const csvContent = "data:text/csv;charset=utf-8," + rows.join("\n");
-    const encodedUri = encodeURI(csvContent);
+    const encodedUri = URL.createObjectURL(new Blob([reportCSV(this.config, sim, snapshots)], { type: "text/csv;charset=utf-8" }));
     const link = document.createElement("a");
     link.setAttribute("href", encodedUri);
     link.setAttribute("download", `laboratoriya_${this.config.key}_hisobot.csv`);
     document.body.appendChild(link);
     link.click();
     link.remove();
+    setTimeout(() => URL.revokeObjectURL(encodedUri), 1000);
   }
 
   close() {

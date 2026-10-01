@@ -749,7 +749,7 @@ export const content = {
       "T_{ip} = m\\left(g\\cos\\theta + \\frac{v^2}{l}\\right)",
     ],
     engineering: "Seysmograflar, mayatnikli soatlar, baland binolardagi zilzila so‘ndiruvchi mayatniklar (Tuned Mass Damper) ushbu modelga asoslanadi.",
-    model: "Vaznsiz cho‘zilmaydigan ip, nuqtaviy og‘irlik. Havo qarshiligisiz kichik tebranishlar approksimatsiyasi.",
+      model: "Vaznsiz cho‘zilmaydigan ip, nuqtaviy og‘irlik, havo qarshiligisiz harakat. Harakat sinθ qatnashgan to‘liq tenglama bilan hisoblanadi. T ≈ 2π√(l/g) faqat kichik burchaklarda amal qiladi; katta burchakda davr uzayadi.",
   },
 };
 
