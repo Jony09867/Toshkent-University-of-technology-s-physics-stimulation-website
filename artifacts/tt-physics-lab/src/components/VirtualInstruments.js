@@ -1,397 +1,264 @@
-import { format } from "./ResultCard.js";
+const SPATIAL = new Set(["m", "cm", "mm", "km"]);
+const ELECTRIC = new Set(["A", "mA", "μA", "V", "mV", "kV", "Ω", "W", "C", "μC", "nC"]);
+const FORCE = new Set(["N", "mN", "μN", "pN"]);
+const number = (value) => Number.isFinite(value)
+  ? Number(value.toPrecision(5)).toLocaleString("uz-UZ") : "—";
 
-/**
- * Virtual Laboratory Instruments:
- * 1. Movable Calibrated Ruler (cm / m) with rotation and live measurement.
- * 2. Movable Digital Stopwatch (Start, Pause, Reset, Lap).
- * 3. Movable Sensor / Probe Tool (Crosshair readout of coordinates, speed, force, etc.).
- */
+export function instrumentReadings(config, kind) {
+  const units = kind === "space" ? SPATIAL : kind === "electric" ? ELECTRIC : FORCE;
+  const results = (config.results || []).filter((r) => units.has(r.unit))
+    .map((r) => ({ ...r, source: "result" }));
+  if (kind !== "space") return results;
+  return [...results, ...(config.params || []).filter((p) => units.has(p.unit))
+    .map((p) => ({ ...p, source: "param", scale: 1 }))];
+}
 
-export class VirtualInstruments {
-  constructor(container, canvasElement, getSimulationState) {
-    this.container = container;
-    this.canvas = canvasElement;
-    this.getState = getSimulationState;
-
-    this.rulerActive = false;
-    this.stopwatchActive = false;
-    this.probeActive = false;
-
-    // Ruler state (in canvas logical pixels 800x460)
-    this.ruler = {
-      x: 120,
-      y: 320,
-      width: 280,
-      height: 48,
-      rotation: 0, // 0 or 90
-      scaleFactor: 100, // px per meter (default 100px = 1m)
-    };
-
-    // Stopwatch state
-    this.stopwatch = {
-      x: 20,
-      y: 20,
-      running: false,
-      elapsedMs: 0,
-      lastTick: 0,
-      laps: [],
-      timerId: null,
-    };
-
-    // Probe state
-    this.probe = {
-      x: 400,
-      y: 230,
-    };
-
-    this.wrapper = null;
-    this.mount();
+const MEASURABLE_SCENES = new Set(["lever", "lens", "spring", "pendulum", "fall", "projectile", "energy"]);
+export function sceneMetresPerPixel(key, p, state, trailStates = []) {
+  if (key === "lever") return { x: Math.max(p.arm1, p.arm2) / 220, y: 0 };
+  if (key === "lens") {
+    const extent = Math.max(3, p.object, Number.isFinite(state.image) ? Math.min(10, Math.abs(state.image)) : 3);
+    return { x: extent / 330, y: 0 };
   }
-
-  mount() {
-    if (!this.container) return;
-    this.wrapper = document.createElement("div");
-    this.wrapper.className = "virtual-instruments-overlay";
-    this.wrapper.innerHTML = `
-      <!-- Toolbar for instruments -->
-      <div class="instruments-toolbar" role="toolbar" aria-label="Virtual asboblar">
-        <button type="button" class="inst-btn" id="toggle-ruler" title="Virtual Chizg‘ich">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.3 8.7 8.7 21.3c-1 1-2.5 1-3.4 0l-2.6-2.6c-1-1-1-2.5 0-3.4L15.3 2.7c1-1 2.5-1 3.4 0l2.6 2.6c1 1 1 2.5 0 3.4Z"/><path d="m7.5 10.5 2 2"/><path d="m10.5 7.5 2 2"/><path d="m13.5 4.5 2 2"/><path d="m4.5 13.5 2 2"/></svg>
-          <span>Chizg‘ich</span>
-        </button>
-        <button type="button" class="inst-btn" id="toggle-stopwatch" title="Virtual Sekundomer">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="14" r="8"/><path d="M12 2v4"/><path d="M12 10v4l2 2"/><path d="M10 2h4"/></svg>
-          <span>Sekundomer</span>
-        </button>
-        <button type="button" class="inst-btn" id="toggle-probe" title="Fizik Datchik / Prob">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M22 12h-4"/><path d="M6 12H2"/><path d="M12 6V2"/><path d="M12 22v-4"/><circle cx="12" cy="12" r="2"/></svg>
-          <span>Datchik</span>
-        </button>
-      </div>
-
-      <!-- Virtual Ruler Element -->
-      <div class="virtual-instrument virtual-ruler" id="inst-ruler" style="display: none;">
-        <div class="ruler-header">
-          <span class="ruler-title">📏 Virtual Chizg‘ich (1:100 sm)</span>
-          <div class="ruler-tools">
-            <button type="button" class="inst-mini-btn" id="ruler-rotate" title="Aylantirish">↻ 90°</button>
-            <button type="button" class="inst-mini-btn" id="ruler-close" title="Yopish">✕</button>
-          </div>
-        </div>
-        <div class="ruler-body">
-          <div class="ruler-ticks"></div>
-          <div class="ruler-measure" id="ruler-measure-text">Uzunlik: 2.80 m (280 sm)</div>
-        </div>
-      </div>
-
-      <!-- Virtual Stopwatch Element -->
-      <div class="virtual-instrument virtual-stopwatch" id="inst-stopwatch" style="display: none;">
-        <div class="stopwatch-header">
-          <span class="stopwatch-title">⏱️ Sekundomer</span>
-          <button type="button" class="inst-mini-btn" id="stopwatch-close" title="Yopish">✕</button>
-        </div>
-        <div class="stopwatch-display" id="stopwatch-time">00:00.00</div>
-        <div class="stopwatch-controls">
-          <button type="button" class="sw-btn" id="sw-start-pause">Boshlash</button>
-          <button type="button" class="sw-btn" id="sw-lap">Kadr (Lap)</button>
-          <button type="button" class="sw-btn" id="sw-reset">Nolga</button>
-        </div>
-        <div class="stopwatch-laps" id="sw-laps"></div>
-      </div>
-
-      <!-- Virtual Probe Element -->
-      <div class="virtual-instrument virtual-probe" id="inst-probe" style="display: none;">
-        <div class="probe-header">
-          <span class="probe-title">⚡ Fizik Datchik</span>
-          <button type="button" class="inst-mini-btn" id="probe-close" title="Yopish">✕</button>
-        </div>
-        <div class="probe-hud" id="probe-hud-content">
-          <div><small>X:</small> <strong id="probe-val-x">0.00 m</strong></div>
-          <div><small>Y:</small> <strong id="probe-val-y">0.00 m</strong></div>
-          <div><small>Qiymat:</small> <strong id="probe-val-dynamic">0.00</strong></div>
-        </div>
-        <div class="probe-target-pin" id="probe-pin">
-          <div class="probe-crosshair"></div>
-        </div>
-      </div>
-    `;
-
-    this.container.append(this.wrapper);
-    this.buildRulerTicks();
-    this.bindEvents();
+  if (key === "spring") return { x: 0, y: 1 / 105 };
+  if (key === "pendulum") {
+    const scale = p.length / Math.max(70, Math.min(180, p.length * 100));
+    return { x: scale, y: scale / 0.92 };
   }
+  if (key === "fall" || key === "projectile") {
+    const maxRange = Math.max(state.range, ...trailStates.map((item) => item.range));
+    const maxHeight = Math.max(state.height, ...trailStates.map((item) => item.height));
+    const scale = Math.min(640 / Math.max(12, maxRange * 1.1), 280 / Math.max(8, maxHeight * 1.2));
+    return { x: 1 / scale, y: 1 / scale };
+  }
+  if (key === "energy") return { x: 1 / 40, y: 1 / 40 };
+  return null;
+}
 
-  buildRulerTicks() {
-    const ticksContainer = this.wrapper.querySelector(".ruler-ticks");
-    if (!ticksContainer) return;
-    ticksContainer.innerHTML = "";
-    // Draw 28 major divisions (centimeters / meters)
-    for (let i = 0; i <= 28; i++) {
-      const isMajor = i % 5 === 0;
-      const tick = document.createElement("div");
-      tick.className = `ruler-tick ${isMajor ? "major" : ""}`;
-      tick.style.left = `${(i / 28) * 100}%`;
-      if (isMajor) {
-        const label = document.createElement("span");
-        label.className = "ruler-tick-label";
-        label.textContent = `${i * 10}`;
-        tick.append(label);
-      }
-      ticksContainer.append(tick);
+function card(layer, id, title, icon, x, y, body) {
+  const el = document.createElement("div");
+  el.className = "vi-instrument vi-hidden";
+  el.id = id;
+  el.style.left = `${x}px`;
+  el.style.top = `${y}px`;
+  el.innerHTML = `<div class="vi-header" tabindex="0" aria-label="${title} asbobini ko‘chirish"><span class="vi-icon">${icon}</span><span class="vi-title">${title}</span><button type="button" class="vi-close" aria-label="${title}ni yashirish">×</button></div><div class="vi-body">${body}</div>`;
+  layer.append(el);
+  const header = el.querySelector(".vi-header");
+  let drag = null;
+  const move = (left, top) => {
+    const bounds = layer.getBoundingClientRect();
+    el.style.left = `${Math.max(0, Math.min(left, Math.max(0, bounds.width - el.offsetWidth)))}px`;
+    el.style.top = `${Math.max(0, Math.min(top, Math.max(0, bounds.height - el.offsetHeight)))}px`;
+  };
+  header.addEventListener("pointerdown", (event) => {
+    if (event.target.closest("button")) return;
+    drag = { x: event.clientX, y: event.clientY, left: el.offsetLeft, top: el.offsetTop };
+    header.setPointerCapture(event.pointerId);
+  });
+  header.addEventListener("pointermove", (event) => {
+    if (drag) move(drag.left + event.clientX - drag.x, drag.top + event.clientY - drag.y);
+  });
+  header.addEventListener("pointerup", () => { drag = null; });
+  header.addEventListener("pointercancel", () => { drag = null; });
+  header.addEventListener("keydown", (event) => {
+    const direction = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] }[event.key];
+    if (!direction) return;
+    event.preventDefault();
+    const step = event.shiftKey ? 32 : 8;
+    move(el.offsetLeft + step * direction[0], el.offsetTop + step * direction[1]);
+  });
+  el.querySelector(".vi-close").onclick = () => el.classList.add("vi-hidden");
+  return el;
+}
+
+function quantityProbe(layer, id, title, icon, readings, x, y, differential = false) {
+  const options = readings.map((item, index) =>
+    `<option value="${index}">${item.label || item.key} (${item.unit})</option>`).join("");
+  const el = card(layer, id, title, icon, x, y,
+    `<label class="vi-probe-label">Kattalik<select class="vi-probe-select">${options}</select></label><div class="vi-sw-display vi-probe-reading" aria-live="polite">—</div>${differential ? '<div class="vi-probe-actions"><button type="button" class="vi-btn" data-point="a">A ni belgilash</button><button type="button" class="vi-btn" data-point="b">B ni belgilash</button></div><p class="vi-probe-delta">Δ = —</p>' : '<p class="vi-probe-note">Natija fizik modeldan olinadi.</p>'}`);
+  const select = el.querySelector(".vi-probe-select");
+  const display = el.querySelector(".vi-probe-reading");
+  const delta = el.querySelector(".vi-probe-delta");
+  let current = null;
+  let a = null;
+  let b = null;
+  if (differential) el.querySelectorAll("[data-point]").forEach((button) => {
+    button.onclick = () => {
+      if (button.dataset.point === "a") a = current;
+      else b = current;
+      const unit = readings[Number(select.value)].unit;
+      delta.textContent = a === null || b === null ? "Δ = —" : `Δ = ${number(Math.abs(b - a))} ${unit}`;
+    };
+  });
+  select.onchange = () => { a = null; b = null; if (delta) delta.textContent = "Δ = —"; };
+  return {
+    el,
+    update(state, _t, params) {
+      const reading = readings[Number(select.value)];
+      const raw = reading.source === "param" ? params?.[reading.key] : state?.[reading.key];
+      current = typeof raw === "number" && Number.isFinite(raw) ? raw * (reading.scale ?? 1) : null;
+      display.textContent = `${number(current)} ${reading.unit}`;
+    },
+  };
+}
+
+function stopwatch(layer, getState) {
+  const el = card(layer, "vi-stopwatch", "Sekundomer", "⏱", 20, 160,
+    '<div class="vi-sw-display" aria-live="polite">0.000 s</div><div class="vi-sw-laps"></div><div class="vi-sw-buttons"><button type="button" class="vi-btn" data-watch="start">▶ Boshlash</button><button type="button" class="vi-btn" data-watch="lap">Belgi</button><button type="button" class="vi-btn" data-watch="reset">Nolga</button></div>');
+  const display = el.querySelector(".vi-sw-display");
+  const laps = el.querySelector(".vi-sw-laps");
+  const start = el.querySelector('[data-watch="start"]');
+  let running = false;
+  let origin = 0;
+  let elapsed = 0;
+  let lastTime = 0;
+  const time = () => Number(getState()?.t || 0);
+  start.onclick = () => {
+    running = !running;
+    if (running) origin = time() - elapsed;
+    start.textContent = running ? "⏸ Pauza" : "▶ Davom";
+  };
+  el.querySelector('[data-watch="lap"]').onclick = () => {
+    const item = document.createElement("span");
+    item.className = "vi-lap";
+    item.textContent = `#${laps.children.length + 1} ${elapsed.toFixed(3)} s`;
+    laps.append(item);
+  };
+  el.querySelector('[data-watch="reset"]').onclick = () => {
+    running = false;
+    origin = time();
+    elapsed = 0;
+    laps.replaceChildren();
+    display.textContent = "0.000 s";
+    start.textContent = "▶ Boshlash";
+  };
+  return { el, update(_state, t) {
+    if (t < lastTime && running) { origin = t; elapsed = 0; }
+    lastTime = t;
+    if (running) elapsed = Math.max(0, t - origin);
+    display.textContent = `${elapsed.toFixed(3)} s`;
+  } };
+}
+
+export function mountVirtualInstruments(stage, config, getState) {
+  if (!stage) return { update() {}, destroy() {} };
+  const layer = document.createElement("div");
+  layer.className = "vi-layer";
+  stage.style.position = "relative";
+  stage.append(layer);
+  const instruments = [];
+  const canvas = stage.querySelector("#sim-canvas");
+  const spatial = instrumentReadings(config, "space");
+  const electrical = instrumentReadings(config, "electric");
+  const forces = instrumentReadings(config, "force");
+  if (spatial.length) instruments.push(quantityProbe(layer, "vi-ruler", "Chizg‘ich", "📏", spatial, 20, 20, true));
+  let measureOverlay = null;
+  let measureResize = null;
+  if (spatial.length && canvas && MEASURABLE_SCENES.has(config.key)) {
+    const ruler = instruments[0].el;
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "vi-btn vi-scene-button";
+    button.textContent = "Sahnada masofani o‘lchash";
+    const result = document.createElement("p");
+    result.className = "vi-probe-delta";
+    result.setAttribute("aria-live", "polite");
+    ruler.querySelector(".vi-body").append(button, result);
+    measureOverlay = document.createElement("div");
+    measureOverlay.className = "vi-measure-overlay";
+    measureOverlay.hidden = true;
+    measureOverlay.innerHTML = '<svg viewBox="0 0 800 460" preserveAspectRatio="none" aria-hidden="true"><line/><circle data-mark="a" r="6"/><circle data-mark="b" r="6"/></svg>';
+    stage.append(measureOverlay);
+    const align = () => {
+      measureOverlay.style.left = `${canvas.offsetLeft}px`;
+      measureOverlay.style.top = `${canvas.offsetTop}px`;
+      measureOverlay.style.width = `${canvas.clientWidth}px`;
+      measureOverlay.style.height = `${canvas.clientHeight}px`;
+    };
+    align();
+    if (typeof ResizeObserver === "function") {
+      measureResize = new ResizeObserver(align);
+      measureResize.observe(canvas);
     }
-  }
-
-  bindEvents() {
-    // Toolbar toggle buttons
-    const btnRuler = this.wrapper.querySelector("#toggle-ruler");
-    const btnStopwatch = this.wrapper.querySelector("#toggle-stopwatch");
-    const btnProbe = this.wrapper.querySelector("#toggle-probe");
-
-    const elRuler = this.wrapper.querySelector("#inst-ruler");
-    const elStopwatch = this.wrapper.querySelector("#inst-stopwatch");
-    const elProbe = this.wrapper.querySelector("#inst-probe");
-
-    btnRuler?.addEventListener("click", () => {
-      this.rulerActive = !this.rulerActive;
-      elRuler.style.display = this.rulerActive ? "block" : "none";
-      btnRuler.classList.toggle("active", this.rulerActive);
-      if (this.rulerActive) this.positionElement(elRuler, this.ruler.x, this.ruler.y);
-    });
-
-    btnStopwatch?.addEventListener("click", () => {
-      this.stopwatchActive = !this.stopwatchActive;
-      elStopwatch.style.display = this.stopwatchActive ? "block" : "none";
-      btnStopwatch.classList.toggle("active", this.stopwatchActive);
-      if (this.stopwatchActive) this.positionElement(elStopwatch, this.stopwatch.x, this.stopwatch.y);
-    });
-
-    btnProbe?.addEventListener("click", () => {
-      this.probeActive = !this.probeActive;
-      elProbe.style.display = this.probeActive ? "block" : "none";
-      btnProbe.classList.toggle("active", this.probeActive);
-      if (this.probeActive) {
-        this.positionElement(elProbe, this.probe.x, this.probe.y);
-        this.updateProbeValues();
+    let first = null;
+    button.onclick = () => {
+      if (!measureOverlay.hidden && !measureOverlay.classList.contains("is-finished")) {
+        measureOverlay.hidden = true;
+        button.textContent = "Sahnada masofani o‘lchash";
+        return;
       }
-    });
-
-    // Close buttons
-    this.wrapper.querySelector("#ruler-close")?.addEventListener("click", () => {
-      this.rulerActive = false;
-      elRuler.style.display = "none";
-      btnRuler?.classList.remove("active");
-    });
-
-    this.wrapper.querySelector("#stopwatch-close")?.addEventListener("click", () => {
-      this.stopwatchActive = false;
-      elStopwatch.style.display = "none";
-      btnStopwatch?.classList.remove("active");
-    });
-
-    this.wrapper.querySelector("#probe-close")?.addEventListener("click", () => {
-      this.probeActive = false;
-      elProbe.style.display = "none";
-      btnProbe?.classList.remove("active");
-    });
-
-    // Ruler rotation
-    this.wrapper.querySelector("#ruler-rotate")?.addEventListener("click", () => {
-      this.ruler.rotation = (this.ruler.rotation + 90) % 180;
-      elRuler.style.transform = `rotate(${this.ruler.rotation}deg)`;
-      const measure = this.wrapper.querySelector("#ruler-measure-text");
-      if (measure) {
-        measure.textContent = this.ruler.rotation === 90 ? "Balandlik: 2.80 m" : "Uzunlik: 2.80 m (280 sm)";
+      first = null;
+      measureOverlay.classList.remove("is-finished");
+      align();
+      measureOverlay.hidden = false;
+      measureOverlay.dataset.hint = "A nuqtani tanlang";
+      button.textContent = "A nuqtani tanlang · Bekor qilish";
+      result.textContent = "";
+      measureOverlay.querySelector("svg").classList.remove("has-points");
+      canvas.scrollIntoView({ block: "center", behavior: "instant" });
+    };
+    measureOverlay.addEventListener("pointerdown", (event) => {
+      const rect = measureOverlay.getBoundingClientRect();
+      const point = { x: (event.clientX - rect.left) * 800 / rect.width, y: (event.clientY - rect.top) * 460 / rect.height };
+      if (!first) {
+        first = point;
+        const marker = measureOverlay.querySelector('[data-mark="a"]');
+        marker.setAttribute("cx", point.x);
+        marker.setAttribute("cy", point.y);
+        measureOverlay.querySelector("svg").classList.add("has-points");
+        measureOverlay.dataset.hint = "B nuqtani tanlang";
+        button.textContent = "B nuqtani tanlang · Bekor qilish";
+        return;
       }
+      const { p, state, trails = [] } = getState();
+      const trailStates = trails.map((trail) => config.calculate(trail, 0));
+      const scale = sceneMetresPerPixel(config.key, p, state, trailStates);
+      const distance = Math.hypot((point.x - first.x) * scale.x, (point.y - first.y) * scale.y);
+      const marker = measureOverlay.querySelector('[data-mark="b"]');
+      marker.setAttribute("cx", point.x);
+      marker.setAttribute("cy", point.y);
+      const line = measureOverlay.querySelector("line");
+      for (const [name, value] of Object.entries({ x1: first.x, y1: first.y, x2: point.x, y2: point.y })) line.setAttribute(name, value);
+      const axis = ["lever", "lens"].includes(config.key) ? "Gorizontal " : config.key === "spring" ? "Vertikal " : "";
+      result.textContent = `Sahnadagi ${axis}A–B: ${number(distance)} m`;
+      measureOverlay.classList.add("is-finished");
+      button.textContent = "Sahnada qayta o‘lchash";
+      first = null;
     });
-
-    // Stopwatch logic
-    this.bindStopwatch();
-
-    // Draggable logic for all instruments
-    this.makeDraggable(elRuler, (x, y) => {
-      this.ruler.x = x;
-      this.ruler.y = y;
-    });
-
-    this.makeDraggable(elStopwatch, (x, y) => {
-      this.stopwatch.x = x;
-      this.stopwatch.y = y;
-    });
-
-    this.makeDraggable(elProbe, (x, y) => {
-      this.probe.x = x;
-      this.probe.y = y;
-      this.updateProbeValues();
-    });
+    ruler.querySelector(".vi-close").addEventListener("click", () => { measureOverlay.hidden = true; });
   }
-
-  positionElement(el, x, y) {
-    if (!el || !this.container) return;
-    const rect = this.container.getBoundingClientRect();
-    const relX = Math.max(10, Math.min(rect.width - 150, (x / 800) * rect.width));
-    const relY = Math.max(10, Math.min(rect.height - 100, (y / 460) * rect.height));
-    el.style.left = `${relX}px`;
-    el.style.top = `${relY}px`;
-  }
-
-  makeDraggable(element, onMove) {
-    let startX = 0, startY = 0;
-    let initialLeft = 0, initialTop = 0;
-    let dragging = false;
-
-    const onPointerDown = (e) => {
-      // Don't drag if clicking buttons inside
-      if (e.target.closest("button") || e.target.closest("input")) return;
-      dragging = true;
-      startX = e.clientX;
-      startY = e.clientY;
-      initialLeft = parseFloat(element.style.left || 0);
-      initialTop = parseFloat(element.style.top || 0);
-      element.classList.add("is-dragging");
-      try {
-        element.setPointerCapture(e.pointerId);
-      } catch {}
-      e.preventDefault();
-    };
-
-    const onPointerMove = (e) => {
-      if (!dragging) return;
-      const dx = e.clientX - startX;
-      const dy = e.clientY - startY;
-      const rect = this.container.getBoundingClientRect();
-      const nextLeft = Math.max(0, Math.min(rect.width - element.offsetWidth, initialLeft + dx));
-      const nextTop = Math.max(0, Math.min(rect.height - element.offsetHeight, initialTop + dy));
-      element.style.left = `${nextLeft}px`;
-      element.style.top = `${nextTop}px`;
-
-      // Convert back to logical 800x460 coordinates
-      const logicalX = (nextLeft / Math.max(1, rect.width)) * 800;
-      const logicalY = (nextTop / Math.max(1, rect.height)) * 460;
-      if (onMove) onMove(logicalX, logicalY);
-    };
-
-    const onPointerUp = (e) => {
-      if (!dragging) return;
-      dragging = false;
-      element.classList.remove("is-dragging");
-      try {
-        element.releasePointerCapture(e.pointerId);
-      } catch {}
-    };
-
-    element.addEventListener("pointerdown", onPointerDown);
-    element.addEventListener("pointermove", onPointerMove);
-    element.addEventListener("pointerup", onPointerUp);
-    element.addEventListener("pointercancel", onPointerUp);
-  }
-
-  bindStopwatch() {
-    const btnStart = this.wrapper.querySelector("#sw-start-pause");
-    const btnLap = this.wrapper.querySelector("#sw-lap");
-    const btnReset = this.wrapper.querySelector("#sw-reset");
-    const display = this.wrapper.querySelector("#stopwatch-time");
-    const lapsContainer = this.wrapper.querySelector("#sw-laps");
-
-    const formatTime = (ms) => {
-      const totalSec = Math.floor(ms / 1000);
-      const minutes = Math.floor(totalSec / 60);
-      const seconds = totalSec % 60;
-      const hundredths = Math.floor((ms % 1000) / 10);
-      return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}.${String(hundredths).padStart(2, "0")}`;
-    };
-
-    const updateDisplay = () => {
-      if (display) display.textContent = formatTime(this.stopwatch.elapsedMs);
-    };
-
-    btnStart?.addEventListener("click", () => {
-      if (!this.stopwatch.running) {
-        this.stopwatch.running = true;
-        this.stopwatch.lastTick = performance.now();
-        btnStart.textContent = "To‘xtatish";
-        btnStart.classList.add("active");
-        this.stopwatch.timerId = setInterval(() => {
-          const now = performance.now();
-          this.stopwatch.elapsedMs += (now - this.stopwatch.lastTick);
-          this.stopwatch.lastTick = now;
-          updateDisplay();
-        }, 30);
-      } else {
-        this.stopwatch.running = false;
-        clearInterval(this.stopwatch.timerId);
-        btnStart.textContent = "Boshlash";
-        btnStart.classList.remove("active");
+  if (!config.static) instruments.push(stopwatch(layer, getState));
+  if (electrical.length && ["tok", "elektrostatika", "elektro-tebranish", "muhit", "elektromagnit"].includes(config.section))
+    instruments.push(quantityProbe(layer, "vi-multimeter", "Multimetr", "🔌", electrical, 20, 270));
+  if (forces.length) instruments.push(quantityProbe(layer, "vi-dynamometer", "Dinamometr", "↗", forces, 20, 360));
+  const toolbar = document.createElement("div");
+  toolbar.className = "vi-toolbar";
+  toolbar.setAttribute("aria-label", "Virtual asboblar paneli");
+  for (const instrument of instruments) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "vi-toolbar-btn";
+    button.textContent = `${instrument.el.querySelector(".vi-icon").textContent} ${instrument.el.querySelector(".vi-title").textContent}`;
+    button.onclick = () => {
+      instrument.el.classList.toggle("vi-hidden");
+      const opened = !instrument.el.classList.contains("vi-hidden");
+      button.classList.toggle("active", opened);
+      if (opened) {
+        const top = Math.max(8, toolbar.offsetTop - instrument.el.offsetHeight - 12);
+        instrument.el.style.top = `${top}px`;
       }
-    });
-
-    btnReset?.addEventListener("click", () => {
-      this.stopwatch.running = false;
-      clearInterval(this.stopwatch.timerId);
-      this.stopwatch.elapsedMs = 0;
-      this.stopwatch.laps = [];
-      btnStart.textContent = "Boshlash";
-      btnStart.classList.remove("active");
-      updateDisplay();
-      if (lapsContainer) lapsContainer.innerHTML = "";
-    });
-
-    btnLap?.addEventListener("click", () => {
-      if (this.stopwatch.elapsedMs === 0) return;
-      const lapTime = formatTime(this.stopwatch.elapsedMs);
-      this.stopwatch.laps.push(lapTime);
-      if (lapsContainer) {
-        const item = document.createElement("div");
-        item.className = "sw-lap-item";
-        item.textContent = `#${this.stopwatch.laps.length} — ${lapTime}`;
-        lapsContainer.prepend(item);
-      }
-    });
+    };
+    toolbar.append(button);
   }
-
-  updateProbeValues() {
-    if (!this.probeActive || !this.getState) return;
-    const sim = this.getState();
-    if (!sim) return;
-
-    const valX = this.wrapper.querySelector("#probe-val-x");
-    const valY = this.wrapper.querySelector("#probe-val-y");
-    const valDyn = this.wrapper.querySelector("#probe-val-dynamic");
-
-    // Logical coordinates mapped to physics scale (center is 0 or ground)
-    const meterX = ((this.probe.x - 400) / 80).toFixed(2);
-    const meterY = ((380 - this.probe.y) / 80).toFixed(2);
-
-    if (valX) valX.textContent = `${meterX} m`;
-    if (valY) valY.textContent = `${meterY} m`;
-
-    if (valDyn && sim.s) {
-      if (sim.s.v !== undefined) {
-        valDyn.textContent = `v = ${format(sim.s.v)} m/s`;
-      } else if (sim.s.force !== undefined) {
-        valDyn.textContent = `F = ${format(sim.s.force)} N`;
-      } else if (sim.s.current !== undefined) {
-        valDyn.textContent = `I = ${format(sim.s.current)} A`;
-      } else if (sim.s.pressure !== undefined) {
-        valDyn.textContent = `P = ${format(sim.s.pressure * 0.001)} kPa`;
-      } else if (sim.s.theta !== undefined) {
-        valDyn.textContent = `θ = ${format(sim.s.theta)}°`;
-      } else {
-        const first = sim.config?.results?.[0];
-        if (first && sim.s[first.key] !== undefined) {
-          valDyn.textContent = `${first.key} = ${format(sim.s[first.key])} ${first.unit || ""}`;
-        }
-      }
-    }
-  }
-
-  update(state) {
-    if (this.probeActive) {
-      this.updateProbeValues();
-    }
-  }
-
-  destroy() {
-    if (this.stopwatch.timerId) clearInterval(this.stopwatch.timerId);
-    this.wrapper?.remove();
-  }
+  if (instruments.length) stage.append(toolbar);
+  let lastMeasureParams = null;
+  return {
+    update(state, t, params) {
+      const signature = JSON.stringify(params);
+      if (measureOverlay && lastMeasureParams !== null && signature !== lastMeasureParams) measureOverlay.hidden = true;
+      lastMeasureParams = signature;
+      instruments.forEach((instrument) => instrument.update(state, t, params));
+    },
+    destroy() { measureResize?.disconnect(); measureOverlay?.remove(); layer.remove(); toolbar.remove(); },
+  };
 }

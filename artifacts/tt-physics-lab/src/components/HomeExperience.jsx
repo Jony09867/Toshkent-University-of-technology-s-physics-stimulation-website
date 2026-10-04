@@ -39,9 +39,9 @@ function HeroPreview({ preview }) {
             <div className="preview-stage-head"><span>NYUTONNING IKKINCHI QONUNI</span><Markup html={preview.formula} /></div>
             <div className="preview-art" dangerouslySetInnerHTML={{ __html: preview.art }} />
             <div className="preview-results" aria-hidden="true">
-              <div><span>Tezlanish</span><b>4.00</b><small>m/s²</small></div>
-              <div><span>Natijaviy kuch</span><b>20.0</b><small>N</small></div>
-              <div><span>Tezlik</span><b>12.0</b><small>m/s</small></div>
+              <div><span>Tezlanish</span><b>2.82</b><small>m/s²</small></div>
+              <div><span>Natijaviy kuch</span><b>14.1</b><small>N</small></div>
+              <div><span>Tezlik · t=3 s</span><b>8.47</b><small>m/s</small></div>
             </div>
           </div>
         </div>

@@ -4420,3 +4420,97 @@ body.home-dark {
     padding-bottom: 40px;
   }
 }
+
+/* ================================================================
+   Safeguard Warning Banner (Fizik chegaraviy ogohlantirishlar)
+   ================================================================ */
+.safeguard-banner {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  right: 14px;
+  z-index: 35;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 18px;
+  background: rgba(220, 38, 38, 0.18);
+  border: 1px solid rgba(239, 68, 68, 0.55);
+  border-radius: 10px;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  color: #fecaca;
+  font-size: 13.5px;
+  font-weight: 500;
+  line-height: 1.45;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.45), 0 0 16px rgba(239, 68, 68, 0.25);
+  animation: safeguardPulse 2.4s ease-in-out infinite;
+  pointer-events: auto;
+}
+
+@keyframes safeguardPulse {
+  0%, 100% {
+    border-color: rgba(239, 68, 68, 0.45);
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.45), 0 0 16px rgba(239, 68, 68, 0.2);
+  }
+  50% {
+    border-color: rgba(239, 68, 68, 0.85);
+    box-shadow: 0 6px 28px rgba(0, 0, 0, 0.55), 0 0 24px rgba(239, 68, 68, 0.45);
+  }
+}
+
+.safeguard-banner .safeguard-icon {
+  font-size: 20px;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.safeguard-banner .safeguard-text {
+  flex: 1;
+  letter-spacing: 0.01em;
+}
+
+/* ── Faza fazosi va Vaqt grafigi tugmalari ──────────────────────── */
+.chart-mode-bar {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.chart-mode-btn {
+  padding: 5px 12px;
+  background: var(--surface, #111820);
+  border: 1px solid var(--border, #2a3642);
+  border-radius: 6px;
+  color: var(--text-muted, #8b9aa8);
+  font-size: 11.5px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+  font-family: inherit;
+}
+
+.chart-mode-btn:hover {
+  background: var(--surface-2, #1b2733);
+  color: var(--text, #e8f0f7);
+  border-color: #38bdf8;
+}
+
+.chart-mode-btn.active {
+  background: rgba(241, 89, 42, 0.16);
+  border-color: #F1592A;
+  color: #F1592A;
+  font-weight: 600;
+}
+.chart-inspector {
+  display: block;
+  min-height: 1.7em;
+  margin: 4px 9px 8px;
+  color: var(--canvas-muted, #8b9aa8);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+.carnot-chart { height: 340px; display: flex; flex-direction: column; gap: 7px; }
+.carnot-chart > strong { color: var(--text, #e8f0f7); font-size: 12px; }
+.carnot-plot { flex: 1; min-height: 220px; position: relative; }
+.carnot-note { margin: 0; color: var(--canvas-muted, #8b9aa8); font-size: 10px; line-height: 1.35; }

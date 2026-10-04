@@ -81,3 +81,28 @@ test("induction and thin-lens models match their differential equations", () => 
   close(1 / 0.5, 1 / 1.2 + 1 / lens.image);
   close(lens.magnification, -lens.image / 1.2);
 });
+
+test("to‘qnashuvda impuls va qaytarish koeffitsiyenti bir vaqtda bajariladi", () => {
+  for (const restitution of [0, 0.35, 1]) {
+    const p = { m1: 2, m2: 4, v1: 6, v2: -2, restitution };
+    const s = physics.collision(p);
+    close(s.momentumAfter, s.momentumBefore);
+    close(s.u2 - s.u1, restitution * (p.v1 - p.v2));
+    close(s.impulse, p.m1 * (p.v1 - s.u1));
+    assert.ok(s.kineticAfter <= s.kineticBefore + 1e-9);
+  }
+  const separating = physics.collision({ m1: 2, m2: 4, v1: -2, v2: 6, restitution: 1 });
+  close(separating.impulse, 0);
+  close(separating.u1, -2);
+  close(separating.u2, 6);
+  assert.equal(separating.contact, false);
+});
+
+test("ishqalanish bo‘lmaganda jism to‘xtamaydi va cheksiz yo‘l qiymati ko‘rsatiladi", () => {
+  const state = physics.friction({ m: 2, normal: 20, mu: 0, v0: 5 }, 3);
+  close(state.v, 5);
+  close(state.x, 15);
+  assert.equal(state.stop, Infinity);
+  assert.equal(state.distance, Infinity);
+  assert.equal(state.stopped, false);
+});

@@ -1,0 +1,167 @@
+/* ================================================================
+   ChallengeMode.css – Topshiriq / Muammo rejimi stillari
+   ================================================================ */
+
+.challenge-card {
+  margin-top: 18px;
+  padding: 16px 18px;
+  background: rgba(17, 24, 32, 0.85);
+  border: 1px solid rgba(241, 89, 42, 0.25);
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.challenge-card.is-completed {
+  border-color: rgba(16, 185, 129, 0.45);
+  background: rgba(16, 185, 129, 0.06);
+}
+
+.challenge-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.challenge-badge {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #F1592A;
+  background: rgba(241, 89, 42, 0.12);
+  padding: 3px 10px;
+  border-radius: 20px;
+  border: 1px solid rgba(241, 89, 42, 0.3);
+}
+
+.challenge-card.is-completed .challenge-badge {
+  color: #10b981;
+  background: rgba(16, 185, 129, 0.14);
+  border-color: rgba(16, 185, 129, 0.35);
+}
+
+.challenge-hint-btn {
+  background: transparent;
+  border: 1px solid var(--border, #2a3642);
+  color: var(--text-muted, #8b9aa8);
+  font-size: 11.5px;
+  padding: 3px 9px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.challenge-hint-btn:hover {
+  background: var(--surface-2, #1b2733);
+  color: #fbbf24;
+  border-color: #fbbf24;
+}
+
+.challenge-title {
+  font-size: 14.5px;
+  font-weight: 600;
+  color: var(--text, #e8f0f7);
+  margin: 0 0 6px 0;
+}
+
+.challenge-desc {
+  font-size: 12.5px;
+  color: var(--text-muted, #8b9aa8);
+  line-height: 1.45;
+  margin: 0 0 10px 0;
+}
+
+.challenge-target-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 8px;
+  font-size: 12.5px;
+  margin-bottom: 12px;
+}
+
+.challenge-target-label {
+  color: var(--text-muted, #8b9aa8);
+}
+
+.challenge-target-row strong {
+  color: #38bdf8;
+}
+
+.challenge-status-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.challenge-status-row span {
+  font-size: 12.5px;
+  color: var(--text-muted, #8b9aa8);
+}
+
+.challenge-status-row b {
+  color: var(--text, #e8f0f7);
+}
+
+.challenge-check-btn {
+  background: #F1592A;
+  color: #fff;
+  border: none;
+  font-size: 12.5px;
+  font-weight: 600;
+  padding: 6px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: transform 0.15s, background 0.15s, box-shadow 0.15s;
+  box-shadow: 0 2px 10px rgba(241, 89, 42, 0.35);
+}
+
+.challenge-check-btn:hover {
+  background: #e04b1e;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(241, 89, 42, 0.5);
+}
+
+.challenge-feedback {
+  margin-top: 12px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 12px;
+  line-height: 1.45;
+  animation: fadeIn 0.25s ease-out;
+}
+
+.challenge-feedback.success {
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.45);
+  color: #a7f3d0;
+}
+
+.challenge-feedback.error {
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.45);
+  color: #fca5a5;
+}
+
+.challenge-hint-box {
+  margin-top: 10px;
+  padding: 8px 12px;
+  background: rgba(251, 191, 36, 0.1);
+  border-left: 3px solid #fbbf24;
+  border-radius: 4px;
+  font-size: 12px;
+  color: #fde68a;
+  line-height: 1.4;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}

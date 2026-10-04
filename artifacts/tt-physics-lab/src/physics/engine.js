@@ -1,4 +1,4 @@
-import { G, COULOMB, GAS, TAU } from "./constants.js";
+import { G, COULOMB, GAS, TAU, PLANCK, LIGHT, ELEMENTARY, MU0, LN2 } from "./constants.js";
 export const clamp = (x, lo, hi) => Math.max(lo, Math.min(hi, x));
 let energyCache = null,
   buoyancyCache = null;
@@ -23,11 +23,14 @@ const cleanComponent = (value, scale) => {
 export function motion(p, t = 0) {
   const stop = p.a < 0 ? -p.v0 / p.a : Infinity,
     time = simulationTime(t, stop);
+  const x = p.x0 + p.v0 * time + (p.a * time * time) / 2;
+  const v = p.v0 + p.a * time;
+  const a = time >= stop ? 0 : p.a;
   return {
-    x: p.x0 + p.v0 * time + (p.a * time * time) / 2,
-    v: p.v0 + p.a * time,
-    a: time >= stop ? 0 : p.a,
-    stop,
+    x: Number.isFinite(x) ? x : p.x0,
+    v: Number.isFinite(v) ? v : p.v0,
+    a: Number.isFinite(a) ? a : p.a,
+    stop: Number.isFinite(stop) ? stop : Infinity,
   };
 }
 export function projectile(p, t = 0) {
@@ -44,21 +47,20 @@ export function projectile(p, t = 0) {
   const positionAt = (time) => {
     if (gamma === 0)
       return {
-        x: vx * time,
-        y: p.h + vy * time - (g * time * time) / 2,
-        vx,
-        vy: vy - g * time,
+        x: Number.isFinite(vx * time) ? vx * time : 0,
+        y: Number.isFinite(p.h + vy * time - (g * time * time) / 2)
+          ? p.h + vy * time - (g * time * time) / 2 : p.h,
+        vx: Number.isFinite(vx) ? vx : 0,
+        vy: Number.isFinite(vy - g * time) ? vy - g * time : 0,
       };
     const decay = Math.exp(-gamma * time),
       terminal = g / gamma;
     return {
-      x: (vx * (1 - decay)) / gamma,
-      y:
-        p.h +
-        ((vy + terminal) * (1 - decay)) / gamma -
-        terminal * time,
-      vx: vx * decay,
-      vy: (vy + terminal) * decay - terminal,
+      x: Number.isFinite((vx * (1 - decay)) / gamma) ? (vx * (1 - decay)) / gamma : 0,
+      y: Number.isFinite(p.h + ((vy + terminal) * (1 - decay)) / gamma - terminal * time)
+        ? p.h + ((vy + terminal) * (1 - decay)) / gamma - terminal * time : p.h,
+      vx: Number.isFinite(vx * decay) ? vx * decay : 0,
+      vy: Number.isFinite((vy + terminal) * decay - terminal) ? (vy + terminal) * decay - terminal : 0,
     };
   };
   let duration = idealDuration;
@@ -85,18 +87,18 @@ export function projectile(p, t = 0) {
     current = positionAt(time),
     impact = positionAt(duration);
   return {
-    x: current.x,
-    y: Math.max(0, current.y),
-    vx: landed ? 0 : current.vx,
-    vy: landed ? 0 : current.vy,
-    speed: landed ? 0 : Math.hypot(current.vx, current.vy),
-    impactVx: impact.vx,
-    impactVy: impact.vy,
-    impactSpeed: Math.hypot(impact.vx, impact.vy),
+    x: Number.isFinite(current.x) ? current.x : 0,
+    y: Number.isFinite(Math.max(0, current.y)) ? Math.max(0, current.y) : 0,
+    vx: landed ? 0 : (Number.isFinite(current.vx) ? current.vx : 0),
+    vy: landed ? 0 : (Number.isFinite(current.vy) ? current.vy : 0),
+    speed: landed ? 0 : (Number.isFinite(Math.hypot(current.vx, current.vy)) ? Math.hypot(current.vx, current.vy) : 0),
+    impactVx: Number.isFinite(impact.vx) ? impact.vx : 0,
+    impactVy: Number.isFinite(impact.vy) ? impact.vy : 0,
+    impactSpeed: Number.isFinite(Math.hypot(impact.vx, impact.vy)) ? Math.hypot(impact.vx, impact.vy) : 0,
     landed,
-    duration,
-    range: impact.x,
-    height: Math.max(p.h, apex.y),
+    duration: Number.isFinite(duration) ? duration : 0,
+    range: Number.isFinite(impact.x) ? impact.x : 0,
+    height: Number.isFinite(Math.max(p.h, apex.y)) ? Math.max(p.h, apex.y) : p.h,
     drag,
   };
 }
@@ -110,13 +112,13 @@ export function newton(p, t = 0) {
     a = net / p.m,
     time = simulationTime(t);
   return {
-    a,
-    net,
-    normal,
-    driving,
-    friction: Math.min(Math.abs(driving), friction),
-    v: a * time,
-    x: (a * time * time) / 2,
+    a: Number.isFinite(a) ? a : 0,
+    net: Number.isFinite(net) ? net : 0,
+    normal: Number.isFinite(normal) ? normal : 0,
+    driving: Number.isFinite(driving) ? driving : 0,
+    friction: Number.isFinite(Math.min(Math.abs(driving), friction)) ? Math.min(Math.abs(driving), friction) : 0,
+    v: Number.isFinite(a * time) ? a * time : 0,
+    x: Number.isFinite((a * time * time) / 2) ? (a * time * time) / 2 : 0,
   };
 }
 export function friction(p, t = 0) {
@@ -128,13 +130,13 @@ export function friction(p, t = 0) {
     stopped = Number.isFinite(stop) && time >= stop,
     distance = a > 0 ? (p.v0 * p.v0) / (2 * a) : Infinity;
   return {
-    f: stopped ? 0 : f,
-    maxFriction: f,
-    a: stopped ? 0 : -a,
-    v: stopped ? 0 : Math.max(0, p.v0 - a * time),
-    x: stopped ? distance : p.v0 * time - (a * time * time) / 2,
-    stop,
-    distance,
+    f: stopped ? 0 : (Number.isFinite(f) ? f : 0),
+    maxFriction: Number.isFinite(f) ? f : 0,
+    a: stopped ? 0 : (Number.isFinite(-a) ? -a : 0),
+    v: stopped ? 0 : (Number.isFinite(Math.max(0, p.v0 - a * time)) ? Math.max(0, p.v0 - a * time) : 0),
+    x: stopped ? (Number.isFinite(distance) ? distance : 0) : (Number.isFinite(p.v0 * time - (a * time * time) / 2) ? p.v0 * time - (a * time * time) / 2 : 0),
+    stop: Number.isFinite(stop) ? stop : Infinity,
+    distance: Number.isFinite(distance) ? distance : Infinity,
     stopped,
   };
 }
@@ -175,15 +177,15 @@ export function energy(p, t = 0) {
     total = kinetic + potential,
     initial = p.m * G * p.h;
   return {
-    q,
-    v,
-    height,
-    kinetic,
-    potential,
-    total,
-    initial,
-    heat: p.friction ? Math.max(0, initial - total) : 0,
-    radius,
+    q: Number.isFinite(q) ? q : 0,
+    v: Number.isFinite(v) ? v : 0,
+    height: Number.isFinite(height) ? height : 0,
+    kinetic: Number.isFinite(kinetic) ? kinetic : 0,
+    potential: Number.isFinite(potential) ? potential : 0,
+    total: Number.isFinite(total) ? total : 0,
+    initial: Number.isFinite(initial) ? initial : 0,
+    heat: p.friction ? Math.max(0, Number.isFinite(initial - total) ? initial - total : 0) : 0,
+    radius: Number.isFinite(radius) ? radius : 12,
   };
 }
 export function spring(p, t = 0) {
@@ -204,15 +206,15 @@ export function spring(p, t = 0) {
     x = A * envelope * Math.cos(theta),
     v = -A * envelope * (damping * Math.cos(theta) + omega * Math.sin(theta));
   return {
-    period: TAU / omega,
-    omega,
-    naturalOmega,
-    damping,
-    x,
-    v,
-    energy: (p.m * v * v) / 2 + (p.k * x * x) / 2,
-    envelope: A * envelope,
-    equilibrium: (p.m * G) / p.k,
+    period: Number.isFinite(TAU / omega) ? TAU / omega : 0,
+    omega: Number.isFinite(omega) ? omega : 0,
+    naturalOmega: Number.isFinite(naturalOmega) ? naturalOmega : 0,
+    damping: Number.isFinite(damping) ? damping : 0,
+    x: Number.isFinite(x) ? x : 0,
+    v: Number.isFinite(v) ? v : 0,
+    energy: Number.isFinite((p.m * v * v) / 2 + (p.k * x * x) / 2) ? (p.m * v * v) / 2 + (p.k * x * x) / 2 : 0,
+    envelope: Number.isFinite(A * envelope) ? A * envelope : 0,
+    equilibrium: Number.isFinite((p.m * G) / p.k) ? (p.m * G) / p.k : 0,
   };
 }
 export function resonance(p, t = 0) {
@@ -229,11 +231,11 @@ export function resonance(p, t = 0) {
     peakSquared = w0 * w0 - 2 * beta * beta,
     time = simulationTime(t);
   return {
-    amplitude,
-    x: amplitude * Math.cos(omega * time - phase),
-    phase,
-    natural: w0,
-    peak: peakSquared > 0 ? Math.sqrt(peakSquared) : null,
+    amplitude: Number.isFinite(amplitude) ? amplitude : 0,
+    x: Number.isFinite(amplitude * Math.cos(omega * time - phase)) ? amplitude * Math.cos(omega * time - phase) : 0,
+    phase: Number.isFinite(phase) ? phase : 0,
+    natural: Number.isFinite(w0) ? w0 : 0,
+    peak: peakSquared > 0 && Number.isFinite(Math.sqrt(peakSquared)) ? Math.sqrt(peakSquared) : null,
   };
 }
 export function buoyancy(p, t = 0) {
@@ -324,19 +326,23 @@ export function ohm(p) {
   return { current, power: p.voltage * current, voltage: p.voltage };
 }
 export function circuit(p) {
-  positive(p.resistance, "Tashqi qarshilik");
+  const r = Math.max(0.01, Number.isFinite(p.resistance) ? p.resistance : 0.01);
   if (p.internal < 0) throw new RangeError("Ichki qarshilik manfiy bo‘lmaydi.");
-  const current = p.emf / (p.resistance + p.internal);
+  const current = p.emf / (r + p.internal);
+  const isShort = r <= 0.2;
   return {
     current,
-    voltage: current * p.resistance,
-    power: current * current * p.resistance,
+    voltage: current * r,
+    power: current * current * r,
     loss: current * current * p.internal,
     sourcePower: p.emf * current,
     efficiency:
       p.emf === 0
         ? null
-        : (p.resistance / (p.resistance + p.internal)) * 100,
+        : (r / (r + p.internal)) * 100,
+    warning: isShort
+      ? `Qisqa tutashuv xavfi: Tashqi qarshilik R ≈ 0 ga yaqin, tok kuchi keskin oshdi (I = ${current.toFixed(1)} A) — simlarning qizish va erish xavfi!`
+      : "",
   };
 }
 export function induction(p, t = 0) {
@@ -367,308 +373,498 @@ export function lens(p) {
   };
 }
 
-export function lever(p) {
-  positive(p.l1, "Chap yelka");
-  positive(p.l2, "O‘ng yelka");
-  const g = 9.8;
-  const mLeft = p.m1 * g * p.l1;
-  const mRight = p.m2 * g * p.l2;
-  const netTorque = mLeft - mRight;
-  const tilt = clamp(netTorque / (g * Math.max(0.5, p.l1 + p.l2) * 2), -15, 15);
+/* ================================================================== *
+ * 2-QISM: IMPULS SAQLANISHI VA TO‘QNASHUV
+ * ================================================================== */
+
+/**
+ * Bir o‘lchamli to‘qnashuv. `restitution` (qaytarish koeffitsiyenti) 1 da
+ * elastik, 0 da to‘liq notiq to‘qnashuv beradi. Impuls saqlanish qonuni
+ * har doim bajariladi; kinetik energiya esa faqat e=1 da saqlanadi.
+ */
+export function collision(p) {
+  positive(p.m1, "Birinchi jism massasi");
+  positive(p.m2, "Ikkinchi jism massasi");
+  const e = clamp(Number.isFinite(p.restitution) ? p.restitution : 1, 0, 1),
+    m1 = p.m1,
+    m2 = p.m2,
+    v1 = Number.isFinite(p.v1) ? p.v1 : 0,
+    v2 = Number.isFinite(p.v2) ? p.v2 : 0,
+    momentumBefore = m1 * v1 + m2 * v2,
+    kineticBefore = 0.5 * m1 * v1 * v1 + 0.5 * m2 * v2 * v2;
+  // Impuls saqlanish + qaytarish nisbati ikki tenglamani beradi.
+  const impulse = v1 > v2 ? ((1 + e) * m1 * m2 * (v1 - v2)) / (m1 + m2) : 0,
+    u1 = v1 - impulse / m1,
+    u2 = v2 + impulse / m2,
+    momentumAfter = m1 * u1 + m2 * u2,
+    kineticAfter = 0.5 * m1 * u1 * u1 + 0.5 * m2 * u2 * u2;
   return {
-    mLeft,
-    mRight,
-    netTorque,
-    tilt,
-    balanced: Math.abs(netTorque) < 0.1,
-    gain: p.l1 / p.l2,
+    u1: Number.isFinite(u1) ? u1 : v1,
+    u2: Number.isFinite(u2) ? u2 : v2,
+    impulse: Number.isFinite(impulse) ? impulse : 0,
+    momentumBefore: Number.isFinite(momentumBefore) ? momentumBefore : 0,
+    momentumAfter: Number.isFinite(momentumAfter) ? momentumAfter : 0,
+    kineticBefore: Number.isFinite(kineticBefore) ? kineticBefore : 0,
+    kineticAfter: Number.isFinite(kineticAfter) ? kineticAfter : 0,
+    lost: Math.max(0, kineticBefore - kineticAfter),
+    elastic: e >= 1 - 1e-9,
+    contact: v1 > v2,
   };
 }
 
-export function collision(p, t = 0) {
-  positive(p.m1, "Massa 1");
-  positive(p.m2, "Massa 2");
-  const time = simulationTime(t);
-  const e = clamp(p.elasticity ?? 1, 0, 1);
-  const m1 = p.m1, m2 = p.m2, v1 = p.v1, v2 = p.v2;
-  const pTotal = m1 * v1 + m2 * v2;
+/* ================================================================== *
+ * 3-QISM: GIDRAVLIK PRESS VA BOSIM
+ * ================================================================== */
 
-  // Final velocities according to momentum & restitution e
-  const v1After = ((m1 - e * m2) * v1 + (1 + e) * m2 * v2) / (m1 + m2);
-  const v2After = ((m2 - e * m1) * v2 + (1 + e) * m1 * v1) / (m1 + m2);
-
-  const eInit = 0.5 * m1 * v1 * v1 + 0.5 * m2 * v2 * v2;
-  const eFinal = 0.5 * m1 * v1After * v1After + 0.5 * m2 * v2After * v2After;
-  const energyLoss = Math.max(0, eInit - eFinal);
-
-  // Initial separation: 8 meters centered around 0
-  const x1_0 = -4;
-  const x2_0 = 4;
-  const relV = v1 - v2;
-  const canCollide = relV > 0.001;
-  const tHit = canCollide ? (x2_0 - x1_0) / relV : Infinity;
-
-  let x1, x2, currentV1, currentV2;
-  const hasCollided = canCollide && time >= tHit;
-
-  if (!hasCollided) {
-    x1 = x1_0 + v1 * time;
-    x2 = x2_0 + v2 * time;
-    currentV1 = v1;
-    currentV2 = v2;
-  } else {
-    const xHit = x1_0 + v1 * tHit;
-    const dt = time - tHit;
-    x1 = xHit + v1After * dt;
-    x2 = xHit + v2After * dt;
-    currentV1 = v1After;
-    currentV2 = v2After;
-  }
-
-  return {
-    pTotal,
-    v1After,
-    v2After,
-    energyLoss,
-    x1,
-    x2,
-    currentV1,
-    currentV2,
-    hasCollided,
-    tHit: Number.isFinite(tHit) ? tHit : null,
-  };
-}
-
-export function thermo(p) {
-  positive(p.t1, "Isitkich harorati");
-  positive(p.t2, "Sovutgich harorati");
-  const isLawViolated = p.t1 <= p.t2;
-  const efficiency = isLawViolated ? 0 : (1 - p.t2 / p.t1) * 100;
-  const work = isLawViolated ? 0 : (efficiency / 100) * p.q1;
-  const q2 = isLawViolated ? p.q1 : p.q1 - work;
-  return {
-    efficiency,
-    work,
-    q2,
-    deltaU: 0,
-    carnotMax: efficiency,
-    isLawViolated,
-    notice: isLawViolated
-      ? "T₁ ≤ T₂: Termodinamika II qonuni bo‘yicha isitkich harorati sovutgichdan katta bo‘lishi shart!"
-      : null,
-  };
-}
-
-export function electrolysis(p, t = 0) {
-  positive(p.current, "Tok kuchi");
-  const time = simulationTime(t);
-  // k in g/C: Cu = 0.000329, Ag = 0.001118, Ni = 0.000304
-  const kTable = [0.000329, 0.001118, 0.000304];
-  const names = ["Mis (Cu)", "Kumush (Ag)", "Nikel (Ni)"];
-  const metalIdx = clamp(p.metal ?? 0, 0, 2);
-  const k = kTable[metalIdx];
-  const q = p.current * time;
-  const mass = k * q;
-  const energy = (p.voltage * p.current * time) / 1000;
-  const layer = mass * 12.5; // proportional thickness in microns
-
-  return {
-    mass,
-    charge: q,
-    energy,
-    layer,
-    metalName: names[metalIdx],
-  };
-}
-
-export function circuitOsc(p, t = 0) {
-  positive(p.inductance, "Induktivlik");
-  positive(p.capacitance, "Sig‘im");
-  const time = simulationTime(t) / 1000; // t in seconds
-  const L = p.inductance * 1e-3;
-  const C = p.capacitance * 1e-6;
-  const R = p.resistance ?? 0;
-
-  const omega0 = 1 / Math.sqrt(L * C);
-  const period = 2 * Math.PI * Math.sqrt(L * C) * 1000; // ms
-  const frequency = 1 / (period / 1000) / 1000; // kHz
-  const beta = R / (2 * L);
-  const omega = Math.sqrt(Math.max(0, omega0 * omega0 - beta * beta));
-
-  const q0 = C * p.voltage0 * 1e6; // microCoulombs
-  const decay = Math.exp(-beta * time);
-  const charge = q0 * decay * Math.cos(omega * time);
-  const current = (q0 * 1e-6) * decay * (-beta * Math.cos(omega * time) - omega * Math.sin(omega * time));
-
-  const energyCap = (0.5 * (charge * 1e-6) ** 2) / C * 1000; // mJ
-  const energyInd = (0.5 * L * current ** 2) * 1000; // mJ
-
-  return {
-    period,
-    frequency,
-    charge,
-    current,
-    energyCap,
-    energyInd,
-    totalEnergy: energyCap + energyInd,
-  };
-}
-
-export function photoelectric(p) {
-  positive(p.wavelength, "To‘lqin uzunligi");
-  // E_photon = hc / lambda = 1240 / lambda(nm) in eV
-  const photonEnergy = 1240 / p.wavelength;
-  const workFuncs = [1.9, 2.3, 4.3];
-  const metals = ["Seziy (Cs)", "Kaliy (K)", "Sink (Zn)"];
-  const idx = clamp(p.metal ?? 0, 0, 2);
-  const workFunc = workFuncs[idx];
-  const kineticMax = Math.max(0, photonEnergy - workFunc);
-  const stoppingU = kineticMax; // e*U0 = E_kmax -> U0 in Volts
-  const canEmit = photonEnergy >= workFunc;
-
-  const effectiveVoltage = p.voltage ?? 0;
-  const netEnergy = kineticMax + effectiveVoltage;
-  const photoCurrent = canEmit && netEnergy > 0 ? (p.intensity ?? 50) * Math.min(1.5, Math.sqrt(netEnergy)) * 0.4 : 0;
-
-  return {
-    photonEnergy,
-    workFunc,
-    kineticMax,
-    stoppingU,
-    photoCurrent,
-    canEmit,
-    metalName: metals[idx],
-  };
-}
-
-export function radioactive(p, t = 0) {
-  positive(p.halfLife, "Yarim yemirilish davri");
-  const time = simulationTime(t);
-  const n0 = p.initialN ?? 500;
-  const decayFraction = Math.pow(2, -time / p.halfLife);
-  const remaining = Math.round(n0 * decayFraction);
-  const decayed = n0 - remaining;
-  const ratio = decayFraction * 100;
-  const rate = (p.activity ?? 50) * decayFraction;
-
-  return {
-    remaining,
-    decayed,
-    ratio,
-    rate,
-  };
-}
-
-export function circular(p, t = 0) {
-  positive(p.radius, "Radius");
-  positive(p.omega, "Burchak tezlik");
-  const time = simulationTime(t);
-  const v = p.omega * p.radius;
-  const an = p.omega * p.omega * p.radius;
-  const period = (2 * Math.PI) / p.omega;
-  const freq = 1 / period;
-  const angle = (p.omega * time) % (2 * Math.PI);
-  const x = p.radius * Math.cos(angle);
-  const y = p.radius * Math.sin(angle);
-
-  return {
-    v,
-    an,
-    period,
-    freq,
-    angle: (angle * 180) / Math.PI,
-    x,
-    y,
-  };
-}
-
-export function gravitation(p, t = 0) {
-  positive(p.altitude, "Balandlik");
-  const time = simulationTime(t);
-  // Planets: Earth, Moon, Mars
-  const planets = [
-    { name: "Yer", mass: 5.972e24, radius: 6371e3 },
-    { name: "Oy", mass: 7.342e22, radius: 1737e3 },
-    { name: "Mars", mass: 6.417e23, radius: 3389e3 },
-  ];
-  const G = 6.6743e-11;
-  const idx = clamp(p.planet ?? 0, 0, 2);
-  const pl = planets[idx];
-  const r = pl.radius + p.altitude * 1000;
-  const satMass = p.satelliteMass ?? 500;
-
-  const gravityForce = (G * pl.mass * satMass) / (r * r);
-  const orbitalSpeed = Math.sqrt((G * pl.mass) / r) / 1000; // km/s
-  const orbitalPeriod = (2 * Math.PI * Math.sqrt((r * r * r) / (G * pl.mass))) / 60; // minutes
-  const gAtHeight = (G * pl.mass) / (r * r);
-  const omega = (orbitalSpeed * 1000) / r; // rad/s
-  // Visual orbit animation angle
-  const angle = (omega * time * 60) % (2 * Math.PI);
-
-  return {
-    gravityForce,
-    orbitalSpeed,
-    orbitalPeriod,
-    gAtHeight,
-    planetName: pl.name,
-    angle,
-    omega,
-  };
-}
-
+/**
+ * Gidravlik press: Paskal qonuni. Kichik pistonga qo‘yilgan kuch katta
+ * pistonni kuchaytiradi, lekin yo‘l bir xarajada uzayadi — ish saqlanadi.
+ */
 export function hydraulic(p) {
-  positive(p.f1, "Birinchi porshen kuchi");
-  positive(p.s1, "Birinchi porshen yuzi");
-  positive(p.s2, "Ikkinchi porshen yuzi");
-  const gain = p.s2 / p.s1;
-  const f2 = p.f1 * gain;
-  const pressure = (p.f1 / (p.s1 * 1e-4)) / 1000; // kPa
-  const liftMass = f2 / 9.8;
-  const h1 = 0.1; // 10 cm small piston displacement
-  const h2 = h1 / gain; // large piston displacement (m)
-  const work1 = p.f1 * h1; // J
-  const work2 = f2 * h2; // J, A1 = A2 by golden rule of mechanics
-
+  positive(p.s1, "Kichik piston yuzasi");
+  positive(p.s2, "Katta piston yuzasi");
+  const ratio = p.s2 / p.s1,
+    lift = clamp(Number.isFinite(p.lift) ? p.lift : 0, 0, 2),
+    smallForce = Number.isFinite(p.force) ? p.force : 0,
+    pressure = smallForce / (p.s1 / 1e4), // 1 m² = 10⁴ cm²
+    bigForce = pressure * (p.s2 / 1e4),
+    bigLift = lift / ratio,
+    workIn = smallForce * lift,
+    workOut = bigForce * bigLift;
   return {
-    f2,
-    gain,
-    pressure,
-    liftMass,
-    h1: h1 * 100, // cm
-    h2: h2 * 100, // cm
-    work: work1,
+    ratio: Number.isFinite(ratio) ? ratio : 0,
+    pressure: Number.isFinite(pressure) ? pressure : 0,
+    bigForce: Number.isFinite(bigForce) ? bigForce : 0,
+    bigLift: Number.isFinite(bigLift) ? bigLift : 0,
+    workIn: Number.isFinite(workIn) ? workIn : 0,
+    workOut: Number.isFinite(workOut) ? workOut : 0,
+    gain: Number.isFinite(ratio) ? ratio : 0,
   };
 }
 
+/** Gidrostatik bosim p = ρgh — chuqurlik va zichlikka bog‘liq. */
+export function hydrostatic(p) {
+  positive(p.rho, "Suyuqlik zichligi");
+  const h = Number.isFinite(p.h) ? p.h : 0,
+    pressure = p.rho * G * h;
+  return {
+    pressure: Number.isFinite(pressure) ? pressure : 0,
+    kpa: Number.isFinite(pressure) ? pressure / 1000 : 0,
+    column: Number.isFinite(pressure) ? pressure : 0,
+    depth: h,
+  };
+}
+
+/* ================================================================== *
+ * 4-QISM: MATEMATIK MAYATNIK
+ * ================================================================== */
+
+/**
+ * Matematik mayatnik (kichik burchak). T = 2π√(l/g). O‘rta va qiyin
+ * darajada so‘nish qo‘shiladi: amplituda eksponensial kamayadi.
+ */
 export function pendulum(p, t = 0) {
   positive(p.length, "Mayatnik uzunligi");
-  positive(p.mass, "Massa");
-  const g = p.g ?? 9.8;
-  const time = simulationTime(t);
-  const omega = Math.sqrt(g / p.length);
-  const period = (2 * Math.PI) / omega;
-  const frequency = 1 / period;
-
-  const theta0Rad = ((p.angle ?? 20) * Math.PI) / 180;
-  const thetaRad = theta0Rad * Math.cos(omega * time);
-  const v = -omega * p.length * theta0Rad * Math.sin(omega * time);
-  const maxSpeed = omega * p.length * theta0Rad;
-  const tension = p.mass * (g * Math.cos(thetaRad) + (v * v) / p.length);
-
-  const ePotential = p.mass * g * p.length * (1 - Math.cos(thetaRad));
-  const eKinetic = 0.5 * p.mass * v * v;
-  const eTotal = p.mass * g * p.length * (1 - Math.cos(theta0Rad));
-
+  const theta0 = ((Number.isFinite(p.amplitude) ? p.amplitude : 15) * Math.PI) / 180,
+    natural = Math.sqrt(G / p.length),
+    damping = p.damping ?? 0;
+  if (!Number.isFinite(damping) || damping < 0)
+    throw new RangeError("So‘nish manfiy bo‘lmaydi.");
+  if (damping >= natural)
+    throw new RangeError("Bu tajribada so‘nish kritik qiymatdan kichik bo‘lishi kerak.");
+  const omega = Math.sqrt(natural * natural - damping * damping),
+    time = simulationTime(t),
+    envelope = Math.exp(-damping * time),
+    theta = theta0 * envelope * Math.cos(omega * time),
+    velocity = -theta0 * envelope * omega * Math.sin(omega * time),
+    height = p.length * (1 - Math.cos(theta)),
+    energy = 0.5 * p.length * p.length * velocity * velocity +
+      G * p.length * (1 - Math.cos(theta));
   return {
-    period,
-    frequency,
-    maxSpeed,
-    tension,
-    theta: (thetaRad * 180) / Math.PI,
-    v,
-    energyKinetic: eKinetic,
-    energyPotential: ePotential,
-    energyTotal: eTotal,
+    theta: Number.isFinite(theta) ? theta : 0,
+    degrees: Number.isFinite(theta) ? (theta * 180) / Math.PI : 0,
+    velocity: Number.isFinite(velocity) ? velocity : 0,
+    height: Number.isFinite(height) ? height : 0,
+    period: Number.isFinite(TAU / omega) ? TAU / omega : 0,
+    omega: Number.isFinite(omega) ? omega : 0,
+    natural: Number.isFinite(natural) ? natural : 0,
+    energy: Number.isFinite(energy) ? energy : 0,
+    envelope: Number.isFinite(theta0 * envelope) ? theta0 * envelope : 0,
+    smallAngleValid: theta0 < 0.5,
   };
 }
 
+/* ================================================================== *
+ * 5-QISM: IZOJARAYONLAR (p–V grafik)
+ * ================================================================== */
+
+/**
+ * Gazning izotermik / izobarik / izoxorik jarayoni. `process` 0/1/2.
+ * Barcha holatlar pV = nRT ga bo‘ysunadi, shuning uchun izotermada
+ * pV mahsuloti doimiy bo‘lib qoladi.
+ */
+export function isoProcess(p, t = 0) {
+  positive(p.volume, "Hajm");
+  positive(p.temperature, "Harorat");
+  const process = clamp(Math.round(Number.isFinite(p.process) ? p.process : 0), 0, 2),
+    n = p.moles ?? 1,
+    V0 = p.volume,
+    T0 = p.temperature,
+    time = simulationTime(t, 10),
+    sweep = clamp(time / 10, 0, 1);
+  // Jarayon shkalasi: izoterma 0→2, izobara 0→2, izoxora 0→2 sıxilish.
+  const factor = 1 + sweep;
+  const state = (V, T) => {
+    const volume = V / 1000,
+      pressure = (n * GAS * T) / volume;
+    return { V, T, p: pressure, pv: pressure * volume };
+  };
+  const current =
+      process === 0
+        ? state(V0 * factor, T0)
+        : process === 1
+          ? state(V0 * factor, T0 * factor)
+          : state(V0, T0 * factor);
+  const start = state(V0, T0),
+    end =
+      process === 0
+        ? state(V0 * 2, T0)
+        : process === 1
+          ? state(V0 * 2, T0 * 2)
+          : state(V0, T0 * 2);
+  // Izobarada bosim doimiy: A = p₀·ΔV. Izoxorada hajm o‘zgarmaydi va
+  // A = 0. Izotermada A = nRT₀·ln(V₂/V₁) — logarifmik integrallash.
+  const work =
+      process === 0
+        ? n * GAS * T0 * Math.log(current.V / V0)
+        : process === 1
+          ? (start.p * (current.V - V0)) / 1000
+          : 0;
+  return {
+    process,
+    sweep,
+    volume: current.V,
+    temperature: current.T,
+    pressure: current.p,
+    pressureKpa: current.p / 1000,
+    startP: start.p,
+    endP: end.p,
+    startV: start.V,
+    endV: end.V,
+    startT: start.T,
+    endT: end.T,
+    // Izotermada pV doimiy; boshqalarda o‘zgaradi.
+    pvInvariant: process === 0,
+    work: Number.isFinite(work) ? work : 0,
+    // Izotermada Q = A; izobarada Q = C_p·nΔT, izoxorada Q = C_v·nΔT.
+    // Bir atomli ideal gaz uchun C_p = 5R/2, C_v = 3R/2.
+    heat: (() => {
+      const q =
+        process === 0
+          ? work
+          : process === 1
+            ? 2.5 * n * GAS * (current.T - T0)
+            : 1.5 * n * GAS * (current.T - T0);
+      return Number.isFinite(q) ? q : 0;
+    })(),
+    capacity: process === 1 ? 2.5 : 1.5,
+  };
+}
+
+/* ================================================================== *
+ * 6-QISM: TERMODINAMIKA — 1-QONUN VA ISSIQLIK DVIGATELI
+ * ================================================================== */
+
+/** Termodinamikaning I qonuni: Q = ΔU + A. */
+export function firstLaw(p) {
+  const n = positive(p.moles, "Modda miqdori"),
+    t1 = positive(p.temperature, "Boshlang‘ich harorat"),
+    cv = 1.5 * GAS, // bir atomli ideal gaz
+    deltaT = Number.isFinite(p.deltaT) ? p.deltaT : 0,
+    work = Number.isFinite(p.work) ? p.work : 0,
+    deltaU = n * cv * deltaT,
+    heat = deltaU + work,
+    t2 = t1 + deltaT;
+  return {
+    heat: Number.isFinite(heat) ? heat : 0,
+    internal: Number.isFinite(deltaU) ? deltaU : 0,
+    work: Number.isFinite(work) ? work : 0,
+    balanced: true,
+    deltaT: Number.isFinite(deltaT) ? deltaT : 0,
+    temperature1: t1,
+    temperature2: Number.isFinite(t2) ? t2 : t1,
+    // Issiqlik qo‘yilganda ichki energiya, bajarilgan ishda esa harorat
+    // o‘zgaradi — aynan shu I qonunining mazmuni.
+    direction:
+      work > 0 ? "expansion" : work < 0 ? "compression" : "rigid",
+  };
+}
+
+/** Issiqlik dvigateli: FIK va Karno chegarasi. */
+export function heatEngine(p) {
+  const t1 = positive(p.hot, "Ishchi harorat"),
+    t2 = Number.isFinite(p.cold) ? p.cold : 300;
+  const invalidT = t2 >= t1;
+  const carnot = invalidT ? 0 : 1 - t2 / t1,
+    real = clamp(Number.isFinite(p.efficiency) ? p.efficiency : 0.3, 0, 1),
+    q1 = positive(p.heatIn ?? 1000, "Olingan issiqlik"),
+    work = invalidT ? 0 : q1 * Math.min(real, carnot),
+    q2 = q1 - work;
+  const violatesCarnot = !invalidT && real > carnot + 1e-6;
+  return {
+    carnot: Number.isFinite(carnot) ? Math.max(0, carnot * 100) : 0,
+    efficiency: Number.isFinite(real) ? real * 100 : 0,
+    work: Number.isFinite(work) ? work : 0,
+    heatIn: q1,
+    heatOut: Number.isFinite(q2) ? q2 : 0,
+    hot: t1,
+    cold: t2,
+    ideal: real >= carnot - 1e-9,
+    warning: invalidT
+      ? "Termodinamikaning 2-qonuni buzilishi: Sovutkich harorati isitgich haroratidan past bo‘lishi shart (T_sovuq < T_issiq)!"
+      : violatesCarnot
+        ? `Termodinamikaning 2-qonuni buzilishi: Real FIK (${(real * 100).toFixed(1)}%) ideal Karno FIKidan (${(carnot * 100).toFixed(1)}%) katta bo‘lishi mumkin emas!`
+        : "",
+  };
+}
+
+/* ================================================================== *
+ * 7-QISM: ZANJIRLAR — KETMA-KET VA PARALLEL
+ * ================================================================== */
+
+/** Rezistorlarni ketma-ket va parallel ulashning taqqoslash modeli. */
+export function network(p) {
+  positive(p.r1, "Birinchi qarshilik");
+  positive(p.r2, "Ikkinchi qarshilik");
+  const voltage = Number.isFinite(p.voltage) ? p.voltage : 0,
+    series = p.r1 + p.r2,
+    parallel = (p.r1 * p.r2) / series,
+    total = p.mode === 1 ? parallel : series,
+    current = total > 0 ? voltage / total : 0,
+    u1 = p.mode === 1 ? voltage : current * p.r1,
+    u2 = p.mode === 1 ? voltage : current * p.r2,
+    i1 = p.mode === 1 ? (p.r1 > 0 ? voltage / p.r1 : 0) : current,
+    i2 = p.mode === 1 ? (p.r2 > 0 ? voltage / p.r2 : 0) : current;
+  return {
+    total: Number.isFinite(total) ? total : 0,
+    series: Number.isFinite(series) ? series : 0,
+    parallel: Number.isFinite(parallel) ? parallel : 0,
+    current: Number.isFinite(current) ? current : 0,
+    u1: Number.isFinite(u1) ? u1 : 0,
+    u2: Number.isFinite(u2) ? u2 : 0,
+    i1: Number.isFinite(i1) ? i1 : 0,
+    i2: Number.isFinite(i2) ? i2 : 0,
+    power: Number.isFinite(voltage * current) ? voltage * current : 0,
+    mode: p.mode === 1 ? 1 : 0,
+  };
+}
+
+/* ================================================================== *
+ * 8-QISM: MAGNIT KUCHLARI — AMPER VA LORENS
+ * ================================================================== */
+
+/** Amper kuchi: F = BIL sinα — tok o‘tkazgichga magnit maydon ta’siri. */
+export function ampere(p) {
+  positive(p.length, "O‘tkazgich uzunligi");
+  const I = Number.isFinite(p.current) ? p.current : 0,
+    B = p.field ?? 0,
+    alpha = ((Number.isFinite(p.angle) ? p.angle : 90) * Math.PI) / 180,
+    force = I * B * p.length * Math.sin(alpha);
+  return {
+    force: Number.isFinite(force) ? force : 0,
+    direction: Math.sin(alpha) >= 0 ? 1 : -1,
+    current: I,
+    field: B,
+    angle: (alpha * 180) / Math.PI,
+    maxForce: Number.isFinite(I * B * p.length) ? I * B * p.length : 0,
+  };
+}
+
+/** Lorens kuchi: F = qvB sinα — zaryadli zarracha magnit maydonda. */
+export function lorentz(p) {
+  positive(p.mass, "Zarracha massasi");
+  const q = Number.isFinite(p.charge) ? p.charge : 1,
+    v = Number.isFinite(p.velocity) ? p.velocity : 0,
+    B = p.field ?? 0,
+    alpha = ((Number.isFinite(p.angle) ? p.angle : 90) * Math.PI) / 180,
+    force = q * v * B * Math.sin(alpha);
+  return {
+    force: Number.isFinite(force) ? force : 0,
+    charge: q,
+    velocity: v,
+    field: B,
+    angle: (alpha * 180) / Math.PI,
+    spiralRadius: B > 0 && v > 0 ? (p.mass * v) / (Math.abs(q) * B) : 0,
+    // Rizoq radiusi: R = mv/(qB). Katta B → kichik doira.
+    helixPitch: Number.isFinite(v) && B > 0 ? (TAU * p.mass * v) / (Math.abs(q) * B) : 0,
+  };
+}
+
+/* ================================================================== *
+ * 9-QISM: TEbranish KONTURI VA TRANSFORMATOR
+ * ================================================================== */
+
+/** LC konturi — Tomson formulasi T = 2π√(LC). */
+export function lcr(p, t = 0) {
+  // Parametrlar mH va μF da kiritiladi; fizikada barchasi SI birliklarida.
+  const L = positive(p.inductance, "Induktivlik") * 1e-3,
+    C = positive(p.capacitance, "Sig‘im") * 1e-6,
+    omega = 1 / Math.sqrt(L * C),
+    q0 = (Number.isFinite(p.charge) ? p.charge : 1) * 1e-3,
+    time = simulationTime(t),
+    phase = omega * time,
+    q = q0 * Math.cos(phase),
+    current = -q0 * omega * Math.sin(phase),
+    // Energiya q va i orasida almashinadi, jami doimiy.
+    eCap = (q * q) / (2 * C),
+    eInd = 0.5 * L * current * current;
+  return {
+    charge: Number.isFinite(q) ? q * 1000 : 0,
+    current: Number.isFinite(current) ? current * 1000 : 0,
+    period: Number.isFinite(TAU / omega) ? TAU / omega : 0,
+    omega: Number.isFinite(omega) ? omega : 0,
+    frequency: Number.isFinite(omega / TAU) ? omega / TAU : 0,
+    energyCap: Number.isFinite(eCap) ? eCap : 0,
+    energyInd: Number.isFinite(eInd) ? eInd : 0,
+    total: Number.isFinite(eCap + eInd) ? eCap + eInd : 0,
+    reactance: Number.isFinite(Math.sqrt(L / C)) ? Math.sqrt(L / C) : 0,
+  };
+}
+
+/** Transformator: U₁/U₂ = N₁/N₂ = I₂/I₁. */
+export function transformer(p) {
+  positive(p.n1, "Birinchi g‘altak o‘ramlari");
+  positive(p.n2, "Ikkinchi g‘altak o‘ramlari");
+  const N1 = p.n1,
+    N2 = p.n2,
+    U1 = Number.isFinite(p.voltage) ? p.voltage : 0,
+    I1 = Number.isFinite(p.current) ? p.current : 0,
+    U2 = (U1 * N2) / N1,
+    I2 = N1 === 0 ? 0 : (I1 * N1) / N2,
+    powerIn = U1 * I1,
+    powerOut = U2 * I2;
+  return {
+    voltage2: Number.isFinite(U2) ? U2 : 0,
+    current2: Number.isFinite(I2) ? I2 : 0,
+    ratio: Number.isFinite(N2 / N1) ? N2 / N1 : 0,
+    powerIn: Number.isFinite(powerIn) ? powerIn : 0,
+    powerOut: Number.isFinite(powerOut) ? powerOut : 0,
+    efficiency: powerIn > 0 ? (powerOut / powerIn) * 100 : null,
+    stepUp: N2 > N1,
+  };
+}
+
+/* ================================================================== *
+ * 10-QISM: OPTIKA — QAYTISH, SINDIRISH VA INTERFERENSIYA
+ * ================================================================== */
+
+/** Snell qonuni: sinα/sinβ = n₂/n₁. To‘liq ichki qaytish ham tekshiriladi. */
+export function refraction(p) {
+  const n1 = positive(p.n1, "Birinchi muhit sindiruvchanligi"),
+    n2 = positive(p.n2, "Ikkinchi muhit sindiruvchanligi"),
+    alpha = ((Number.isFinite(p.angle) ? p.angle : 30) * Math.PI) / 180,
+    ratio = n1 / n2,
+    sinBeta = ratio * Math.sin(alpha),
+    totalInternal = Math.abs(sinBeta) > 1;
+  const beta = totalInternal ? null : Math.asin(clamp(sinBeta, -1, 1));
+  const critical = n1 > n2 ? Math.asin(clamp(n2 / n1, 0, 1)) : null;
+  return {
+    beta: beta === null ? null : (beta * 180) / Math.PI,
+    alpha: (alpha * 180) / Math.PI,
+    totalInternal,
+    critical: critical === null ? null : (critical * 180) / Math.PI,
+    ratio: Number.isFinite(ratio) ? ratio : 0,
+    speed1: LIGHT / n1,
+    speed2: LIGHT / n2,
+  };
+}
+
+/**
+ * Ikki tirqakli interferensiya. Maksimumlar d·sinθ = kλ shartiga
+ * bo‘ysunadi; markaziy maksimum n=0 da eng yorqin.
+ */
+export function interference(p) {
+  // λ (μm), d (mm) va x (mm) — barchasi metrga o‘tkaziladi.
+  const lambda = positive(p.wavelength, "To‘lqin uzunligi") * 1e-6,
+    d = positive(p.slits, "Tirqaklar orasidagi masofa") * 1e-3,
+    L = positive(p.screen, "Ekran masofasi"),
+    x = (Number.isFinite(p.position) ? p.position : 0) * 1e-3,
+    // D·sinθ ≈ x/L (kichik burchak yondashuvi)
+    pathDiff = (d * x) / L,
+    order = pathDiff / lambda,
+    constructive = Math.abs(order - Math.round(order)) < 0.08,
+    intensity = 0.5 * (1 + Math.cos((TAU * pathDiff) / lambda));
+  return {
+    pathDiff: Number.isFinite(pathDiff) ? pathDiff : 0,
+    order: Number.isFinite(order) ? order : 0,
+    constructive,
+    intensity: Number.isFinite(intensity) ? intensity : 0,
+    fringeSpacing: Number.isFinite((lambda * L) / d) ? (lambda * L) / d : 0,
+    maxOrder: Math.floor(d / lambda),
+  };
+}
+
+/* ================================================================== *
+ * 11-QISM: KVANT FIZIKASI VA NISBIYLIK
+ * ================================================================== */
+
+/** Fotoeffekt: hν = A + E_k(max). E_k < 0 da elektron chiqmaydi. */
+export function photoelectric(p) {
+  // ν sliderda 10¹⁴ Hz birlikda; energiya eV da hisoblanadi.
+  const frequency = positive(p.frequency, "Yorug‘lik chastotasi") * 1e14,
+    work = positive(p.work, "Chiqish ishi"),
+    photon = (PLANCK * frequency) / ELEMENTARY, // eV
+    kinetic = photon - work,
+    threshold = (work * ELEMENTARY) / PLANCK; // Hz
+  const emits = kinetic > 0;
+  return {
+    photon: Number.isFinite(photon) ? photon : 0,
+    work,
+    // chegaradan past chastotada elektron umuman chiqmaydi.
+    kinetic: emits ? kinetic : 0,
+    rawKinetic: Number.isFinite(kinetic) ? kinetic : 0,
+    emits,
+    threshold: Number.isFinite(threshold) ? threshold : 0,
+    frequency,
+    warning: !emits
+      ? `Fotoeffektning qizil chegarasi: Foton energiyasi (${photon.toFixed(2)} eV) chiqish ishidan (${work.toFixed(2)} eV) kichik (hν < A). Elektronlar metalldan uchib chiqmaydi!`
+      : "",
+  };
+}
+
+/** E = mc² — massa va energiya o‘zaro aylantirilishi. */
+export function massEnergy(p) {
+  const grams = Number.isFinite(p.mass) ? p.mass : 0;
+  const kg = grams / 1000;
+  return {
+    joules: Number.isFinite(kg * LIGHT * LIGHT) ? kg * LIGHT * LIGHT : 0,
+    // Taxminan 1 kt TNT = 4.184e12 J
+    tnt: Number.isFinite(kg * LIGHT * LIGHT / 4.184e12) ? (kg * LIGHT * LIGHT) / 4.184e12 : 0,
+    mass: grams,
+    energyPerGram: 8.98755179e13, // J
+  };
+}
+
+/** Radioaktiv yemirilish: N = N₀·2^(−t/T) yoki N = N₀e^(−λt). */
+export function decay(p, t = 0) {
+  positive(p.halfLife, "Yarim yemirilish davri");
+  positive(p.initial, "Boshlang‘ich atomlar soni");
+  const N0 = p.initial,
+    T = p.halfLife,
+    time = simulationTime(t),
+    lambda = LN2 / T,
+    N = N0 * Math.exp(-lambda * time),
+    decayed = N0 - N,
+    activity = lambda * N,
+    // Qoldiq o‘lchov: nechta yarim davr o‘tgani
+    halves = time / T;
+  return {
+    remaining: Number.isFinite(N) ? N : 0,
+    decayed: Number.isFinite(decayed) ? decayed : 0,
+    activity: Number.isFinite(activity) ? activity : 0,
+    lambda: Number.isFinite(lambda) ? lambda : 0,
+    halfLives: Number.isFinite(halves) ? halves : 0,
+    percent: N0 > 0 ? (N / N0) * 100 : 0,
+    initial: N0,
+  };
+}

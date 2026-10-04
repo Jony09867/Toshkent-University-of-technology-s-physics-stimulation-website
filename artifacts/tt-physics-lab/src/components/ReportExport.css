@@ -1,0 +1,73 @@
+/* ================================================================
+   ReportExport.css – Laboratoriya hisobotini eksport qilish stillari
+   ================================================================ */
+
+.report-export-toolbar {
+  display: flex;
+  gap: 8px;
+  margin-top: 14px;
+  flex-wrap: wrap;
+}
+
+.report-sample-count { align-self: center; color: var(--text-muted, #8b9aa8); font-size: 11px; }
+
+.report-export-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 12px;
+  background: var(--surface, #111820);
+  border: 1px solid var(--border, #2a3642);
+  border-radius: 8px;
+  color: var(--text-muted, #8b9aa8);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.18s;
+  font-family: inherit;
+}
+
+.report-export-btn:hover {
+  background: var(--surface-2, #1b2733);
+  color: var(--text, #e8f0f7);
+  border-color: #38bdf8;
+}
+
+/* ── Print / PDF Generation Styles ──────────────────────────────── */
+@media print {
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
+
+  .site-header,
+  .site-footer,
+  .sim-navigation,
+  .transport,
+  .vi-toolbar,
+  .vi-layer,
+  .report-export-toolbar,
+  .breadcrumb,
+  .help-button {
+    display: none !important;
+  }
+
+  .sim-page {
+    padding: 0 !important;
+  }
+
+  .engineering-console,
+  .controls-card,
+  .learning-card {
+    border: 1px solid #ccc !important;
+    background: #fff !important;
+    color: #000 !important;
+    box-shadow: none !important;
+  }
+
+  .telemetry-results strong {
+    color: #000 !important;
+  }
+}

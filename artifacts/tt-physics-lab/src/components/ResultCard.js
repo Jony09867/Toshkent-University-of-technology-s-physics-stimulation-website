@@ -35,7 +35,7 @@ export const formatResult = (r, value) => {
 
 export const resultCard = (r, value) => {
   const key = typeof r?.key === "string" ? r.key : "";
-  const label = resultNames[key] || key;
+  const label = r?.label || resultNames[key] || key;
   const unit = typeof r?.unit === "string" ? r.unit : "";
   const formatted = formatResult(r, value);
   return `<div class="result-card"><span>${label}</span><div><strong data-result="${key}">${formatted}</strong>${unit ? ` <small data-result-unit="${key}"${formatted === NO_VALUE ? " hidden" : ""}>${unit}</small>` : ""}</div></div>`;
