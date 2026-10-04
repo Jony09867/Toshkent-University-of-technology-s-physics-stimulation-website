@@ -1,2 +1,2 @@
 import { define } from "../../data/configs.js";
-export const simulationConfig = define("radioactive");
+export const simulationConfig = define("decay");
