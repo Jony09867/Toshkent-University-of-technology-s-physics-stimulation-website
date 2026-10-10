@@ -1,6 +1,5 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "installCommand": "pnpm install --no-frozen-lockfile",
   "buildCommand": "pnpm --filter @workspace/tt-physics-lab run test && pnpm --filter @workspace/tt-physics-lab run build",
   "outputDirectory": "artifacts/tt-physics-lab/dist/public"
 }
