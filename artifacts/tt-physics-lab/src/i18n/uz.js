@@ -139,7 +139,7 @@ export const uz = {
   tryReady: "Tayyor tajribani ochish",
   notes: "Manbadagi formulalar va izohlar",
   progressTitle: "Sizning o‘rganish yo‘lingiz",
-  progressText: "O‘rganilgan mavzular shu brauzerda saqlanadi.",
+  progressText: "O‘rganilgan tajribalar va mavzular shu brauzerda saqlanadi.",
   progressEmpty:
     "Birinchi tajribangizni boshlang. O‘rganilgan mavzular shu yerda ko‘rinadi.",
   progressLabel: "15 tajribadan o‘rganildi",
@@ -336,6 +336,13 @@ export const resultNames = {
   reactance: "Reaktiv qarshilik",
   voltage2: "Ikkinchi g‘altak kuchlanishi",
   current2: "Ikkinchi g‘altak toki",
+  voltagePrimaryInstant: "Birlamchi kuchlanish (oniy)",
+  voltageSecondaryInstant: "Ikkilamchi kuchlanish (oniy)",
+  electronSpeedC: "Elektron tezligi",
+  electronKineticEnergy: "Elektron kinetik energiyasi",
+  beamPower: "Elektron dastasi quvvati",
+  kShellEdge: "K-qobiq ionlanish chegarasi",
+  kAlphaEnergy: "Kα chiziq energiyasi",
   beta: "Sindirilgan burchak",
   critical: "Chegaraviy burchak",
   speed1: "1-mu hitda yorug‘lik tezligi",
@@ -356,6 +363,10 @@ export const resultNames = {
   activity: "Aktivlik",
   lambda: "Yemirilish doimiysi",
   halfLives: "O‘tgan yarim davrlar",
+  // Foydalanuvchiga xom kalit ko‘rinmasligi uchun tushirilgan kalitlar:
+  volume: "Hajm",
+  temperature: "Harorat",
+  angle: "Burchak",
 };
 export const content = {
   motion: {

@@ -110,33 +110,387 @@ export function renderCatalog(c, { config, p, s, t }, theme) {
       );
     });
   };
-  txt(config.title, 400, 43, theme.ink, 19);
-  txt(
-    config.static
-      ? "Parametrni o‘zgartiring — model qayta hisoblanadi"
-      : `Vaqt: ${config.timeScale && t > 0 && t < 1 ? t.toExponential(3) : format(t)} s`,
-    400,
-    69,
-    theme.muted,
-    12,
-  );
+  if (config.key === "rutherford") {
+    txt(c.compactMode ? "Yadro va spektr" : config.title, 400, 43, theme.ink, c.compactMode ? 30 : 20);
+    txt("Chapda Kulon sochilishi · o‘ngda vodorodning Bor modeli", 400, 75, theme.muted, c.compactMode ? 21 : 14);
+  } else if (config.key === "bohrSpectra") {
+    txt(c.compactMode ? "Atom spektri" : config.title, 400, 43, theme.ink, c.compactMode ? 30 : 20);
+    txt("Diskret sathlar · foton energiyasi sathlar farqiga teng", 400, 75, theme.muted, c.compactMode ? 21 : 14);
+  } else if (config.visual === "centerOfMass") {
+    txt(c.compactMode ? "Og‘irlik markazi" : config.title, 400, 43, theme.ink, c.compactMode ? 30 : 20);
+    txt("Massalar markazi · tayanch uning ostida bo‘lsa muvozanat saqlanadi", 400, 75, theme.muted, c.compactMode ? 21 : 14);
+  } else if (config.visual === "barometer") {
+    txt(c.compactMode ? "Havo bosimi" : config.title, 400, 43, theme.ink, c.compactMode ? 30 : 20);
+    txt(`Balandlik: ${format(p.altitude)} m · izotermik atmosfera modeli`, 400, 75, theme.muted, c.compactMode ? 21 : 14);
+  } else if (config.key === "heatEngine") {
+    txt(c.compactMode ? "Issiqlik dvigateli" : config.title, 400, 43, theme.ink, c.compactMode ? 30 : 20);
+    txt("Issiqlik oqimi · foydali ish · Karno FIK chegarasi", 400, 75, theme.muted, c.compactMode ? 21 : 14);
+  } else if (config.key === "nucleusRadioactivity") {
+    txt(c.compactMode ? "Yadro va yemirilish" : config.title, 400, 43, theme.ink, c.compactMode ? 30 : 20);
+    txt("Nuklon tarkibi · namunadagi kutilayotgan o‘zgarish", 400, 75, theme.muted, c.compactMode ? 21 : 14);
+  } else if (config.visual === "batteryCircuit") {
+    txt(c.compactMode ? "Tok manbalari" : config.title, 400, 43, theme.ink, c.compactMode ? 31 : 21);
+    txt(p.mode === 1 ? "Parallel · EYuK bir xil, ichki R kamayadi" : "Ketma-ket · EYuK va ichki R qo‘shiladi", 400, 76, theme.muted, c.compactMode ? 22 : 15);
+  } else if (config.visual === "lampCircuit") {
+    txt(c.compactMode ? "Ikkita lampa" : config.title, 400, 43, theme.ink, c.compactMode ? 31 : 21);
+    txt(p.mode === 1 ? "Parallel ulanish · kuchlanish bir xil" : "Ketma-ket ulanish · tok bir xil", 400, 76, theme.muted, c.compactMode ? 23 : 15);
+  } else if (config.visual === "meterRange") {
+    txt(c.compactMode ? "Asbob chegarasini oshirish" : config.title, 400, 43, theme.ink, c.compactMode ? 31 : 21);
+    txt("Bir xil o‘lchov mexanizmi · ikki ulanish usuli", 400, 77, theme.muted, c.compactMode ? 23 : 15);
+  } else if (config.visual === "airHumidity") {
+    txt(c.compactMode ? "Havoning namligi" : config.title, 400, 43, theme.ink, c.compactMode ? 32 : 22);
+    txt("1 m³ yopiq havo namunasi", 400, 76, theme.muted, c.compactMode ? 25 : 16);
+  } else if (config.visual === "waterVapor") {
+    txt(c.compactMode ? "Suvning fazalari" : config.title, 400, 43, theme.ink, c.compactMode ? 32 : 22);
+    txt("Haroratni o‘zgartiring", 400, 76, theme.muted, c.compactMode ? 25 : 16);
+  } else if (config.key === "electrolysis") {
+    txt(c.compactMode ? "Elektroliz" : "Ionlar harakati", 400, 80, theme.ink, c.compactMode ? 34 : 20);
+  } else {
+    txt(config.title, 400, 43, theme.ink, 19);
+    txt(
+      config.static
+        ? "Parametrni o‘zgartiring — model qayta hisoblanadi"
+        : `Vaqt: ${config.timeScale && t > 0 && t < 1 ? t.toExponential(3) : format(t)} s`,
+      400,
+      69,
+      theme.muted,
+      12,
+    );
+  }
   switch (config.visual) {
+    case "centerOfMass": {
+      if (!Number.isFinite(s.center)) break;
+      const origin = 400;
+      const pixelsPerMetre = 80;
+      const toCanvasX = position => origin + position * pixelsPerMetre;
+      const leftX = toCanvasX(p.x1);
+      const rightX = toCanvasX(p.x2);
+      const centerX = toCanvasX(s.center);
+      box(145, 250, 510, 16, theme.floor);
+      line(145, 258, 655, 258, theme.ink, 2);
+      for (let metre = -3; metre <= 3; metre++) {
+        const x = toCanvasX(metre);
+        line(x, 247, x, 274, theme.muted, metre === 0 ? 2 : 1);
+        txt(String(metre), x, 294, theme.muted, 12);
+      }
+      txt("m", 678, 264, theme.muted, 14);
+      const leftRadius = 12 + 5 * Math.sqrt(p.m1);
+      const rightRadius = 12 + 5 * Math.sqrt(p.m2);
+      line(leftX, 220 + leftRadius, leftX, 250, O, 2);
+      line(rightX, 220 + rightRadius, rightX, 250, B, 2);
+      ball(leftX, 220, leftRadius, O);
+      ball(rightX, 220, rightRadius, B);
+      txt(`m₁ = ${format(p.m1)} kg`, leftX, 168, O, 15);
+      txt(`m₂ = ${format(p.m2)} kg`, rightX, 168, B, 15);
+      // Tayanch yuklarning massalar markaziga qo‘yilganda ikki moment teng.
+      c.beginPath();
+      c.moveTo(centerX, 270);
+      c.lineTo(centerX - 24, 316);
+      c.lineTo(centerX + 24, 316);
+      c.closePath();
+      c.fillStyle = G + "45";
+      c.fill();
+      c.strokeStyle = G;
+      c.lineWidth = 2;
+      c.stroke();
+      ball(centerX, 258, 7, G);
+      line(leftX, 338, centerX, 338, O, 2);
+      line(centerX, 338, rightX, 338, B, 2);
+      txt(`x₁ = ${format(p.x1)} m`, 170, 135, O, 14, "left");
+      txt(`x₂ = ${format(p.x2)} m`, 630, 135, B, 14, "right");
+      txt(`x_c = ${format(s.center)} m`, centerX, 383, G, 19);
+      break;
+    }
+    case "barometer": {
+      if (!Number.isFinite(s.pressure)) break;
+      const seaLevelMm = p.seaLevelPressure / 133.322;
+      const altitudeMm = s.mercuryHeight;
+      const drawBarometer = (x, heightMm, color, title, value) => {
+        const tubeTop = 150;
+        const baseY = 355;
+        const tubeHeight = baseY - tubeTop;
+        const columnHeight = clamp(heightMm / 820, 0, 1) * tubeHeight;
+        c.save();
+        c.strokeStyle = theme.line;
+        c.lineWidth = 3;
+        c.strokeRect(x - 29, tubeTop, 58, tubeHeight);
+        c.fillStyle = color + "75";
+        c.fillRect(x - 24, baseY - columnHeight, 48, columnHeight);
+        c.restore();
+        box(x - 39, baseY, 78, 18, color + "40");
+        txt(title, x, 391, theme.muted, 14);
+        txt(value, x, 423, color, 17);
+      };
+      // Bir xil sirt bosimi bilan balandlikdagi atmosfera ustuni taqqoslanadi.
+      drawBarometer(265, seaLevelMm, B, "Dengiz sathi", `${format(seaLevelMm)} mmHg`);
+      drawBarometer(535, altitudeMm, O, `h = ${format(p.altitude)} m`, `${format(altitudeMm)} mmHg`);
+      line(400, 115, 400, 366, theme.line, 1, [5, 6]);
+      txt(`p₀ = ${format(p.seaLevelPressure / 1000)} kPa`, 265, 130, B, 14);
+      txt(`p = ${format(s.pressure / 1000)} kPa`, 535, 130, O, 14);
+      txt(`Bosimning ${format(s.relativePressure * 100)}% i saqlandi`, 400, 465, G, 17);
+      break;
+    }
+    case "batteryCircuit": {
+      const n = Math.min(6, Math.max(1, Math.round(p.count || 1)));
+      const cell = (x, y, index, small = false) => {
+        line(x - 9, y - (small ? 14 : 23), x - 9, y + (small ? 14 : 23), O, 4);
+        line(x + 9, y - (small ? 9 : 15), x + 9, y + (small ? 9 : 15), B, 4);
+        if (!small) txt(String(index), x, y - 35, theme.muted, 15);
+      };
+      const load = (x, top, bottom) => {
+        const mid = (top + bottom) / 2;
+        line(x, top, x, mid - 30, theme.ink, 3);
+        box(x - 22, mid - 30, 44, 60, B + "35");
+        txt("R", x, mid + 6, B, 20);
+        line(x, mid + 30, x, bottom, theme.ink, 3);
+        txt(`Yuk ${format(p.resistance)} Ω`, p.mode === 1 ? 610 : x - 82, p.mode === 1 ? 181 : mid + 9, theme.muted, 15);
+      };
+      if (p.mode === 0) {
+        const y = 205;
+        const centers = Array.from({ length: n }, (_, i) => n === 1 ? 405 : 225 + i * 360 / (n - 1));
+        line(120, y, centers[0] - 9, y, theme.ink, 3);
+        centers.forEach((x, i) => {
+          cell(x, y, i + 1);
+          line(x + 9, y, (centers[i + 1] ?? 675) - (i + 1 < n ? 9 : 0), y, theme.ink, 3);
+        });
+        line(675, y, 680, y, theme.ink, 3);
+        load(680, y, 330);
+        line(680, 330, 120, 330, theme.ink, 3);
+        line(120, y, 120, 330, theme.ink, 3);
+        txt(`Har manba: ${format(p.emf)} V · ${format(p.internal)} Ω`, 400, 285, theme.muted, 16);
+      } else {
+        const left = 190, right = 570, start = n === 1 ? 235 : 154, end = n === 1 ? 235 : 314;
+        line(left, 120, left, end, theme.ink, 3);
+        line(right, start, right, 355, theme.ink, 3);
+        for (let i = 0; i < n; i++) {
+          const y = n === 1 ? 235 : start + (end - start) * i / (n - 1);
+          line(left, y, 389, y, theme.ink, 3);
+          cell(398, y, i + 1, true);
+          line(407, y, right, y, theme.ink, 3);
+          txt(`${i + 1}`, 300, y - 7, theme.muted, 13);
+        }
+        line(left, 120, 680, 120, theme.ink, 3);
+        load(680, 120, 355);
+        line(680, 355, right, 355, theme.ink, 3);
+        txt(`Har manbadan ${format(s.branchCurrent)} A`, 400, 369, theme.muted, 16);
+      }
+      txt(`n = ${n} · EYuK ${format(s.emf)} V · r ${format(s.internal)} Ω`, 400, 395, O, 16);
+      txt(`Yuk toki ${format(s.current)} A · Yuk kuchlanishi ${format(s.voltage)} V`, 400, 425, theme.ink, 17);
+      break;
+    }
+    case "lampCircuit": {
+      const wire = theme.ink;
+      const bulb = (x, y, power, label, resistance, showStats = true) => {
+        const glow = clamp(power / 4, 0, 1);
+        if (glow > 0) {
+          c.beginPath();
+          c.arc(x, y, 32 + glow * 12, 0, Math.PI * 2);
+          c.fillStyle = `rgba(241, 164, 42, ${0.06 + glow * 0.24})`;
+          c.fill();
+        }
+        c.beginPath();
+        c.arc(x, y, 31, 0, Math.PI * 2);
+        c.fillStyle = `rgba(255, 193, 69, ${0.08 + glow * 0.75})`;
+        c.fill();
+        circle(x, y, 31, glow > 0 ? "#ffc145" : theme.muted);
+        line(x - 12, y - 12, x + 12, y + 12, theme.ink, 2);
+        line(x - 12, y + 12, x + 12, y - 12, theme.ink, 2);
+        txt(label, x + 64, y - 14, theme.ink, 16);
+        if (showStats) txt(`${format(power)} W · ${format(resistance)} Ω`, x, y + 65, glow > 0 ? "#ffc145" : theme.muted, 15);
+      };
+      // Chapda manba, yuqorida lampalar: chiziqlar yopiq elektr zanjirini beradi.
+      line(120, 170, 120, 220, wire, 3);
+      line(120, 252, 120, 330, wire, 3);
+      line(89, 220, 151, 220, O, 4);
+      line(101, 252, 139, 252, O, 4);
+      txt(`${format(p.voltage)} V`, 120, 285, O, 16);
+      line(120, 330, 680, 330, wire, 3);
+      line(680, 170, 680, 330, wire, 3);
+      if (p.mode === 1) {
+        line(120, 170, 255, 170, wire, 3);
+        line(255, 170, 255, 295, wire, 3);
+        line(610, 170, 680, 170, wire, 3);
+        line(610, 170, 610, 295, wire, 3);
+        for (const [y, power, resistance, label] of [[205, s.p1, p.r1, "L1"], [280, s.p2, p.r2, "L2"]]) {
+          line(255, y, 400, y, wire, 3);
+          line(462, y, 610, y, wire, 3);
+          bulb(431, y, power, label, resistance, false);
+        }
+        txt(`I₁ = ${format(s.i1)} A`, 340, 150, B, 15);
+        txt(`I₂ = ${format(s.i2)} A`, 545, 315, G, 15);
+      } else {
+        line(120, 170, 304, 170, wire, 3);
+        line(366, 170, 484, 170, wire, 3);
+        line(546, 170, 680, 170, wire, 3);
+        bulb(335, 170, s.p1, "L1", p.r1);
+        bulb(515, 170, s.p2, "L2", p.r2);
+        txt(`U₁ = ${format(s.u1)} V`, 335, 295, B, 16);
+        txt(`U₂ = ${format(s.u2)} V`, 515, 295, G, 16);
+      }
+      if (p.mode === 1) {
+        txt(`L1: ${format(s.p1)} W`, 280, 370, O, 16);
+        txt(`L2: ${format(s.p2)} W`, 520, 370, B, 16);
+      }
+      txt(`Manba toki ${format(s.current)} A · Jami quvvat ${format(s.power)} W`, 400, 415, theme.ink, 17);
+      break;
+    }
+    case "meterRange": {
+      const size = (normal) => c.compactMode ? Math.max(27, normal) : normal;
+      box(65, 115, 325, 275, theme.floor);
+      box(410, 115, 325, 275, theme.floor);
+      txt(c.compactMode ? "A · parallel" : "Ampermetr · parallel shunt", 228, 147, O, size(19));
+      txt(c.compactMode ? "V · ketma-ket" : "Voltmeter · ketma-ket R", 573, 147, B, size(19));
+      // Chapdagi ikki tarmoq bir xil kuchlanishga ega; tok I=I_m+I_sh bo‘linadi.
+      line(85, 250, 140, 250, theme.ink, 3);
+      line(140, 195, 140, 305, theme.ink, 3);
+      line(140, 195, 199, 195, theme.ink, 3);
+      circle(229, 195, 30, O);
+      txt("G", 229, 203, O, size(20));
+      line(259, 195, 360, 195, theme.ink, 3);
+      line(140, 305, 190, 305, theme.ink, 3);
+      box(190, 287, 80, 36, O + "35");
+      txt("Rsh", 230, 312, O, size(17));
+      line(270, 305, 360, 305, theme.ink, 3);
+      line(360, 195, 360, 305, theme.ink, 3);
+      line(360, 250, 382, 250, theme.ink, 3);
+      ball(140, 250, 5, O);
+      ball(360, 250, 5, O);
+      txt(`Iₘ = ${format(p.current)} A`, 317, 230, theme.ink, size(15));
+      txt(`Ish = ${format(s.shuntCurrent)} A`, 315, 280, theme.ink, size(15));
+      txt(`Rsh = ${format(s.shunt)} Ω`, 228, 362, O, size(19));
+      // O‘ngda qo‘shimcha qarshilik va o‘lchov mexanizmidan bir xil I_m o‘tadi.
+      line(428, 250, 480, 250, theme.ink, 3);
+      box(480, 232, 85, 36, B + "35");
+      txt("Rq", 522, 257, B, size(17));
+      line(565, 250, 605, 250, theme.ink, 3);
+      circle(635, 250, 30, B);
+      txt("G", 635, 258, B, size(20));
+      line(665, 250, 720, 250, theme.ink, 3);
+      txt(`Rq = ${format(s.series)} Ω`, 573, 308, B, size(19));
+      txt(`Uₘ = ${format(s.meterVoltage)} V`, 573, 341, theme.ink, size(17));
+      txt(`Uq = ${format(s.seriesVoltage)} V`, 573, 371, theme.ink, size(17));
+      txt(`I chegara = ${format(s.currentLimit)} A`, 228, 424, O, size(19));
+      txt(`U chegara = ${format(s.voltageLimit)} V`, 573, 424, B, size(19));
+      break;
+    }
+    case "airHumidity": {
+      const size = (normal) => c.compactMode ? Math.max(28, normal) : normal;
+      const relative = clamp(s.relative ?? 0, 0, 100);
+      const droplets = s.condensate > 0 ? clamp(Math.ceil(s.condensate / 1.5), 3, 25) : 0;
+      box(75, 125, 340, 265, theme.surface);
+      c.fillStyle = B + "12";
+      c.fillRect(76, 126, 338, 263);
+      txt("HAVO", 245, 162, theme.muted, size(15));
+      // Nuqtalar va tomchilar massa masshtabida emas, jarayonni tushuntirish uchun.
+      const molecules = Math.min(32, Math.round((s.vaporMass ?? 0) / 1.6));
+      for (let i = 0; i < molecules; i++) {
+        const x = 115 + (i * 83) % 260;
+        const y = 185 + (i * 59) % 155;
+        ball(x, y, 4, B);
+      }
+      if (droplets) {
+        c.fillStyle = B + "40";
+        c.fillRect(78, 180, 14, 207);
+        for (let i = 0; i < droplets; i++) {
+          const x = 87 + (i % 2) * 7;
+          const y = 190 + Math.floor(i / 2) * 14;
+          ball(x, y, 3 + i % 3, B);
+        }
+      }
+      txt(droplets ? "Tomchi hosil bo‘ldi" : "Tomchi yo‘q", 245, 418, droplets ? B : theme.muted, size(18));
+      c.beginPath();
+      c.arc(615, 230, 72, -Math.PI / 2, 1.5 * Math.PI);
+      c.strokeStyle = theme.line;
+      c.lineWidth = 13;
+      c.stroke();
+      c.beginPath();
+      c.arc(615, 230, 72, -Math.PI / 2, -Math.PI / 2 + 2 * Math.PI * relative / 100);
+      c.strokeStyle = droplets ? B : G;
+      c.lineWidth = 13;
+      c.stroke();
+      txt(`${format(relative)}%`, 615, 241, theme.ink, size(31));
+      txt("Nisbiy namlik", 615, 341, theme.muted, size(18));
+      txt(`T = ${format(p.temperature - 273.15)} °C`, 615, 383, O, size(19));
+      break;
+    }
+    case "waterVapor": {
+      const contrast = s.contrast;
+      const size = (normal) => c.compactMode ? Math.max(28, normal) : normal;
+      box(115, 115, 280, 255, theme.surface);
+      c.fillStyle = `rgba(56,131,217,${0.13 + 0.22 * contrast})`;
+      c.fillRect(116, 245, 278, 124);
+      c.fillStyle = `rgba(56,131,217,${0.13 - 0.1 * contrast})`;
+      c.fillRect(116, 116, 278, 129);
+      if (contrast > 0) line(116, 245, 394, 245, `rgba(56,131,217,${contrast})`, 3);
+      // Fazalar farqi rang bilan beriladi; nuqtalar soni massa hisobini anglatmaydi.
+      for (let i = 0; i < 42; i++) {
+        const x = 138 + (i % 7) * 39 + Math.sin(i * 4.1) * 5;
+        const y = 138 + Math.floor(i / 7) * 42 + Math.cos(i * 2.7) * 5;
+        c.globalAlpha = y < 245 ? 0.65 - 0.4 * contrast : 0.65 + 0.3 * contrast;
+        ball(x, y, 3.5, B);
+      }
+      c.globalAlpha = 1;
+      txt(s.critical ? "Kritik holat" : "To‘yingan bug‘", 255, 108, B, size(18));
+      txt(s.critical ? "Chegara yo‘q" : "Suyuqlik", 255, 397, B, size(18));
+      if (!s.critical && s.saturation !== null) {
+        arrow(430, 282, 430, 208, O);
+        arrow(473, 208, 473, 282, G);
+        txt(c.compactMode ? "Bug‘ ⇄ suyuqlik" : "Bug‘lanish ⇄ kondensatsiya", 592, 152, theme.ink, size(16));
+        txt("Tezliklar teng", 592, 187, theme.muted, size(14));
+      } else {
+        txt(c.compactMode ? "Fazalar farqi yo‘q" : "Suyuqlik va bug‘ farqi yo‘qoladi", 580, 172, G, size(16));
+      }
+      txt(`T = ${format(p.temperature)} K`, 605, 235, theme.ink, size(21));
+      txt(`p = ${formatResult(config.results[0], s.saturation)} MPa`, 605, 270, O, size(21));
+      txt("Kritik nuqta", 605, 313, theme.muted, size(16));
+      if (c.compactMode) {
+        txt("647.096 K", 605, 347, G, 28);
+        txt("22.064 MPa", 605, 380, G, 28);
+      } else txt("647.096 K · 22.064 MPa", 605, 351, G, 18);
+      txt("Muvozanat modeli · sxematik", 400, 434, theme.muted, size(13));
+      break;
+    }
     case "cart": {
-      line(75, 285, 725, 285);
-      const scale =
-          650 /
-          Math.max(1, Math.abs(p.x0) + Math.abs(p.v0) * config.duration * 2),
-        x = 400 + s.x * scale;
-      block(clamp(x, 80, 660), 230, "x");
-      arrow(
-        clamp(x, 80, 660) + 30,
-        215,
-        clamp(x, 80, 660) + 30 + clamp(s.v * 5, -90, 90),
-        215,
-        B,
-        `v=${format(s.v)} m/s`,
-      );
-      txt(`x=${format(s.x)} m`, 400, 335);
+      // Bir metr doim to‘rt piksel: tezlik o‘zgarsa, ko‘rinadigan harakat ham o‘zgaradi.
+      const pixelsPerMetre = 4;
+      const camera = Math.abs(s.x) > 55 ? s.x - Math.sign(s.x) * 55 : 0;
+      const worldX = (metres) => 400 + (metres - camera) * pixelsPerMetre;
+      const carX = worldX(s.x);
+      const startX = worldX(p.x0);
+      const axisY = 290;
+
+      txt("Koordinata o‘qi · 1 bo‘linma = 10 m", 80, 112, theme.muted, 15, "left");
+      txt(s.v > 0 ? "O‘ngga harakat" : s.v < 0 ? "Chapga harakat" : "Jism tinch", 720, 112, B, 16, "right");
+      line(75, axisY, 725, axisY, theme.line, 3);
+      const firstTick = Math.ceil((camera - 81) / 10) * 10;
+      for (let metre = firstTick; metre <= camera + 81; metre += 10) {
+        const tickX = worldX(metre);
+        if (tickX < 78 || tickX > 722) continue;
+        line(tickX, axisY - 7, tickX, axisY + 8, metre === 0 ? O : theme.muted, metre === 0 ? 2.5 : 1);
+        txt(`${metre}`, tickX, axisY + 29, metre === 0 ? O : theme.muted, 14);
+      }
+      txt("m", 737, axisY + 5, theme.muted, 12, "left");
+      if (startX >= 80 && startX <= 720) {
+        line(startX, 164, startX, axisY - 10, G, 1.5, [5, 5]);
+        txt(`Boshlanish ${format(p.x0)} m`, startX, 153, G, 15);
+      }
+      if (t > 0 && s.v !== 0) {
+        line(clamp(startX, 77, 723), axisY - 12, clamp(carX, 77, 723), axisY - 12, O, 4);
+      }
+      // Aravacha va g‘ildiraklar koordinataning o‘zida joylashgan.
+      box(carX - 37, 214, 74, 43, O);
+      ball(carX - 22, 266, 10, "#273746");
+      ball(carX + 22, 266, 10, "#273746");
+      ball(carX - 22, 266, 4, theme.ink);
+      ball(carX + 22, 266, 4, theme.ink);
+      if (Math.abs(s.v) > 1e-9) {
+        const direction = Math.sign(s.v);
+        const length = 30 + Math.abs(s.v) * 3;
+        arrow(carX, 192, carX + direction * length, 192, B);
+      }
+      txt(`x = ${format(s.x)} m`, 225, 372, theme.ink, 19);
+      txt(`Δx = ${format(s.x - p.x0)} m`, 425, 372, O, 19);
+      txt(`Yo‘l = ${format(s.distance)} m`, 625, 372, G, 19);
       break;
     }
     case "relative": {
@@ -501,20 +855,44 @@ export function renderCatalog(c, { config, p, s, t }, theme) {
     }
     case "thermal": {
       if (config.key === "heatEngine") {
-        box(110, 105, 170, 90, R + "35");
-        txt(`${format(p.hot)} K`, 195, 160, R);
-        box(520, 260, 170, 80, B + "35");
-        txt(`${format(p.cold)} K`, 605, 310, B);
-        circle(400, 220, 45, O);
-        arrow(280, 160, 365, 200, R, "Q₁");
-        arrow(435, 240, 520, 290, B, "Q₂");
-        arrow(400, 265, 400, 345, G, "A");
+        const hot = p.hot > p.cold;
+        const validWork = Number.isFinite(s.work) ? s.work : 0;
+        const validHeatOut = Number.isFinite(s.heatOut) ? s.heatOut : 0;
+        const flow = (x, y, X, Y, value, color) => {
+          const width = 2 + 5 * clamp(value / Math.max(p.heatIn, 1), 0, 1);
+          line(x, y, X, Y, color, width);
+          const angle = Math.atan2(Y - y, X - x);
+          line(X, Y, X - 11 * Math.cos(angle - 0.48), Y - 11 * Math.sin(angle - 0.48), color, width);
+          line(X, Y, X - 11 * Math.cos(angle + 0.48), Y - 11 * Math.sin(angle + 0.48), color, width);
+        };
+        box(90, 125, 170, 122, hot ? R + "35" : R + "20");
+        txt("ISSIQ MANBA", 175, 153, R, 13);
+        txt(`T₁ = ${format(p.hot)} K`, 175, 186, theme.ink, 17);
+        txt(`Q₁ = ${format(p.heatIn)} J`, 175, 220, R, 14);
+        box(540, 255, 170, 122, B + "35");
+        txt("SOVUTGICH", 625, 283, B, 13);
+        txt(`T₂ = ${format(p.cold)} K`, 625, 316, theme.ink, 17);
+        if (!s.warning) txt(`Q₂ = ${format(validHeatOut)} J`, 625, 351, B, 14);
+        box(327, 196, 146, 118, O + "20");
+        line(345, 228, 455, 228, O, 4);
+        line(400, 229, 400, 271, theme.ink, 3);
+        circle(400, 280, 17, G);
+        line(400, 280, 413, 270, G, 3);
+        txt("DVIGATEL", 400, 215, theme.ink, 14);
+        if (!s.warning) {
+          flow(260, 170, 327, 215, p.heatIn, R);
+          flow(473, 225, 540, 296, validHeatOut, B);
+          flow(400, 314, 400, 382, validWork, G);
+          txt(`A = ${format(validWork)} J`, 490, 365, G, 14);
+        }
         txt(
-          s.warning ? "Karno chegarasi buzildi" : "Q₁ = A + Q₂",
+          s.warning
+            ? "Yaroqsiz holat: T₁ > T₂ va η ≤ ηC bo‘lishi kerak"
+            : `Energiya balansi: Q₁ = A + Q₂ · η = ${format(s.efficiency)}% ≤ ηC = ${format(s.carnot)}%`,
           400,
-          385,
+          423,
           s.warning ? R : theme.ink,
-          16,
+          14,
         );
       } else {
         box(230, 130, 340, 160, R + "15");
@@ -678,7 +1056,7 @@ export function renderCatalog(c, { config, p, s, t }, theme) {
       txt(`I = ${format(current)} A`, 400, 370, G);
       if (config.key === "ac")
         txt(
-          `Uef = ${format(p.voltage)} V · Ief = ${format(s.rms)} A`,
+          `Uef = ${format(p.voltage)} V · Ief = ${format(s.current)} A`,
           400,
           398,
           theme.muted,
@@ -711,14 +1089,23 @@ export function renderCatalog(c, { config, p, s, t }, theme) {
       arrow(225, 235, 575, 235, B, "B");
       break;
     }
-    case "transformer": {
-      box(220, 125, 360, 210);
-      box(285, 175, 230, 110, theme.surface);
-      coil(125, 225, 200, 60);
-      coil(475, 225, 200, 60);
-      txt(`N₁=${p.n1}`, 225, 355, O);
-      txt(`N₂=${p.n2}`, 575, 355, B);
-      txt(`U₂=${format(s.voltage2)} V`, 575, 390, B);
+    case "transformerInduction": {
+      const fluxRatio = s.fluxPeak > 0 ? Math.abs(s.fluxInstant / s.fluxPeak) : 0;
+      const fluxDirection = Math.sign(s.fluxInstant) || 1;
+      // Yopiq temir o‘zak magnit oqimini ikkala chulg‘am orqali tutashtiradi.
+      box(218, 132, 364, 204, "#263440");
+      box(278, 178, 244, 112, theme.surface);
+      coil(235, 220, 55, 68);
+      coil(510, 220, 55, 68);
+      txt("BIRLAMCHI", 262, 163, O, 13);
+      txt("IKKILAMCHI", 538, 163, B, 13);
+      txt(`N₁ = ${p.n1} ta`, 262, 322, O, 14);
+      txt(`N₂ = ${p.n2} ta`, 538, 322, B, 14);
+      const shaft = fluxDirection > 0 ? [290, 153, 510, 153] : [510, 153, 290, 153];
+      arrow(...shaft, `rgba(56,131,217,${0.25 + 0.75 * fluxRatio})`, `Φ = ${format(s.fluxInstant)} Wb`);
+      txt(`U₁(t) = ${format(s.voltagePrimaryInstant)} V`, 200, 375, O, 16, "left");
+      txt(`U₂(t) = ${format(s.voltageSecondaryInstant)} V`, 600, 375, B, 16, "right");
+      txt(`Kirish: ${format(p.voltage)} V effektiv · Chiqish: ${format(s.voltage2)} V effektiv`, 400, 410, theme.ink, 15);
       break;
     }
     case "reflection":
@@ -789,6 +1176,7 @@ export function renderCatalog(c, { config, p, s, t }, theme) {
       break;
     }
     case "polarization": {
+      if (s.intensity === null) break;
       for (const [x, a, color] of [
         [260, 0, O],
         [520, (p.angle * Math.PI) / 180, B],
@@ -805,9 +1193,19 @@ export function renderCatalog(c, { config, p, s, t }, theme) {
           );
         }
       }
-      arrow(100, 235, 170, 235, O);
-      arrow(605, 235, 705, 235, G, `${format(s.intensity)} W/m²`);
-      txt("Qutblagich → analizator", 400, 365);
+      if (p.intensity > 0) arrow(100, 235, 170, 235, O);
+      if (s.intensity > 0) {
+        c.save();
+        c.globalAlpha = Math.min(1, s.intensity / 100);
+        arrow(605, 235, 705, 235, G);
+        c.restore();
+      }
+      txt("Kirish qutblanishi", 260, 140, O);
+      txt(`Analizator: ${format(p.angle)}°`, 520, 140, B);
+      txt(`I₀ = ${format(p.intensity)} W/m²`, 260, 335, O);
+      txt(`I = ${format(s.intensity)} W/m²`, 520, 335, G);
+      txt(p.intensity === 0 ? "Manba o‘chirilgan" : s.intensity === 0 ? "O‘qlar tik: nur to‘liq to‘siladi" : `O‘tkazish: ${format(s.fraction * 100)}%`, 400, 375);
+      txt("Kirish nuri oldindan chiziqli qutblangan", 400, 405, theme.muted, 14);
       break;
     }
     case "instrument": {
@@ -843,14 +1241,162 @@ export function renderCatalog(c, { config, p, s, t }, theme) {
       );
       break;
     }
-    case "photoelectric":
-    case "emission":
+    case "gasDischarge": {
+      const gap = 170 + p.gap * 12;
+      const left = 400 - gap / 2;
+      const right = 400 + gap / 2;
+      box(125, 145, 550, 205, B + "10");
+      box(left - 12, 175, 24, 145, O);
+      box(right - 12, 175, 24, 145, B);
+      txt("Katod (−)", left, 370, O, 16);
+      txt("Anod (+)", right, 370, B, 16);
+      txt(`Havo · d = ${format(p.gap)} mm`, 400, 122, theme.muted, 16);
+      // Neytral molekulalarning issiqlik harakati faqat ko‘rgazmali masshtabda.
+      for (let i = 0; i < 17; i++) {
+        const x = left + 25 + ((i * 79 + t * 9) % Math.max(1, gap - 50));
+        const y = 187 + ((i * 41 + t * 6) % 123);
+        ball(x, y, 3, theme.muted);
+      }
+      if (s.breakdown) {
+        c.save();
+        c.shadowColor = O;
+        c.shadowBlur = 22;
+        for (let i = 0; i < 8; i++) {
+          const x1 = left + 12 + ((gap - 24) * i) / 8;
+          const x2 = left + 12 + ((gap - 24) * (i + 1)) / 8;
+          const y1 = 247 + 13 * Math.sin(i * 2.4 + t * 15);
+          const y2 = 247 + 13 * Math.sin((i + 1) * 2.4 + t * 15);
+          line(x1, y1, x2, y2, O, 4);
+        }
+        c.restore();
+        for (let i = 0; i < 5; i++) {
+          const phase = (t * 0.55 + i / 5) % 1;
+          ball(left + 18 + phase * (gap - 36), 211 + (i % 2) * 55, 6, G);
+          ball(right - 18 - phase * (gap - 36), 223 + (i % 2) * 55, 6, O);
+        }
+        txt("Ionlanish: elektronlar → anod, musbat ionlar → katod", 400, 338, G, 15);
+      } else {
+        arrow(right - 42, 242, left + 42, 242, B, "Elektr maydon");
+        txt("E < 3 MV/m · gaz hali izolyator", 400, 337, theme.muted, 16);
+      }
+      txt(`E = ${format(s.field / 1e6)} MV/m · chegara ≈ 3 MV/m`, 400, 409, s.breakdown ? G : theme.muted, 16);
+      break;
+    }
+    case "thermionic": {
+      const flux = clamp((Math.log10(Math.max(s.density, 1e-20)) + 3) / 6, 0, 1);
+      const electrons = Math.round(flux * 9);
+      box(155, 145, 490, 205, B + "10");
+      txt("Vakuum", 400, 171, theme.muted, 14);
+      box(215, 190, 28, 130, O);
+      box(565, 190, 22, 130, B);
+      txt("Qizigan katod (−)", 225, 375, O, 16);
+      txt("Musbat anod (+)", 575, 375, B, 16);
+      for (let i = 0; i < 4; i++) {
+        const y = 206 + i * 30;
+        line(175, y + 8, 186, y - 8, O, 2);
+        line(186, y - 8, 198, y + 8, O, 2);
+      }
+      if (electrons) {
+        for (let i = 0; i < electrons; i++) {
+          const x = 265 + ((t * 105 + i * 53) % 280);
+          const y = 209 + (i % 4) * 29;
+          ball(x, y, 6, G);
+          txt("−", x, y + 4, "#fff", 11);
+        }
+        arrow(292, 334, 515, 334, G, "Elektronlar");
+      } else {
+        txt("Emissiya ko‘rgazmali masshtabda juda sust", 400, 260, theme.muted, 15);
+      }
+      txt(`Katod: ${format(p.temperature)} K`, 400, 406, theme.muted, 15);
+      break;
+    }
+    case "photoelectric": {
+      const plateY = 205;
+      box(92, 145, 625, 235, B + "10");
+      txt("FOTOELEMENT · VAKUUM", 405, 126, theme.muted, 13);
+      // Metall sirtga kelayotgan fotonlar.
+      if (p.intensity > 0) {
+        for (let i = 0; i < 4; i++) {
+          const x = 112 + ((t * 115 + i * 38) % 112);
+          const y = plateY + (i % 2) * 34;
+          line(x - 12, y, x + 12, y, O, 2);
+          ball(x + 12, y, 3, O);
+        }
+        arrow(120, 290, 215, 290, O, "Yorug‘lik");
+      } else {
+        txt("Foton oqimi yo‘q", 160, 290, theme.muted, 12);
+      }
+      box(236, 178, 18, 170, O);
+      box(598, 178, 18, 170, B);
+      txt("Yoritilgan metall katod", 245, 369, O, 12);
+      txt("Kollektor", 608, 369, B, 12);
+      txt(`${p.intensity > 0 ? "Foton" : "Foton bo‘lsa"}: hν = ${format(s.photonEnergy)} eV`, 405, 177, theme.ink, 13);
+      if (s.emits) {
+        const visible = Math.min(6, Math.floor(s.emittedCount + 0.35));
+        for (let i = 0; i < visible; i++) {
+          const x = 263 + ((t * 125 + i * 47) % 295);
+          const y = 226 + (i % 4) * 27;
+          ball(x, y, 5, G);
+          txt("−", x, y + 4, "#fff", 10);
+        }
+        arrow(270, 335, 560, 335, G, "Fotoelektronlar");
+      } else {
+        txt(
+          s.aboveThreshold
+            ? "Intensivlik nol — foton kelmaydi"
+            : "hν < A — elektron metall sirtidan chiqmaydi",
+          405, 291, R, 14,
+        );
+        txt(
+          s.aboveThreshold
+            ? "Intensivlik oshsa, foton va elektronlar soni ortadi"
+            : "Intensivlik chegaradan past chastotani qoplay olmaydi",
+          405, 323, theme.muted, 11,
+        );
+      }
+      break;
+    }
     case "photon": {
+      const wavelengthNm = p.wavelength;
+      if (!Number.isFinite(wavelengthNm) || wavelengthNm <= 0) break;
+      const photonColor = wavelengthNm <= 10 ? "#b7c4d4"
+        : wavelengthNm < 380 ? "#9a67d2"
+        : wavelengthNm < 495 ? "#5685ec"
+          : wavelengthNm < 570 ? "#4ac7cc"
+            : wavelengthNm < 590 ? "#d6c83b"
+              : wavelengthNm < 620 ? "#f28a30"
+                : wavelengthNm <= 750 ? O : "#e05757";
+      const cycles = clamp(4 * 550 / wavelengthNm, 2, 12);
+      box(90, 155, 620, 235, B + "0c");
+      txt("FOTON · ELEKTROMAGNIT KVANT", 400, 135, theme.muted, 13);
+      // Qisqa to‘lqinlarda ko‘proq tebranish ko‘rsatiladi; chizma masshtab emas.
+      for (let i = 0; i < 72; i++) {
+        const u0 = i / 72;
+        const u1 = (i + 1) / 72;
+        const envelope0 = Math.sin(Math.PI * u0);
+        const envelope1 = Math.sin(Math.PI * u1);
+        const x0 = 120 + u0 * 560;
+        const x1 = 120 + u1 * 560;
+        const y0 = 265 - Math.sin(u0 * cycles * Math.PI * 2) * 31 * envelope0;
+        const y1 = 265 - Math.sin(u1 * cycles * Math.PI * 2) * 31 * envelope1;
+        line(x0, y0, x1, y1, photonColor, 2.5);
+      }
+      arrow(135, 325, 665, 325, photonColor, "Tarqalish yo‘nalishi");
+      const spectralBand = wavelengthNm <= 10 ? "Rentgen (taxminan 1–10 nm)"
+        : wavelengthNm < 380 ? "Ultrabinafsha (UV)"
+          : wavelengthNm <= 750 ? "Ko‘rinadigan yorug‘lik"
+            : "Infraqizil (IQ)";
+      txt(`Spektr oralig‘i: ${spectralBand}`, 400, 339, photonColor, 13);
+      txt(`λ = ${format(wavelengthNm)} nm · ν = ${format(s.frequency)} Hz`, 400, 366, theme.ink, 14);
+      txt(`E = ${formatResult(config.results.find(result => result.key === "energy"), s.energy)} eV · p = ${format(s.momentum)} kg·m/s`, 400, 392, photonColor, 14);
+      txt("To‘lqin paketi sxematik; undagi uzunlik haqiqiy fazoviy masshtab emas.", 400, 414, theme.muted, 11);
+      break;
+    }
+    case "emission": {
       box(390, 150, 30, 180, B + "65");
       plot((u) => Math.sin(u * Math.PI * 10), 100, 230, 265, 20, O);
       arrow(100, 230, 365, 230, O, "Foton / energiya");
       const emits =
-        config.visual === "photon" ||
         s.emits ||
         s.breakdown === 1 ||
         s.density > 1;
@@ -879,26 +1425,122 @@ export function renderCatalog(c, { config, p, s, t }, theme) {
       );
       break;
     }
-    case "electrolysis": {
-      box(200, 170, 400, 175, B + "25");
-      box(260, 125, 25, 160, O);
-      box(510, 125, 25, 160, B);
-      txt("+", 273, 115, O, 26);
-      txt("−", 523, 115, B, 26);
-      for (let i = 0; i < 25; i++) {
-        const x = 250 + ((i * 43 + t * 10) % 250),
-          y = 205 + ((i * 29) % 110);
-        ball(x, y, 5, i % 2 ? O : G);
+    case "xrayTube": {
+      box(85, 140, 375, 220, B + "12");
+      txt("VAKUUMDAGI RENTGEN TRUBKASI", 272, 122, theme.muted, 13);
+      line(145, 190, 145, 300, O, 5);
+      txt("KATOD (−)", 145, 328, O, 13);
+      txt("Elektronlar", 206, 180, G, 13);
+      arrow(160, 245, 390, 245, G, "e⁻ · eU gacha tezlashadi");
+      const electronX = 155 + 245 * s.progress;
+      if (p.current > 0) {
+        for (let i = 0; i < Math.min(5, Math.ceil(p.current / 4)); i++) {
+          const x = electronX - i * 30;
+          if (x > 150 && x < 400) ball(x, 245 + (i % 2 ? -5 : 5), 4, G);
+        }
       }
-      txt(`Katodda ajralgan massa: ${format(s.mass * 1e6)} mg`, 400, 390);
+      box(400, 165, 30, 160, "#73523f");
+      line(390, 177, 435, 151, O, 4);
+      line(390, 313, 435, 339, O, 4);
+      txt(`ANOD (+), Z=${s.targetZ}`, 414, 370, O, 13);
+      txt("Elektronlar nishonda tormozlanadi", 303, 288, theme.ink, 12);
+
+      if (s.impact && p.current > 0) {
+        for (let i = 0; i < 3; i++) {
+          const y = 205 + i * 39;
+          plot(u => Math.sin(u * Math.PI * 12), 445, y, 65, 8, B);
+          arrow(510, y, 535, y, B);
+        }
+        txt("Rentgen fotonlari", 493, 345, B, 13);
+      } else if (!s.impact) {
+        txt("Elektron nishonga yaqinlashmoqda", 493, 345, theme.muted, 12);
+      }
+
+      const gx = 555, gy = 305, gw = 175, gh = 120;
+      line(gx, gy, gx + gw, gy, theme.ink, 1.5);
+      line(gx, gy, gx, gy - gh, theme.ink, 1.5);
+      if (s.impact && p.current > 0) plot(u => 1 - u, gx, gy, gw, gh, O);
+      txt(s.impact ? "Tormozlanish spektri · sxema" : "Nishondan keyingi spektr · sxema", 640, 155, theme.muted, 12);
+      txt("Nisbiy intensivlik", gx, gy - gh - 7, theme.muted, 10, "left");
+      txt("0", gx, gy + 18, theme.muted, 10);
+      txt(`${format(s.energy)} keV`, gx + gw, gy + 18, theme.muted, 10, "right");
+      txt("Foton energiyasi", gx + gw / 2, gy + 39, theme.muted, 11);
+      const edgeX = gx + gw - 2;
+      line(edgeX, gy, edgeX, gy - gh, R, 2, [5, 5]);
+      txt("eU cutoff", edgeX, gy - gh + 15, R, 10, "right");
+      if (p.current <= 0) {
+        txt("Tok yo‘q · fotonlar chiqmaydi", 640, 340, R, 10);
+      } else if (!s.impact) {
+        txt("Elektron urilgach spektr paydo bo‘ladi", 640, 363, theme.muted, 10);
+      } else if (s.kAlphaEnergy != null) {
+        const lineX = gx + gw * (s.kAlphaEnergy / s.energy);
+        line(lineX, gy, lineX, gy - gh * 0.8, G, 2);
+        txt(`Kα ≈ ${format(s.kAlphaEnergy)} keV`, lineX, gy - gh * 0.8 - 7, G, 10);
+      } else {
+        txt("K-qobiq chegarasiga U yetmaydi", 640, 363, R, 10);
+      }
+      txt(`U = ${format(p.voltage)} kV · Elektron: ${format(s.electronKineticEnergy)} keV · λmin = ${format(s.wavelength)} nm`, 400, 405, theme.ink, 14);
+      txt(`Dasta quvvati U·I = ${format(s.beamPower)} W`, 400, 431, theme.muted, 13);
+      break;
+    }
+    case "electrolysis": {
+      // Ionlarning drift tezligi ko'rgazmali: tok kuchiga bog'liq, haqiqiy m/s masshtabida emas.
+      const current = Math.max(0, p.current);
+      const drift = current * t * 12;
+      const path = 320;
+      const massMg = s.mass * 1e6;
+      const coating = massMg > 0 ? Math.min(27, 4 + 6 * Math.sqrt(massMg)) : 0;
+
+      box(140, 155, 520, 195, B + "18");
+      line(140, 155, 660, 155, B, 2);
+      box(180, 132, 24, 175, O);
+      box(596, 132, 24, 175, B);
+      if (coating > 0) box(596 - coating, 165, coating, 142, O);
+      txt(c.compactMode ? "+" : "ANOD (+)", 192, 116, O, c.compactMode ? 30 : 15);
+      txt(c.compactMode ? "−" : "KATOD (−)", 608, 116, B, c.compactMode ? 30 : 15);
+
+      for (let i = 0; i < 10; i++) {
+        const offset = (i * 41 + drift) % path;
+        const y = 190 + (i % 5) * 25;
+        ball(238 + offset, y, 6, O);
+        if (!c.compactMode) txt("+", 238 + offset, y + 4, "#fff", 11);
+      }
+      for (let i = 0; i < 8; i++) {
+        const offset = (i * 53 + drift) % path;
+        const y = 202 + (i % 4) * 30;
+        ball(562 - offset, y, 6, G);
+        if (!c.compactMode) txt("−", 562 - offset, y + 4, "#fff", 11);
+      }
+
+      if (current > 0) {
+        arrow(287, 326, 370, 326, O);
+        arrow(513, 326, 430, 326, G);
+        if (!c.compactMode) {
+          txt("Kationlar", 328, 346, O, 14);
+          txt("Anionlar", 472, 346, G, 14);
+        }
+      } else {
+        txt("I = 0 A: ion oqimi yo‘q", 400, 327, theme.muted, c.compactMode ? 30 : 13);
+      }
+      if (!c.compactMode) txt(`I = ${format(current)} A · Q = ${format(s.charge)} C · m = ${format(massMg)} mg`, 400, 375, theme.ink, 16);
       break;
     }
     case "relativity": {
-      box(100, 155, 540, 35, B + "65");
-      box(100, 255, 540 / s.gamma, 35, O);
-      txt("Xususiy uzunlik", 370, 135, B);
-      txt("Kuzatuvchi o‘lchaydigan uzunlik", 370, 325, O);
-      txt(`γ=${format(s.gamma)} · v/c=${format(p.beta)}`, 400, 385);
+      if (s.gamma === null) break;
+      const pixelsPerMetre = 180;
+      box(100, 155, p.length * pixelsPerMetre, 30, B + "65");
+      box(100, 250, s.length * pixelsPerMetre, 30, O);
+      txt(`Jism bilan birga: L₀ = ${format(p.length)} m`, 400, 135, B);
+      txt(`Laboratoriyada: L = ${format(s.length)} m`, 400, 230, O);
+      line(100, 300, 640, 300, theme.muted, 1);
+      for (let metre = 0; metre <= 3; metre++) {
+        const x = 100 + metre * pixelsPerMetre;
+        line(x, 294, x, 306, theme.muted, 1);
+        txt(`${metre} m`, x, 327, theme.muted, 13);
+      }
+      txt(`Jism soati: Δτ = ${format(p.interval)} s`, 250, 365, B);
+      txt(`Laboratoriya: Δt = ${format(s.time)} s`, 565, 365, O);
+      txt(`γ = ${format(s.gamma)} · v/c = ${format(p.beta)} · uzunlik harakat bo‘ylab`, 400, 405, theme.muted, 14);
       break;
     }
     case "atom": {
@@ -918,47 +1560,203 @@ export function renderCatalog(c, { config, p, s, t }, theme) {
       break;
     }
     case "scattering": {
-      ball(450, 245, 24, B);
-      txt(`+${p.z}`, 450, 251, "#fff", 14);
-      const b = p.impact * 1.2,
-        y = 245 - clamp(b, 0, 130),
-        a = (s.angle * Math.PI) / 180;
-      arrow(80, y, 350, y, O, "Alfa-zarracha");
-      line(350, y, 430, y, O);
-      arrow(
-        430,
-        y,
-        430 + 160 * Math.cos(a),
-        y - 160 * Math.sin(a),
-        G,
-        `θ=${format(s.angle)}°`,
-      );
-      txt(
-        "Kulon sochilishi · trayektoriya yo‘nalishlari sxematik",
-        400,
-        385,
-        theme.muted,
-        13,
-      );
+      line(505, 110, 505, 425, theme.line, 1);
+      txt(`Rezerford · Z = ${p.z}`, 265, 122, O, 17);
+      const path = s.path || [];
+      if (path.length) {
+        const maxX = Math.max(1, ...path.map(point => Math.abs(point.x)));
+        const maxY = Math.max(1, ...path.map(point => Math.abs(point.y)));
+        const pixels = Math.min(195 / maxX, 125 / maxY);
+        const screen = point => [265 + point.x * pixels, 275 - point.y * pixels];
+        c.beginPath();
+        c.lineWidth = 2;
+        c.strokeStyle = theme.line;
+        c.setLineDash([5, 5]);
+        path.forEach((point, index) => {
+          const [x, y] = screen(point);
+          if (index === 0) c.moveTo(x, y);
+          else c.lineTo(x, y);
+        });
+        c.stroke();
+        c.setLineDash([]);
+        c.beginPath();
+        c.lineWidth = 3;
+        c.strokeStyle = O;
+        path.slice(0, s.pathIndex + 1).forEach((point, index) => {
+          const [x, y] = screen(point);
+          if (index === 0) c.moveTo(x, y);
+          else c.lineTo(x, y);
+        });
+        c.lineTo(...screen({ x: s.x, y: s.y }));
+        c.stroke();
+        const [x, y] = screen({ x: s.x, y: s.y });
+        ball(x, y, 8, O);
+      }
+      ball(265, 275, 14, B);
+      txt(`+${p.z}`, 265, 281, "#fff", 14);
+      txt(`b = ${format(p.impact)} fm · θ = ${format(s.angle)}°`, 265, c.compactMode ? 394 : 398, theme.ink, 16);
+      txt("Bor · vodorod (Z = 1)", 640, 122, B, 17);
+      const levelY = { 2: 310, 3: 255, 4: 214, 5: 184, 6: 158 };
+      for (let n = 2; n <= 6; n++) {
+        const selected = n === p.upper || n === 2;
+        line(560, levelY[n], 700, levelY[n], n === p.upper ? O : n === 2 ? G : theme.line, selected ? 3 : 1.5);
+        txt(`n=${n}`, 737, levelY[n] + 5, selected ? theme.ink : theme.muted, 13);
+      }
+      arrow(635, levelY[p.upper] + 10, 635, levelY[2] - 8, O);
+      const photonColor = { 3: "#f1592a", 4: "#4ac7cc", 5: "#5685ec", 6: "#9a67d2" }[p.upper];
+      box(560, 342, 150, 20, theme.floor);
+      line(570 + clamp((s.wavelength * 1e9 - 400) / 260, 0, 1) * 130, 343,
+        570 + clamp((s.wavelength * 1e9 - 400) / 260, 0, 1) * 130, 362, photonColor, 5);
+      txt(`n=${p.upper} → 2 · λ=${format(s.wavelength * 1e9)} nm`, 640, c.compactMode ? 394 : 397, photonColor, 16);
+      if (!c.compactMode) txt(`Foton energiyasi ${format(s.photon)} eV`, 640, 423, theme.ink, 15);
       break;
     }
-    case "decay":
-    case "nucleus":
-    case "massEnergy": {
-      const n =
-          config.visual === "decay"
-            ? Math.min(200, p.initial)
-            : Math.min(120, p.nucleons ?? 24),
-        fraction = config.visual === "decay" ? s.remaining / p.initial : 1;
+    case "atomSpectra": {
+      line(475, 110, 475, 425, theme.line, 1);
+      const levelY = { 1: 370, 2: 245, 3: 204, 4: 184, 5: 172, 6: 163, 7: 157, 8: 152 };
+      const upper = Math.round(p.upper), lower = Math.round(p.lower);
+      const from = p.absorption === 1 ? lower : upper;
+      const to = p.absorption === 1 ? upper : lower;
+      txt(`Bor sathlari · Z=${p.z}`, 245, 122, B, 17);
+      for (let n = 1; n <= 8; n++) {
+        const selected = n === upper || n === lower;
+        line(150, levelY[n], 425, levelY[n], n === from ? O : n === to ? G : theme.line, selected ? 3 : 1.5);
+        if (n <= 3) txt(`n=${n}`, 118, levelY[n] + 5, selected ? theme.ink : theme.muted, 13);
+        if (n >= 4 && selected) txt(`n=${n}`, 436, levelY[n] + 5, theme.ink, 12, "left");
+        if (selected) txt(`E${n}=${format(-13.605693 * p.z ** 2 / n ** 2)} eV`, 220, levelY[n] - 5, theme.muted, 11, "left");
+      }
+      txt("n=4–8 sathlari yaqinlashib boradi", 285, 139, theme.muted, 10);
+      ball(405, levelY[from], 7, O);
+      arrow(390, levelY[from], 390, levelY[to], p.absorption === 1 ? G : O);
+      txt(p.absorption === 1 ? "Foton yutiladi" : "Foton chiqariladi", 282, 408, p.absorption === 1 ? G : O, 15);
+
+      txt("Spektr chiziqlari", 615, 122, theme.ink, 17);
+      const colors = ["#7b4fe0", "#405dde", "#36a7d4", "#39aa67", "#d6c83b", "#f28a30", "#e84b37"];
+      const stripX = 510, stripY = 222, stripW = 220, segment = stripW / colors.length;
+      const wavelength = s.wavelength * 1e9;
+      const colorAt = value => colors[Math.min(colors.length - 1, Math.floor(clamp((value - 380) / 370, 0, 0.999) * colors.length))];
+      if (p.absorption === 1) colors.forEach((color, index) => box(stripX + index * segment, stripY, segment + 1, 22, color));
+      else {
+        box(stripX, stripY, stripW, 22, "#080c11");
+        if (p.z === 1 && lower === 2) {
+          for (let level = 3; level <= 8; level++) {
+            const lineNm = 1239.841984 / (13.605693 * (1 / 2 ** 2 - 1 / level ** 2));
+            if (lineNm >= 380 && lineNm <= 750) {
+              const x = stripX + ((lineNm - 380) / 370) * stripW;
+              line(x, stripY + 2, x, stripY + 20, level === upper ? O : colorAt(lineNm), level === upper ? 4 : 2);
+            }
+          }
+        }
+      }
+      const type = wavelength < 380 ? "Ultrabinafsha (UV)" : wavelength > 750 ? "Infraqizil (IQ)" : wavelength < 450 ? "Binafsha" : wavelength < 495 ? "Ko‘k" : wavelength < 570 ? "Yashil" : wavelength < 590 ? "Sariq" : wavelength < 620 ? "To‘q sariq" : "Qizil";
+      const inVisibleBand = wavelength >= 380 && wavelength <= 750;
+      const markerX = stripX + clamp((wavelength - 380) / (750 - 380), 0, 1) * stripW;
+      if (inVisibleBand && p.absorption === 1) line(markerX, stripY - 4, markerX, stripY + 26, "#080c11", 4);
+      else if (inVisibleBand && !(p.z === 1 && lower === 2)) line(markerX, stripY + 2, markerX, stripY + 20, O, 4);
+      if (inVisibleBand) line(markerX, stripY - 11, markerX, stripY - 4, theme.ink, 2);
+      else if (wavelength < 380) arrow(stripX - 5, stripY + 11, stripX - 30, stripY + 11, B);
+      else arrow(stripX + stripW + 5, stripY + 11, stripX + stripW + 30, stripY + 11, R);
+      txt("380 nm", stripX, stripY + 48, theme.muted, 12, "left");
+      txt("750 nm", stripX + stripW, stripY + 48, theme.muted, 12, "right");
+      txt(`${type} · λ=${format(wavelength)} nm`, 620, 315, inVisibleBand ? R : B, 17);
+      txt(`Foton energiyasi ${format(s.photonEnergy)} eV`, 620, 347, theme.ink, 15);
+      txt(`n=${from} → n=${to}`, 620, 389, theme.muted, 15);
+      break;
+    }
+    case "nucleusRadioactivity": {
+      line(400, 110, 400, 425, theme.line, 1);
+      const protons = Math.max(1, Math.round(p.protons));
+      const nucleons = Math.max(2, Math.round(p.nucleons));
+      const shown = Math.min(48, nucleons);
+      const points = [];
+      for (let i = 0; i < shown; i++) {
+        const radius = 10 + 78 * Math.sqrt((i + 0.5) / shown);
+        const angle = i * 2.399963229728653;
+        points.push([220 + Math.cos(angle) * radius, 245 + Math.sin(angle) * radius]);
+      }
+      points.forEach(([x, y], index) => ball(x, y, 7, index < Math.round(shown * protons / nucleons) ? O : B));
+      txt(`Yadro sxemasi · A=${nucleons}`, 220, 130, O, 17);
+      ball(115, 416, 5, O);
+      txt("proton", 145, 421, theme.muted, 12, "left");
+      ball(210, 416, 5, B);
+      txt("neytron", 240, 421, theme.muted, 12, "left");
+      txt(`Z=${protons} proton · N=${Math.max(0, nucleons - protons)} neytron`, 220, 355, theme.ink, 15);
+      txt(`Δm = ${format(p.defect)} u · E_b = ${format(s.energy)} MeV`, 220, 391, theme.muted, 14);
+
+      const total = Math.max(1, Math.min(100, Math.round(p.initial)));
+      const expected = clamp(s.remaining / p.initial, 0, 1);
+      const alive = Math.round(total * expected);
+      for (let i = 0; i < total; i++) {
+        const x = 455 + (i % 10) * 30;
+        const y = 165 + Math.floor(i / 10) * 23;
+        ball(x, y, 7, i < alive ? O : theme.line);
+      }
+      txt(`Radioaktiv namuna · N₀ = ${format(p.initial)}`, 600, 130, O, 17);
+      ball(510, 149, 5, O);
+      txt("ota yadro", 542, 154, theme.muted, 12, "left");
+      ball(625, 149, 5, theme.line);
+      txt("yemirilgan", 657, 154, theme.muted, 12, "left");
+      txt(`T½ = ${format(p.halfLife)} · t/T½ = ${format(s.halfLives)}`, 600, 445, theme.ink, 15);
+      box(462, 415, 276, 8, theme.floor);
+      box(462, 415, 276 * expected, 8, O);
+      txt(`Qolgan: ${format(s.remaining)} ta kutiladi · ${format(s.percent)}%`, 600, 391, G, 15);
+      break;
+    }
+    case "nuclearFusion": {
+      const approach = clamp(t / 3.5, 0, 1);
+      const depart = clamp((t - 3.5) / 2.2, 0, 1);
+      const nucleus = (x, y, colors, label) => {
+        const offsets = colors.length === 2
+          ? [[-12, 0], [12, 0]]
+          : colors.length === 3
+            ? [[0, -14], [-13, 10], [13, 10]]
+            : [[-12, -12], [12, -12], [-12, 12], [12, 12]];
+        colors.forEach((color, i) => ball(x + offsets[i][0], y + offsets[i][1], 13, color));
+        if (label) txt(label, x, y + 62, theme.ink, 19);
+      };
+      txt("D + T  →  ⁴He + n + Q", 400, 113, theme.ink, 25);
+      if (!s.reacted) {
+        nucleus(210 + 145 * approach, 250, [O, B], "²H · deuteriy");
+        nucleus(590 - 145 * approach, 250, [O, B, B], "³H · tritiy");
+        arrow(290, 175, 355, 175, O);
+        arrow(510, 175, 445, 175, B);
+        txt("Har juftlikda: A 2 + 3 = 5 · Z 1 + 1 = 2", 400, 383, theme.muted, 16);
+        txt(`N = ${Math.round(p.pairs)} juftlik · rasmda bittasi ko‘rsatilgan`, 400, 413, theme.ink, 14);
+      } else {
+        const heliumX = 400 - 115 * depart;
+        const neutronX = 400 + 180 * depart;
+        nucleus(heliumX, 245, [O, O, B, B], "");
+        ball(neutronX, 245, 15, B);
+        txt("⁴He · geliy", heliumX, 307, theme.ink, 17);
+        txt("n · neytron", neutronX, 345, theme.ink, 17);
+        arrow(400, 170, 400 + 135 * depart, 145, G);
+        txt(`Q = ${format(s.perReaction)} MeV / juftlik`, 400, 383, G, 19);
+        txt(`N = ${Math.round(p.pairs)} · jami Q = ${format(s.energy)} MeV · har juftlikda A=5, Z=2 saqlanadi`, 400, 413, theme.muted, 14);
+      }
+      break;
+    }
+    case "nucleus": {
+      const nucleons = Math.max(2, Math.round(p.nucleons ?? 24));
+      const shown = Math.min(80, nucleons);
+      for (let i = 0; i < shown; i++) {
+        const radius = 8 + 32 * Math.sqrt((i + 0.5) / shown);
+        const angle = i * 2.399963229728653;
+        ball(400 + Math.cos(angle) * radius, 238 + Math.sin(angle) * radius, 7, theme.ink);
+      }
+      txt(`A = ${nucleons} nuklon · sxematik klaster`, 400, 390, theme.muted, 14);
+      if (nucleons > shown) txt(`${shown} nuklon chizmada ko‘rsatilgan`, 400, 412, theme.muted, 12);
+      break;
+    }
+    case "decay": {
+      const n = Math.min(200, p.initial),
+        fraction = s.remaining / p.initial;
       for (let i = 0; i < n; i++) {
         const x = 150 + (i % 20) * 26,
           y = 130 + Math.floor(i / 20) * 22;
         ball(x, y, 7, i < n * fraction ? (i % 2 ? O : B) : theme.line);
       }
       txt(
-        config.visual === "decay"
-          ? "Kutilayotgan son · tasodifiy yakka yemirilish modeli emas"
-          : "Yadro / massa sxemasi",
+        "Kutilayotgan son · tasodifiy yakka yemirilish modeli emas",
         400,
         390,
         theme.muted,
@@ -966,20 +1764,36 @@ export function renderCatalog(c, { config, p, s, t }, theme) {
       );
       break;
     }
+    case "massEnergy": {
+      const massFraction = Math.max(0, Math.min(1, p.mass / 20));
+      box(135, 185, 200, 54, B + "70");
+      box(135, 185, 200 * massFraction, 54, B);
+      box(465, 185, 200, 54, O + "70");
+      box(465, 185, 200 * massFraction, 54, O);
+      arrow(350, 212, 450, 212, G, "c²");
+      txt(`Tinchlik massasi: ${format(p.mass)} g`, 235, 160, B);
+      txt("Tinchlik energiyasi", 565, 160, O);
+      txt(`${format(s.joules)} J`, 565, 276, O, 22);
+      txt(`${format(s.tnt)} kt TNT`, 565, 305, theme.muted, 15);
+      txt("E = mc² · m kilogrammda olinadi", 400, 365);
+      txt("Bu nazariy to‘liq aylanish ekvivalenti; real qurilmada olinadigan energiya emas", 400, 397, theme.muted, 13);
+      break;
+    }
   }
-  // Telemetriya har bir modeldan haqiqiy hisoblangan sonlarni ko‘rsatadi.
-  const results = config.results.slice(0, 3);
-  results.forEach((r, i) => {
-    const x = 135 + i * 265;
-    txt(c.compactMode && r.label.length > 22 ? r.label.slice(0, 21)+'…' : r.label, x, 445, theme.muted, 11);
-    txt(
-      `${formatResult(r, s[r.key])} ${s[r.key] === null ? "" : r.unit}`,
-      x,
-      471,
-      [O, B, G][i],
-      18,
-    );
-  });
+  // Elektrolizdagi qiymatlar bitta qatorda berilgan; boshqa tajribalar o‘z natijasini saqlaydi.
+  if (config.key !== "electrolysis" && config.key !== "rutherford" && config.key !== "nucleusRadioactivity" && config.key !== "heatEngine" && config.visual !== "waterVapor" && config.visual !== "airHumidity" && config.visual !== "meterRange" && config.visual !== "lampCircuit" && config.visual !== "batteryCircuit" && config.visual !== "centerOfMass" && config.visual !== "barometer" && config.visual !== "transformerInduction" && config.visual !== "xrayTube") {
+    config.results.slice(0, 3).forEach((r, i) => {
+      const x = 135 + i * 265;
+      txt(c.compactMode && r.label.length > 22 ? r.label.slice(0, 21)+'…' : r.label, x, 445, theme.muted, 11);
+      txt(
+        `${formatResult(r, s[r.key])} ${s[r.key] === null ? "" : r.unit}`,
+        x,
+        471,
+        [O, B, G][i],
+        18,
+      );
+    });
+  }
   if (s.warning)
     txt("Model chegarasi: izohni tajriba ostida ko‘ring", 400, 415, R, 13);
 }

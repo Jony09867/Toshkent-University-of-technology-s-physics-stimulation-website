@@ -1,5 +1,6 @@
 import * as physics from "../physics/engine.js";
 import { completeCatalog } from "./catalog-extension.js";
+import { catalogLessons } from "./catalog-lessons.js";
 import { content, paramNames } from "../i18n/uz.js";
 import { renderSimulation } from "../simulations/render.js";
 const P = (key, min, max, step, value, unit, level = 0) => ({
@@ -658,6 +659,7 @@ export function define(key) {
     ...c,
     key,
     ...words,
+    lesson: catalogLessons[key],
     formula: c.formulaLatex,
     levels: Object.fromEntries(
       ["easy", "medium", "hard"].map((l, i) => [

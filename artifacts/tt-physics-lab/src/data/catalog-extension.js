@@ -1,4 +1,6 @@
 import { models } from "../physics/catalog-engine.js";
+import { calculateRutherfordBohr } from "../physics/rutherford-bohr.js";
+import { catalogLessons } from "./catalog-lessons.js";
 import { sectionFor } from "./sections.js";
 import { paramNames, resultNames } from "../i18n/uz.js";
 
@@ -41,10 +43,9 @@ const add = (
     duration: 12,
     series: results.slice(0, 2).map((r) => [r.key, r.unit, r.scale]),
     sweep: params[0].key,
-    description:
-      "Parametrlarni o‘zgartiring, jonli natija va grafikni taqqoslang.",
-    easy: model,
-    medium: model,
+    description: title + ": parametr, natija va fizik bog‘lanishni tajribada tekshiring.",
+    easy: catalogLessons[key] || model,
+    medium: (catalogLessons[key] || "") + " " + model,
     hard: [formulaLatex],
     model,
     engineering:
@@ -633,13 +634,22 @@ add(
     P("current", "Asbobning nominal toki", 0.001, 0.1, 0.001, 0.01, "A"),
   ],
   [
-    R("shunt", "Shunt qarshiligi", "Ω"),
-    R("series", "Ketma-ket qo‘shimcha qarshilik", "Ω"),
-    R("currentLimit", "Yangi tok chegarasi", "A"),
+    R("shunt", "Shunt R", "Ω"),
+    R("series", "Ketma-ket R", "Ω"),
+    R("currentLimit", "Tok chegarasi", "A"),
   ],
-  "Ideal magnitoelektrik asbob: ampermetrga parallel shunt, voltmetrga ketma-ket qarshilik.",
-  "circuit",
+  "Ideal magnitoelektrik asbob: ampermetrga parallel shunt, voltmetrga ketma-ket qarshilik. Asbobning qizishi va zanjirga yuklama ta’siri hisobga olinmaydi.",
+  "meterRange",
 );
+defs.meter.results.push(R("voltageLimit", "Kuchlanish chegarasi", "V"));
+defs.meter.series = [["shunt", "Ω"]];
+defs.meter.sweep = "factor";
+defs.meter.hard = [
+  "I=nI_m=I_m+I_{sh}",
+  "I_mR_m=I_{sh}R_{sh}\\quad\\Rightarrow\\quad R_{sh}=R_m/(n-1)",
+  "U=I_m(R_m+R_q)\\quad\\Rightarrow\\quad R_q=(n-1)R_m",
+];
+defs.meter.task = "Koeffitsiyentni oshiring: shunt qarshiligi kamayishini, ketma-ket qarshilik va o‘lchash chegaralari ortishini kuzating.";
 add(
   "batteries",
   "Tok manbalarini ulash",
@@ -653,13 +663,29 @@ add(
     P("resistance", "Yuk qarshiligi", 1, 100, 1, 10, "Ω"),
   ],
   [
-    R("current", "Tok", "A"),
-    R("emf", "Ekvivalent EYuK", "V"),
+    R("current", "Yuk toki", "A"),
+    R("emf", "Jami EYuK", "V"),
+    R("internal", "Jami ichki R", "Ω"),
     R("voltage", "Yuk kuchlanishi", "V"),
   ],
   "Faqat bir xil EYuK va ichki qarshilikka ega manbalar bir xil qutblar bilan ulanadi.",
-  "circuit",
+  "batteryCircuit",
 );
+defs.batteries.params[0].label = "Ulash turi (0/1)";
+defs.batteries.series = [["current", "A"]];
+defs.batteries.sweep = "count";
+defs.batteries.description = "Manbalar soni va ulanishini o‘zgartiring: yuk toki hamda kuchlanishini solishtiring.";
+defs.batteries.model = "Bir xil EYuK va ichki qarshilikli manbalar to‘g‘ri qutblar bilan ulangan. Manbalar ideal EYuK va doimiy ichki qarshilikdan iborat; zaryad kamayishi, teng bo‘lmagan manbalar orasidagi tenglashtiruvchi tok va qizish dinamikasi hisoblanmaydi.";
+defs.batteries.easy = "Manbalarni ketma-ket ulang: ularning kuchlanishlari qo‘shiladi. Parallel ulang: kuchlanish bitta manbanikidek qoladi, ammo ichki qarshilik kamayadi. Sxemadagi manbalar sonini sanang.";
+defs.batteries.medium = "Ketma-ketda bir xil manbalarning EYuKi nε, ichki qarshiligi nr bo‘ladi. Parallelda EYuK ε, ichki qarshilik r/n bo‘ladi. Har ikkala holatda yuk toki I = ε_eq/(R+r_eq), yuk kuchlanishi U=IR.";
+defs.batteries.hard = [
+  "\\varepsilon_{ket}=n\\varepsilon,\\quad r_{ket}=nr",
+  "\\varepsilon_{par}=\\varepsilon,\\quad r_{par}=r/n",
+  "I=\\frac{\\varepsilon_{eq}}{R+r_{eq}},\\quad U_R=IR",
+  "I\\varepsilon_{eq}=I^2R+I^2r_{eq}",
+];
+defs.batteries.task = "2 va 6 ta manbani avval ketma-ket, keyin parallel ulang. Jami EYuK, ichki qarshilik va yuk toki qanday o‘zgarishini taqqoslang.";
+defs.batteries.example = "Ikkita 1,5 V manba ketma-ketda 3 V EYuK beradi; parallel ulanishda EYuK 1,5 V bo‘lib qoladi, ichki qarshilik esa ikki baravar kamayadi.";
 add(
   "metal",
   "Metall qarshiligining haroratga bog‘liqligi",
@@ -696,13 +722,21 @@ add(
   [100],
   "j=A_RT^2e^{-W/(k_BT)}",
   [
-    P("temperature", "Katod harorati", 500, 2500, 50, 1500, "K"),
+    P("temperature", "Katod harorati", 500, 2500, 50, 2000, "K"),
     P("work", "Chiqish ishi", 1, 6, 0.1, 4.5, "eV"),
   ],
-  [R("density", "Emissiya tok zichligi", "A/m²")],
-  "Richardson–Dushman modeli: emissiya chegaralagan rejim. Fazoviy zaryad va anod kuchlanishi hisobga olinmaydi.",
-  "emission",
+  [
+    R("density", "Emissiya tok zichligi", "A/m²"),
+    R("charge", "Birlik yuzadan o‘tgan zaryad", "C/m²"),
+  ],
+  "Richardson–Dushman modeli: qizdirilgan katoddan elektronlar chiqadi. Anod musbat va tok emissiya bilan cheklangan deb olingan; fazoviy zaryad va anod kuchlanishi hisobga olinmaydi. Elektronlarning chizmadagi tezligi sxematik.",
+  "thermionic",
+  false,
 );
+defs.thermionic.duration = 8;
+defs.thermionic.series = [["charge", "C/m²"]];
+defs.thermionic.description =
+  "Katodni qizdiring: elektronlar vakuumga chiqadi. Chizmadagi harakat tezligi sxematik, zaryad hisobi esa fizik vaqtga bog‘liq.";
 add(
   "electrolysis",
   "Suyuqliklarda tok va elektroliz",
@@ -724,13 +758,25 @@ add(
   [102],
   "E=U/d",
   [
-    P("voltage", "Kuchlanish", 0, 30, 0.5, 10, "kV"),
+    P("voltage", "Kuchlanish", 0, 30, 0.5, 20, "kV"),
     P("gap", "Elektrodlar oralig‘i", 1, 20, 0.5, 5, "mm"),
   ],
-  [R("field", "Maydon", "V/m"), R("breakdown", "Teshilish: 0 yo‘q, 1 bor")],
-  "Oddiy atmosfera havosi uchun 3 MV/m taxminiy chegara. Bu Paschen qonunining to‘liq modeli emas.",
-  "emission",
+  [
+    R("field", "Elektr maydon", "MV/m", 1e-6),
+    R("thresholdVoltage", "Teshilish chegarasi", "kV"),
+    R("breakdown", "Razryad: 0 yo‘q, 1 bor"),
+  ],
+  "Oddiy atmosfera havosi uchun E≈3 MV/m taxminiy teshilish chegarasi. Bu Paschen qonunining to‘liq modeli emas; animatsiyadagi zarracha tezligi va vaqt masshtabi sxematik.",
+  "gasDischarge",
+  false,
 );
+defs.discharge.duration = 6;
+defs.discharge.series = [["field", "MV/m", 1e-6]];
+defs.discharge.description =
+  "Kuchlanish va elektrodlar oralig‘ini o‘zgartiring. Maydon taxminiy chegaradan oshsa, gazda razryad paydo bo‘ladi.";
+defs.discharge.hard = ["E=U/d", "U_{krit}\\approx E_{krit}d"];
+defs.discharge.task =
+  "Kuchlanishni yoki oraliqni o‘zgartirib, E = 3 MV/m chegarasining ikki tomonini solishtiring.";
 add(
   "magnetic",
   "Tokli simning magnit maydoni",
@@ -906,7 +952,7 @@ add(
   "Yorug‘likning qutblanishi",
   [134],
   "I=I_0\\cos^2\\theta",
-  [angle(30), P("intensity", "Kirish intensivligi", 0, 100, 1, 100, "W/m²")],
+  [P("angle", "Analizator burchagi", 0, 180, 1, 30, "°"), P("intensity", "Qutblangan nur intensivligi", 0, 100, 1, 100, "W/m²")],
   [
     R("intensity", "Chiqish intensivligi", "W/m²"),
     R("fraction", "O‘tgan ulush"),
@@ -922,8 +968,8 @@ add(
   [
     P("beta", "Tezlikning c ga nisbati", 0, 0.99, 0.01, 0.5),
     P("interval", "Xususiy vaqt", 0.1, 10, 0.1, 1, "s"),
-    length(),
-    mass(),
+    P("length", "Tinch holatdagi uzunlik", 0.1, 3, 0.1, 1, "m"),
+    P("m", "Tinchlik massasi", 0.1, 20, 0.1, 2, "kg"),
   ],
   [
     R("gamma", "Lorens koeffitsiyenti"),
@@ -1000,22 +1046,40 @@ add(
 
 add(
   "rutherford",
-  "Rezerford tajribasi",
+  "Rezerford tajribasi va Bor postulatlari",
   [141],
   "\\theta=2\\arctan(kZze^2/(2Eb))",
   [
     P("energy", "Alfa-zarracha energiyasi", 1, 10, 0.1, 5, "MeV"),
     P("impact", "Nishonlash masofasi", 0, 100, 1, 20, "fm"),
     P("z", "Yadro zaryad soni", 1, 100, 1, 79),
+    P("upper", "Bor: yuqori sath n", 3, 6, 1, 3),
   ],
   [
     R("angle", "Sochilish burchagi", "°"),
     R("closest", "Eng yaqin masofa", "fm", 1e15),
-    R("headOn", "Peshma-pesh qaytish masofasi", "fm", 1e15),
+    R("distance", "Alfa–yadro masofasi", "fm"),
+    R("wavelength", "Vodorod spektr chizig‘i", "nm", 1e9),
   ],
-  "Nuqtaviy, qo‘zg‘almas yadro va alfa-zarracha (z=2). Klassik Kulon sochilishi; yadro ichiga kirish va kvant ta’sirlar yo‘q. Borning atom modelini spektrlar tajribasida o‘rganing.",
+  "Chapda qo‘zg‘almas, nuqtaviy yadrodan alfa-zarrachaning klassik Kulon sochilishi; yo‘l cheklangan masofagacha chiziladi, burchak esa cheksizlikdagi asimptotik yo‘nalishlar orasida o‘lchanadi. O‘ngda alohida vodorod atomining tarixiy Bor modeli: n→2 o‘tishda foton chiqadi. Bu ikkita turli fizik tajriba; yadro ichiga kirish, kvant sochilishi va elektron ehtimol buluti hisoblanmaydi.",
   "scattering",
+  false,
 );
+defs.rutherford.calculate = calculateRutherfordBohr;
+defs.rutherford.timeScale = 2e-20;
+defs.rutherford.duration = 1e-18;
+defs.rutherford.series = [["distance", "fm"]];
+defs.rutherford.description = "Alfa-zarrachaning yadro yonidan og‘ishini va vodorod spektr chizig‘ini kuzating.";
+defs.rutherford.easy = "Chapda alfa-zarracha musbat yadrodan itarilib egri yo‘l bo‘ylab o‘tadi. Yaqinroq yo‘l ko‘proq og‘ishga olib keladi. O‘ngda vodorod elektroni faqat ruxsat etilgan sathlarda bo‘ladi; yuqoridan n=2 ga tushganda aniq rangli foton chiqaradi.";
+defs.rutherford.medium = "Rezerford sochilishida boshlang‘ich energiya va nishonlash masofasi burchakni belgilaydi. Bor modelida elektron ruxsat etilgan sathda nurlanmaydi; n→2 o‘tishida energiyalar farqi hν bo‘lgan foton chiqadi. Chapdagi og‘ir yadro va o‘ngdagi vodorod atomi bir xil nishon emas.";
+defs.rutherford.hard = [
+  "a=k(2Ze^2)/(2E),\\quad \\theta=2\\arctan(a/b)",
+  "r_{min}=a+\\sqrt{a^2+b^2}",
+  "E_n=-13.6/n^2\\;\\mathrm{eV}\\quad (\\mathrm{H})",
+  "h\\nu=E_n-E_2,\\quad \\lambda=hc/(E_n-E_2)",
+];
+defs.rutherford.task = "Nishonlash masofasini 20 fm dan 0 fm ga tushiring: alfa-zarracha orqaga qaytishini kuzating. Keyin Bor sathini 3 dan 4 ga o‘zgartirib spektr chizig‘ini solishtiring.";
+defs.rutherford.engineering = "Sochilish tajribalari yadro tuzilishini, atom spektri esa ruxsat etilgan energiya sathlarini aniqlashga yordam beradi. Bu sahifada ular ikki alohida model sifatida berilgan.";
 
 export function completeCatalog(configs) {
   // Oldindan boshlangan modullarni tugatish: mavzu va birliklar mosligini tuzatish.
@@ -1233,7 +1297,9 @@ export function completeCatalog(configs) {
       c.params.forEach((p) => (p.level = 0));
     }
     if (key === "massEnergy") {
-      c.results.forEach((r) => (r.scale = 1));
+      c.results.find((r) => r.key === "joules").scale = 1;
+      c.results.find((r) => r.key === "tnt").scale = 1;
+      c.results.find((r) => r.key === "tnt").unit = "kt";
     }
     if (key === "decay") {
       c.params.find((p) => p.key === "halfLife").unit = "s";
@@ -1288,6 +1354,10 @@ export function completeCatalog(configs) {
   configs.spring.topicNumbers.push(49, 52);
   configs.gas.topicNumbers.push(57);
   for (const c of Object.values(configs)) {
+    if (catalogLessons[c.key] && !["batteries", "rutherford"].includes(c.key)) {
+      c.easy = catalogLessons[c.key];
+      c.medium = catalogLessons[c.key] + " " + c.model;
+    }
     for (const p of c.params) {
       p.label ||= paramNames[p.key] || p.key;
     }

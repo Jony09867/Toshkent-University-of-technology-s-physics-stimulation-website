@@ -1,5 +1,24 @@
+import { coachMarkup, mountExperimentCoach } from "./components/ExperimentCoach.js";
+import "./components/ExperimentCoach.css";
+import { liveEquation } from "./components/LiveEquation.js";
+import { everydayExamples, engineeringUses } from "./data/real-world.js";
 import { uz, paramNames, resultNames } from "./i18n/uz.js";
 import { allConfigs, defaults } from "./data/configs.js";
+import { topicNavigation } from "./data/topic-navigation.js";
+import { nuclearReactionVariant } from "./data/nuclear-reaction.js";
+import { nuclearBindingVariant } from "./data/nuclear-binding.js";
+import { nucleusRadioactivityVariant } from "./data/nucleus-radioactivity.js";
+import { bohrSpectraVariant } from "./data/bohr-spectra.js";
+import { centerOfMassVariant } from "./data/center-of-mass.js";
+import { atmospherePressureVariant } from "./data/atmosphere-pressure.js";
+import { heatEngineCycleVariant } from "./data/heat-engine-cycle.js";
+import { transformerInductionVariant } from "./data/transformer-induction.js";
+import { xrayTubeVariant } from "./data/xray-tube.js";
+import { photoelectricVariant } from "./data/photoelectric.js";
+import { waterVaporVariant } from "./data/water-vapor.js";
+import { airHumidityVariant } from "./data/air-humidity.js";
+import { lampCircuitVariant } from "./data/lamp-circuit.js";
+import { isTopicCompleted, isConfigCompleted, isCurrentCompleted, toggleCompletion } from "./data/completion.js";
 import { sections, sectionFor } from "./data/sections.js";
 import { icon } from "./components/icons.js";
 import { formula } from "./components/FormulaDisplay.js";
@@ -10,7 +29,6 @@ import { SimulationCanvas } from "./components/SimulationCanvas.js";
 import { LiveChart } from "./components/LiveChart.js";
 import { attachBorderGlow } from "./components/BorderGlow.js";
 import { attachMagnet } from "./components/Magnet.jsx";
-import { mountHomeExperience } from "./components/HomeExperience.jsx";
 import "./components/BorderGlow.css";
 import "./components/FloatingLines.css";
 import { mountVirtualInstruments } from "./components/VirtualInstruments.js";
@@ -124,6 +142,45 @@ const resultLabel = (c, key) => c.results.find(r => r.key === key)?.label || res
 function topicConfig(c, number) {
   const topic = topics.find(t => t.number === Number(number) && t.sim?.key === c.key);
   if (!topic) return c;
+  if (c.key === "vapor" && topic.number === 66) {
+    return { ...waterVaporVariant(c), topicNumber: topic.number, topicTitle: topic.title, topicNotes: topic.notes };
+  }
+  if (c.key === "vapor" && topic.number === 67) {
+    return { ...airHumidityVariant(c), topicNumber: topic.number, topicTitle: topic.title, topicNotes: topic.notes };
+  }
+  if (c.key === "binding" && topic.number === 145) {
+    return { ...nuclearReactionVariant(c), topicNumber: topic.number, topicTitle: topic.title, topicNotes: topic.notes };
+  }
+  if (c.key === "binding" && topic.number === 144) {
+    return { ...nuclearBindingVariant(c), topicNumber: topic.number, topicTitle: topic.title, topicNotes: topic.notes };
+  }
+  if (c.key === "binding" && topic.number === 142) {
+    return { ...nucleusRadioactivityVariant(c), topicNumber: topic.number, topicTitle: topic.title, topicNotes: topic.notes };
+  }
+  if (c.key === "bohr" && topic.number === 137) {
+    return { ...bohrSpectraVariant(c), topicNumber: topic.number, topicTitle: topic.title, topicNotes: topic.notes };
+  }
+  if (c.key === "lever" && topic.number === 30) {
+    return { ...centerOfMassVariant(c), title: topic.title, topicNumber: topic.number, topicTitle: topic.title, topicNotes: topic.notes };
+  }
+  if (c.key === "pressure" && topic.number === 45) {
+    return { ...atmospherePressureVariant(c), title: topic.title, topicNumber: topic.number, topicTitle: topic.title, topicNotes: topic.notes };
+  }
+  if (c.key === "heatEngine" && topic.number === 76) {
+    return { ...heatEngineCycleVariant(c), title: topic.title, topicNumber: topic.number, topicTitle: topic.title, topicNotes: topic.notes };
+  }
+  if (c.key === "transformer" && topic.number === 120) {
+    return { ...transformerInductionVariant(c), title: topic.title, topicNumber: topic.number, topicTitle: topic.title, topicNotes: topic.notes };
+  }
+  if (c.key === "xray" && topic.number === 139) {
+    return { ...xrayTubeVariant(c), title: topic.title, topicNumber: topic.number, topicTitle: topic.title, topicNotes: topic.notes };
+  }
+  if (c.key === "photoelectric" && topic.number === 140) {
+    return { ...photoelectricVariant(c), title: topic.title, topicNumber: topic.number, topicTitle: topic.title, topicNotes: topic.notes };
+  }
+  if (c.key === "network" && topic.number === 95) {
+    return { ...lampCircuitVariant(c), topicNumber: topic.number, topicTitle: topic.title, topicNotes: topic.notes };
+  }
   // Birgalikdagi laboratoriyada tanlangan mavzuga mos boshlang‘ich rejim ochiladi.
   const mode = {116:0,117:1,118:2,119:3,95:1}[topic.number];
   const initial = {...c.defaults};
@@ -343,7 +400,7 @@ function artwork(key) {
   return `<svg class="sim-art" viewBox="0 0 320 154" aria-hidden="true">${art}</svg>`;
 }
 function card(c, index = 0, featured = false) {
-  return `<a class="sim-card${featured ? " electric-card" : ""}" href="${simLink(c)}"><div class="sim-card-visual tint-${index % 4}"><span class="mini-index">${String(allConfigs.indexOf(c) + 1).padStart(2, "0")} / ${uz.experimentLabel}</span>${artwork(c.key)}<span class="ready-tag"><i></i>${uz.ready}</span></div><div class="sim-card-body"><span class="card-category">${sectionName(c.section)}</span><h3>${c.title}</h3><p>${c.description}</p><div class="card-foot"><span class="small-formula">${formula(c.formulaLatex)}</span><span class="card-arrow">${icon("arrow")}</span></div></div></a>`;
+  return `<a class="sim-card${featured ? " electric-card" : ""}" href="${simLink(c)}"><div class="sim-card-visual tint-${index % 4}"><span class="mini-index">${String(allConfigs.indexOf(c) + 1).padStart(2, "0")} / ${uz.experimentLabel}</span>${artwork(c.key)}<span class="ready-tag"><i></i>${uz.ready}</span></div><div class="sim-card-body"><span class="card-category">${sectionName(c.section)}</span><h3>${c.title}</h3><p>${c.key === "electrolysis" ? "Tok kuchi va vaqt ajralgan modda miqdoriga qanday ta’sir qilishini kuzating." : c.description}</p><div class="card-foot"><span class="small-formula">${formula(c.formulaLatex)}</span><span class="card-arrow">${icon("arrow")}</span></div></div></a>`;
 }
 function sectionCards() {
   return sections
@@ -354,7 +411,7 @@ function sectionCards() {
     })
     .join("");
 }
-function home() {
+async function home(generation) {
   const newton = allConfigs.find((c) => c.key === "newton");
   const featuredKeys = ["newton", "projectile", "spring", "energy", "ohm", "lens"];
   const stories = [
@@ -396,7 +453,7 @@ function home() {
   });
 
   shell(`<div id="linear-home-root"></div>`);
-  cleanup = mountHomeExperience(document.querySelector("#linear-home-root"), {
+  const homeProps = {
     copy: {
       heroTitle: uz.heroTitle,
       heroAccent: uz.heroAccent,
@@ -425,7 +482,17 @@ function home() {
     featuredCardsHtml: featuredKeys
       .map((key, index) => card(allConfigs.find((item) => item.key === key), index, false))
       .join(""),
-  });
+  };
+  try {
+    const { mountHomeExperience } = await import("./components/HomeExperience.jsx");
+    if (generation !== routeGeneration) return;
+    cleanup = mountHomeExperience(document.querySelector("#linear-home-root"), homeProps);
+  } catch (error) {
+    console.error("Bosh sahifa yuklanmadi:", error);
+    if (generation === routeGeneration) {
+      shell(`<section class="container page-heading"><h1>Sahifa yuklanmadi</h1><p>Qayta yuklab ko‘ring.</p><a class="button primary" href="#/topics">Mavzularga o‘tish</a></section>`, "home");
+    }
+  }
 }
 function catalog(query) {
   const filter = new URLSearchParams(query),
@@ -470,7 +537,7 @@ function catalog(query) {
     document.querySelector("#search-count").textContent =
       `${found.length} ${uz.topics}`;
     document.querySelector("#catalog-results").innerHTML = found.length
-      ? `<div class="topic-list">${found.map((t) => `<a class="topic-row" href="${t.sim ? simLink(t.sim, t.number) : "#/topic/" + t.number}"><span class="topic-number">${String(t.number).padStart(2, "0")}</span><span class="topic-row-icon">${icon(t.sim?.icon || sections.find((s) => s.id === t.section).icon)}</span><div><span class="card-category">${sectionName(t.section)}</span><h3>${escape(t.title)}</h3></div><span class="status ${t.sim ? "available" : ""}">${t.sim ? (completed.has(t.sim.id) ? uz.completed : uz.ready) : uz.soon}</span>${icon("chevron")}</a>`).join("")}</div>`
+      ? `<div class="topic-list">${found.map((t) => `<a class="topic-row" href="${t.sim ? simLink(t.sim, t.number) : "#/topic/" + t.number}"><span class="topic-number">${String(t.number).padStart(2, "0")}</span><span class="topic-row-icon">${icon(t.sim?.icon || sections.find((s) => s.id === t.section).icon)}</span><div><span class="card-category">${sectionName(t.section)}</span><h3>${escape(t.title)}</h3></div><span class="status ${t.sim ? "available" : ""}">${t.sim ? (isTopicCompleted(t, completed) ? uz.completed : uz.ready) : uz.soon}</span>${icon("chevron")}</a>`).join("")}</div>`
       : `<div class="empty-state">${icon("search")}<h2>${uz.noResults}</h2><p>${uz.trySearch}</p><button class="button secondary" id="clear-search">${uz.clearFilters}</button></div>`;
     document.querySelector("#clear-search")?.addEventListener("click", () => {
       document.querySelector("#catalog-search").value = "";
@@ -517,24 +584,6 @@ const experimentFocus = {
   lens: "object",
 };
 
-const everydayExamples = {
-  motion: "Shahar velosipedi odatda 5–8 m/s, yengil avtomobil esa 14–28 m/s tezlikda yuradi.",
-  fall: "Oddiy stol balandligi taxminan 0.75 m; 20 m esa olti qavatli bino balandligiga yaqin.",
-  newton: "20 N kuch taxminan 2 kg yukning Yerda og‘irligiga teng.",
-  friction: "Muzda μ ≈ 0.03, yog‘ochda ≈ 0.2, quruq asfaltda ≈ 0.7 bo‘lishi mumkin.",
-  projectile: "Futbol to‘pi taxminan 0.43 kg; kuchli zarbada uning tezligi 20–30 m/s ga yetadi.",
-  energy: "2 kg jismni 3 m balandlikka ko‘tarish uchun taxminan 59 J energiya kerak.",
-  spring: "Avtomobil osmasida qattiqroq prujina tezroq, ammo kichikroq tebranish beradi.",
-  resonance: "Binolar, ko‘priklar va mexanizmlarda ish chastotasi rezonansdan uzoq tanlanadi.",
-  buoyancy: "Suv zichligi 1000 kg/m³, yog‘niki taxminan 900 kg/m³.",
-  gas: "Xona harorati taxminan 293–298 K, avtomobil shinasida bosim odatda 200–250 kPa.",
-  coulomb: "Mikrokulon diapazoni elektrostatik tajribalar uchun mos, kundalik jismlarda esa zaryad ko‘pincha kichikroq.",
-  ohm: "Telefon USB manbasi 5 V; kichik LED zanjirlarida tok ko‘pincha 0.01–0.02 A bo‘ladi.",
-  circuit: "Haqiqiy batareyada ichki qarshilik yuk oshganda klemmadagi kuchlanishni pasaytiradi.",
-  induction: "Velosiped dinamosi va generatorlarda magnit oqimining o‘zgarishi kuchlanish hosil qiladi.",
-  lens: "Telefon kamerasi fokus masofasi millimetrlar, o‘quv linzalariniki esa odatda santimetrlar diapazonida.",
-};
-
 const experimentTools = (c, params) => {
   const focus =
       params.find((param) => param.key === experimentFocus[c.key]) || params[0],
@@ -561,51 +610,7 @@ const experimentTools = (c, params) => {
               : ""
     }</div>`;
   }
-  return `<section class="lab-tools" aria-label="Tajriba yordamchilari"><div class="lab-tool preset-tool"><div><span class="eyebrow orange">TAYYOR HOLATLAR</span><p>${focus ? `${focus.label} uchun tez sozlamalar` : "Tayyor sozlamalar"}</p></div><div class="tool-actions">${presets.map(([label, value]) => `<button type="button" class="tool-chip" data-preset-key="${focus.key}" data-preset-value="${value}">${label}</button>`).join("")}</div></div><div class="lab-tool prediction-tool"><div><span class="eyebrow">AVVAL TAXMIN QILING</span><p>${resultLabel(c, c.results[0]?.key)} qanday o‘zgaradi?</p></div><div class="tool-actions"><button type="button" class="tool-chip" data-prediction="up">Ortadi</button><button type="button" class="tool-chip" data-prediction="down">Kamayadi</button><button type="button" class="tool-chip" data-prediction="same">O‘zgarmaydi</button></div><strong id="prediction-feedback" class="tool-feedback" aria-live="polite"></strong>${predictionInsight}</div><div class="lab-tool compare-tool"><div><span class="eyebrow">SOLISHTIRISH</span><p>Joriy natija va grafikni saqlang</p></div><div class="tool-actions"><button type="button" class="tool-chip active" id="save-snapshot">+ Natijani saqlash</button><button type="button" class="tool-chip" id="clear-snapshots">Tozalash</button></div><div id="snapshot-list" class="snapshot-list" aria-live="polite"></div></div><div class="lab-tool real-example"><span class="eyebrow">REAL HAYOTDA</span><p>${(everydayExamples[c.key] || c.example)}</p><strong id="auto-insight" class="tool-feedback" aria-live="polite">Parametrni o‘zgartiring — xulosa shu yerda chiqadi.</strong></div></section>`;
-};
-
-const liveEquation = (c, p, state, t) => {
-  const n = (value) => format(value);
-  switch (c.key) {
-    case "motion":
-      return `x = ${n(p.x0)} + ${n(p.v0)}·${n(t)} + ½·${n(p.a)}·${n(t)}² = ${n(state.x)} m`;
-    case "fall":
-      return p.drag > 0
-        ? `b/m = ${n(p.drag / p.m)} s⁻¹ · x = ${n(state.x)} m · y = ${n(state.y)} m`
-        : `x = v₀t = ${n(p.v0)}·${n(t)} = ${n(state.x)} m`;
-    case "newton":
-      return `a = Fₙₑₜ/m = ${n(state.net)}/${n(p.m)} = ${n(state.a)} m/s²`;
-    case "friction":
-      return `Fᵢ = μN = ${n(p.mu)}·${n(p.normal)} = ${n(state.maxFriction)} N`;
-    case "projectile":
-      return p.drag > 0
-        ? `b/m = ${n(p.drag / p.m)} s⁻¹ · x = ${n(state.x)} m · y = ${n(state.y)} m`
-        : `x(t) = v₀ cos(α)t = ${n(state.x)} m · y(t) = ${n(state.y)} m`;
-    case "energy":
-      return `Eₖ + Eₚ${p.friction ? " + Q" : ""} = ${n(state.kinetic)} + ${n(state.potential)}${p.friction ? ` + ${n(state.heat)}` : ""} = ${n(state.initial)} J`;
-    case "spring":
-      return p.damping > 0
-        ? `ωd = √(k/m − β²) = ${n(state.omega)} rad/s · T = ${n(state.period)} s`
-        : `T = 2π√(m/k) = 2π√(${n(p.m)}/${n(p.k)}) = ${n(state.period)} s`;
-    case "resonance":
-      return `A(ω = ${n(p.frequency)}) = ${n(state.amplitude)} m`;
-    case "buoyancy":
-      return `Fₐ = ρgV = ${n(state.force)} N · mg = ${n(state.weight)} N`;
-    case "gas":
-      return `p = nRT/V = ${n(state.pressure * 0.001)} kPa`;
-    case "coulomb":
-      return `|F| = k|q₁q₂|/r² = ${n(state.force)} N`;
-    case "ohm":
-      return `I = U/R = ${n(p.voltage)}/${n(p.resistance)} = ${n(state.current)} A`;
-    case "circuit":
-      return `I = ε/(R+r) = ${n(p.emf)}/(${n(p.resistance)}+${n(p.internal)}) = ${n(state.current)} A`;
-    case "induction":
-      return `ε(t) = −N·dΦ/dt = ${n(state.emf)} V`;
-    case "lens":
-      return `1/F = 1/d + 1/f → f = ${n(state.image)} m`;
-    default:
-      return c.results.slice(0, 3).map(r => `${resultLabel(c, r.key)} = ${formatResult(r, state[r.key])}${state[r.key] === null ? '' : ' ' + r.unit}`).join(' · ');
-  }
+  return `<section class="lab-tools" aria-label="Tajriba yordamchilari"><div class="lab-tool preset-tool"><div><span class="eyebrow orange">TAYYOR HOLATLAR</span><p>${focus ? `${focus.label} uchun tez sozlamalar` : "Tayyor sozlamalar"}</p></div><div class="tool-actions">${presets.map(([label, value]) => `<button type="button" class="tool-chip" data-preset-key="${focus.key}" data-preset-value="${value}">${label}</button>`).join("")}</div></div><div class="lab-tool prediction-tool"><div><span class="eyebrow">AVVAL TAXMIN QILING</span><p>${resultLabel(c, c.results[0]?.key)} qanday o‘zgaradi?</p></div><div class="tool-actions"><button type="button" class="tool-chip" data-prediction="up">Ortadi</button><button type="button" class="tool-chip" data-prediction="down">Kamayadi</button><button type="button" class="tool-chip" data-prediction="same">O‘zgarmaydi</button></div><strong id="prediction-feedback" class="tool-feedback" aria-live="polite"></strong>${predictionInsight}</div><div class="lab-tool compare-tool"><div><span class="eyebrow">SOLISHTIRISH</span><p>Joriy natija va grafikni saqlang</p></div><div class="tool-actions"><button type="button" class="tool-chip active" id="save-snapshot">+ Natijani saqlash</button><button type="button" class="tool-chip" id="clear-snapshots">Tozalash</button></div><div id="snapshot-list" class="snapshot-list" aria-live="polite"></div></div><div class="lab-tool real-example"><span class="eyebrow">REAL HAYOTDA</span><p>${(c.visual === "lampCircuit" ? c.example : everydayExamples[c.key] || c.example)}</p><strong id="auto-insight" class="tool-feedback" aria-live="polite">Parametrni o‘zgartiring — xulosa shu yerda chiqadi.</strong></div></section>`;
 };
 
 function simPage(config, level = 0) {
@@ -639,14 +644,22 @@ function simPage(config, level = 0) {
     disposed = false,
     levelSwitching = false;
   const c = config,
-    params = c.params.filter((p) => p.level <= level),
-    index = allConfigs.indexOf(allConfigs.find((s) => s.id === c.id));
-  const guideStart = { p: { ...p }, result: state[c.results[0]?.key] },
+    params = c.params.filter((p) => p.level <= level);
+  const navigation = topicNavigation(c, topics, allConfigs);
+  const previousControl = navigation.previous
+    ? `<a class="button secondary" href="${navigation.previous}">← ${uz.previous}</a>`
+    : `<span class="button secondary" aria-disabled="true">← ${uz.previous}</span>`;
+  const nextControl = navigation.next
+    ? `<a class="button secondary" href="${navigation.next}">${uz.next} →</a>`
+    : `<span class="button secondary" aria-disabled="true">${uz.next} →</span>`;
+  const comparisonTime = c.static ? 0 : Math.min(c.duration, c.timeScale || 1);
+  const guideStart = { p: { ...p }, result: c.calculate(p, comparisonTime)[c.results[0]?.key] },
     guideParam =
       params.find((param) => param.key === experimentFocus[c.key]) || params[0],
     guideResult = c.results[0];
+  let comparisonResult = guideStart.result;
   let prediction = null,
-    predictionBaseline = Number(guideStart.result),
+    predictionBaseline = guideStart.result,
     predictionParams = { ...p };
   const extras =
     c.key === "friction"
@@ -657,12 +670,14 @@ function simPage(config, level = 0) {
           ? `<label class="toggle-label"><input id="friction-toggle" type="checkbox">${uz.frictionToggle}</label>`
           : "";
   const chartVisible = Boolean(c.series?.length);
-  const stepLabel = format(0.1 * (c.timeScale || 1));
+  const stepLabel = c.key === "rutherford"
+    ? (0.1 * c.timeScale).toExponential(1)
+    : format(0.1 * (c.timeScale || 1));
   // Static models have no time axis: they must not expose a play/pause control
   // at all, and the explanation replaces the transport row.
   const transport = c.static
     ? `<div class="static-model-note" role="note">${icon("help")}<span>${uz.staticModel}</span></div>`
-    : `<div class="transport"><div><button type="button" class="icon-button" id="play" aria-label="${playing ? uz.pause : uz.play}">${icon(playing ? "pause" : "play")}</button><button type="button" class="icon-button" id="reset" aria-label="${uz.reset}">${icon("reset")}</button><button type="button" class="time-step" id="step-back" aria-label="${stepLabel} soniya orqaga">−${stepLabel}</button><button type="button" class="time-step" id="step-forward" aria-label="${stepLabel} soniya oldinga">+${stepLabel}</button><span class="time-display">t = <b id="sim-time">${format(t)}</b> s</span></div><div>${c.key === "projectile" ? `<button type="button" id="save-trail" class="subtle-button">+ ${uz.saveTrail}</button><button type="button" id="clear-trail" class="icon-button" aria-label="${uz.clearTrail}">${icon("close")}</button>` : ""}<label class="speed-control"><span>${uz.speed}</span><select id="sim-speed" aria-label="${uz.animationSpeed}"><option value="0.1">0.1×</option><option value="0.25">0.25×</option><option value="0.5">0.5×</option><option value="1">1×</option><option value="2">2×</option></select></label></div></div>${c.timeScale ? `<p class="static-model-note">Animatsiya vaqti koeffitsiyenti: ${c.timeScale} · t fizik vaqtni ko‘rsatadi. Qadam: ${format(0.1*c.timeScale)} s.</p>` : ""}<label class="time-scrubber"><span>${uz.timeline}</span><input id="timeline" type="range" min="0" max="${c.duration}" step="any" value="${t}" aria-label="${uz.timeline}"></label>`;
+    : `<div class="transport"><div><button type="button" class="icon-button" id="play" aria-label="${playing ? uz.pause : uz.play}">${icon(playing ? "pause" : "play")}</button><button type="button" class="icon-button" id="reset" aria-label="${uz.reset}">${icon("reset")}</button><button type="button" class="time-step" id="step-back" aria-label="${stepLabel} soniya orqaga">−${stepLabel}</button><button type="button" class="time-step" id="step-forward" aria-label="${stepLabel} soniya oldinga">+${stepLabel}</button><span class="time-display">t = <b id="sim-time">${format(t)}</b> s</span></div><div>${c.key === "projectile" ? `<button type="button" id="save-trail" class="subtle-button">+ ${uz.saveTrail}</button><button type="button" id="clear-trail" class="icon-button" aria-label="${uz.clearTrail}">${icon("close")}</button>` : ""}<label class="speed-control"><span>${uz.speed}</span><select id="sim-speed" aria-label="${uz.animationSpeed}"><option value="0.1">0.1×</option><option value="0.25">0.25×</option><option value="0.5">0.5×</option><option value="1">1×</option><option value="2">2×</option></select></label></div></div>${c.timeScale ? `<p class="static-model-note">Animatsiya vaqti koeffitsiyenti: ${c.timeScale} · t fizik vaqtni ko‘rsatadi. Qadam: ${stepLabel} s.</p>` : ""}<label class="time-scrubber"><span>${uz.timeline}</span><input id="timeline" type="range" min="0" max="${c.duration}" step="any" value="${t}" aria-label="${uz.timeline}"></label>`;
   // The energy model swaps its banner when friction is on, so the formula has to
   // follow the live (or restored) state instead of the static config.
   const mainFormula = () =>
@@ -677,7 +692,7 @@ function simPage(config, level = 0) {
       true,
     );
   shell(
-    `<div class="container sim-page"><div class="breadcrumb"><a href="#/topics">${uz.nav[1]}</a><span>/</span><a href="#/topics?section=${c.section}">${sectionName(c.section)}</a><span>/</span><span>${c.title}</span></div><div class="sim-title-row"><div><span class="eyebrow orange">${uz.experimentLabel} ${String(index + 1).padStart(2, "0")} / ${sectionName(c.section).toUpperCase()}</span><h1>${escape(c.topicTitle || c.title)}</h1><p>${c.description}</p>${c.topicTitle && c.topicTitle !== c.title ? `<p class="model-note">Umumiy laboratoriya: ${c.title}</p>` : ""}</div><button type="button" class="icon-button help-button" aria-label="${uz.help}">${icon("help")}</button></div><div class="formula-banner"><div id="main-formula">${mainFormula()}</div><span>SI · ${uz.levels[level]}</span></div><section class="live-calculation" aria-live="polite"><span>${uz.liveCalculation}</span><strong id="live-equation">${liveEquation(c, p, state, t)}</strong></section>${levelTabs(level)}<div id="experiment-panel" role="tabpanel" aria-labelledby="level-${level}"><div class="experiment-layout"><section class="experiment-card engineering-console"><div class="panel-header"><h2>${icon("grid")}${uz.experiment}</h2><span class="live-label"><i></i>${uz.live}</span></div><div class="engineering-console-grid"><div class="simulation-stage"><div id="safeguard-banner" class="safeguard-banner" hidden role="alert"></div><canvas id="sim-canvas" role="img" aria-label="${uz.canvasLabel}: ${c.title}"></canvas>${transport}<div class="vector-legend">${legendFor(c)}<span id="sim-notice" role="status"></span></div></div><aside class="telemetry-panel"><div class="telemetry-heading"><div><span>${uz.chart}</span><strong>${c.static ? uz.relationsLabel : uz.timeRelationsLabel}</strong></div><small>LIVE · SI</small></div><div id="charts" class="charts-grid telemetry-charts"></div><div class="telemetry-results">${c.results.map((r) => `<div><span>${resultLabel(c, r.key)}</span><p><strong data-telemetry-result="${r.key}">${formatResult(r, state[r.key])}</strong><small data-telemetry-unit${formatResult(r, state[r.key]) === NO_VALUE ? " hidden" : ""}>${r.unit}</small></p></div>`).join("")}<p id="result-status" class="result-status telemetry-status" role="status"></p></div></aside></div></section><aside class="controls-card"><div class="panel-header"><h2>${uz.parameters}</h2><span>${params.length}</span></div><section class="experiment-guide"><div><span class="eyebrow orange">${uz.experimentTask}</span><p>${(experimentTasks[c.key] || c.task)}</p></div><ol><li data-guide-step="change"><i></i>${guideParam.label || paramNames[guideParam.key] || guideParam.key}: ${uz.changeParameter}</li><li data-guide-step="observe"><i></i>${uz.observeMotion}</li><li data-guide-step="compare"><i></i>${resultLabel(c, guideResult.key)}: ${uz.compareResult}</li></ol></section>${extras}<div class="parameter-stack">${params.map((param) => parameterSlider(param, p[param.key])).join("")}</div><div class="controls-note">${icon("help")}<span>${(experimentTasks[c.key] || c.task)}</span></div></aside></div>${experimentTools(c, params)}<div class="learning-grid"><section class="learning-card"><span class="section-icon">${icon("book")}</span><h2>${level === 2 ? uz.derivation : uz.explanation}</h2>${level === 2 ? `<ol class="derivation">${c.hard.map((s) => `<li>${formula(s, true)}</li>`).join("")}</ol>` : `<p>${level === 0 ? c.easy : c.medium}</p>`}</section><section class="learning-card engineering"><span class="section-icon">${icon("force")}</span><span class="eyebrow">${uz.engineeringLabel}</span><h2>${uz.engineering}</h2><p>${c.engineering}</p></section></div><details class="model-note"><summary>${uz.model}</summary><p>${c.model}</p></details></div><div class="sim-navigation"><a class="button secondary" href="${simLink(allConfigs[(index - 1 + allConfigs.length) % allConfigs.length])}">← ${uz.previous}</a><button type="button" id="complete" class="button ${completed.has(c.id) ? "completed" : "primary"}">${icon("check")}${completed.has(c.id) ? uz.completed : uz.complete}</button><a class="button secondary" href="${simLink(allConfigs[(index + 1) % allConfigs.length])}">${uz.next} →</a></div><a class="text-link back-link" href="#/topics">${icon("grid")}${uz.back}</a></div>`,
+    `<div class="container sim-page"><div class="breadcrumb"><a href="#/topics">${uz.nav[1]}</a><span>/</span><a href="#/topics?section=${c.section}">${sectionName(c.section)}</a><span>/</span><span>${escape(navigation.title)}</span></div><div class="sim-title-row"><div><span class="eyebrow orange">${navigation.label} / ${sectionName(c.section).toUpperCase()}</span><h1>${escape(navigation.title)}</h1><p>${c.key === "electrolysis" ? "Tok kuchi va vaqt ajralgan modda miqdoriga qanday ta’sir qilishini kuzating." : c.key === "uniform" ? "Tezlikni o‘zgartirib, aravachaning o‘rni va bosib o‘tgan yo‘lini solishtiring." : c.description}</p>${c.topicTitle && c.topicTitle !== c.title ? `<p class="model-note">Umumiy laboratoriya: ${c.title}</p>` : ""}</div><button type="button" class="icon-button help-button" aria-label="${uz.help}">${icon("help")}</button></div><div class="formula-banner"><div id="main-formula">${mainFormula()}</div><span>SI · ${uz.levels[level]}</span></div><details class="live-calculation"><summary>Hisobni ko‘rish</summary><strong id="live-equation">${liveEquation(c, p, state, t)}</strong></details>${levelTabs(level)}<div id="experiment-panel" role="tabpanel" aria-labelledby="level-${level}"><div class="experiment-layout"><section class="experiment-card engineering-console"><div class="panel-header"><h2>${icon("grid")}${uz.experiment}</h2><span class="live-label"><i></i>${["airHumidity", "waterVapor", "meterRange", "lampCircuit", "batteryCircuit", "centerOfMass"].includes(c.visual) ? "INTERAKTIV MODEL" : uz.live}</span></div><div class="engineering-console-grid"><div class="simulation-stage"><div id="safeguard-banner" class="safeguard-banner" hidden role="alert"></div><canvas id="sim-canvas" role="img" aria-label="${uz.canvasLabel}: ${c.title}"></canvas>${c.key === "electrolysis" ? '<p class="stage-caption">Musbat ionlar katodga boradi; qoplama miqdori tok va vaqt bilan ortadi. Chizma sxematik.</p>' : ""}${transport}<div class="vector-legend">${legendFor(c)}<span id="sim-notice" role="status"></span></div></div><aside class="telemetry-panel"><div class="telemetry-heading"><span>${c.visual === "batteryCircuit" ? "Manbalar toki" : c.visual === "lampCircuit" ? "Lampalar quvvati" : c.visual === "meterRange" ? "Shunt grafigi" : ["airHumidity", "waterVapor"].includes(c.visual) ? "Harorat grafigi" : uz.chart}</span></div><div id="charts" class="charts-grid telemetry-charts"></div><div class="telemetry-results">${c.results.map((r) => `<div><span>${resultLabel(c, r.key)}</span><p><strong data-telemetry-result="${r.key}">${formatResult(r, state[r.key])}</strong><small data-telemetry-unit${formatResult(r, state[r.key]) === NO_VALUE ? " hidden" : ""}>${r.unit}</small></p></div>`).join("")}<p id="result-status" class="result-status telemetry-status" role="status"></p></div></aside></div></section><aside class="controls-card"><div class="panel-header"><h2>${uz.parameters}</h2><span>${params.length}</span></div><section class="experiment-guide"><div><span class="eyebrow orange">${uz.experimentTask}</span><p>${(experimentTasks[c.key] || c.task)}</p></div><ol><li data-guide-step="change"><i></i>${guideParam.label || paramNames[guideParam.key] || guideParam.key}: ${uz.changeParameter}</li><li data-guide-step="observe"><i></i>${uz.observeMotion}</li><li data-guide-step="compare"><i></i>${resultLabel(c, guideResult.key)}: ${uz.compareResult}</li></ol></section>${extras}<div class="parameter-stack">${params.map((param) => parameterSlider(param, p[param.key])).join("")}</div><div class="controls-note">${icon("help")}<span>${(experimentTasks[c.key] || c.task)}</span></div></aside></div>${coachMarkup(c, params)}${experimentTools(c, params)}<div class="learning-grid"><section class="learning-card"><span class="section-icon">${icon("book")}</span><h2>${level === 2 ? uz.derivation : uz.explanation}</h2>${level === 2 ? `<ol class="derivation">${c.hard.map((s) => `<li>${formula(s, true)}</li>`).join("")}</ol>` : `<p>${level === 0 ? c.easy : c.medium}</p>`}</section><section class="learning-card engineering"><span class="section-icon">${icon("force")}</span><span class="eyebrow">${uz.engineeringLabel}</span><h2>${uz.engineering}</h2><p>${c.visual === "lampCircuit" ? c.engineering : engineeringUses[c.key] || c.engineering}</p></section></div><details class="model-note"><summary>${uz.model}</summary><p>${c.model}</p></details></div><div class="sim-navigation">${previousControl}<button type="button" id="complete" class="button ${isCurrentCompleted(c, completed) ? "completed" : "primary"}">${icon("check")}${isCurrentCompleted(c, completed) ? uz.completed : uz.complete}</button>${nextControl}</div><a class="text-link back-link" href="#/topics">${icon("grid")}${uz.back}</a></div>`,
     "topics",
   );
   const canvas = new SimulationCanvas(
@@ -685,7 +700,7 @@ function simPage(config, level = 0) {
       (key, val) => sync(key, val)
     ),
     chart = chartVisible
-      ? new LiveChart(document.querySelector("#charts"), c, p, (time) => {
+      ? new LiveChart(document.querySelector("#charts"), level === 0 && ["electrolysis", "uniform"].includes(c.key) ? { ...c, series: c.series.slice(0, 1) } : c, p, (time) => {
           setPlayState(false);
           t = Math.max(0, Math.min(c.duration, time));
           update(true, "seek");
@@ -696,11 +711,65 @@ function simPage(config, level = 0) {
     telemetryPanel = document.querySelector(".telemetry-panel"),
     energyBar = mountEnergyBar(telemetryPanel, c),
     controlsCard = document.querySelector(".controls-card"),
-    challengeMode = mountChallengeMode(controlsCard, c, () => ({ state, p })),
-    reportExport = mountReportExport(telemetryPanel, c, () => ({ state, p, t }));
+    challengeHost = document.createElement("div"),
+    challengeMode = mountChallengeMode(challengeHost, c, () => ({ state, p })),
+    reportExport = mountReportExport(telemetryPanel, c, () => ({ state, p, t })),
+    coach = mountExperimentCoach(document.querySelector(".experiment-coach"), c, () => ({ p, t }));
+  const telemetrySummary = document.createElement("div");
+  telemetrySummary.className = "telemetry-summary";
+  telemetrySummary.append(
+    telemetryPanel.querySelector(".telemetry-results"),
+    telemetryPanel.querySelector(".report-export-toolbar"),
+  );
+  telemetryPanel.append(telemetrySummary);
+  document.querySelector(".experiment-layout")?.append(telemetryPanel);
+  const optionalContent = document.createElement("details");
+  optionalContent.className = "experiment-extras";
+  const optionalSummary = document.createElement("summary");
+  optionalSummary.textContent = "Tushuntirish va qo‘shimcha vazifalar";
+  const optionalBody = document.createElement("div");
+  optionalBody.className = "experiment-extras-body";
+  for (const selector of [".experiment-coach", ".lab-tools", ".learning-grid", ".model-note"]) {
+    const section = document.querySelector(`#experiment-panel ${selector}`);
+    if (section) optionalBody.append(section);
+  }
+  optionalBody.append(challengeHost);
+  optionalContent.append(optionalSummary, optionalBody);
+  document.querySelector(".experiment-layout")?.after(optionalContent);
+  controlsCard.querySelector(".experiment-guide")?.remove();
+  controlsCard.querySelector(".controls-note")?.remove();
+  document.querySelector(".sim-page")?.classList.toggle("electrolysis-page", c.key === "electrolysis");
+  const focusedCharts = ["electrolysis", "uniform"].includes(c.key);
+  telemetryPanel?.classList.toggle("single-chart", focusedCharts);
+  if (focusedCharts && level > 0 && chart) {
+    const chartContainer = telemetryPanel.querySelector("#charts");
+    const chartCards = [...chartContainer.querySelectorAll(".chart-wrap")];
+    if (chartCards.length >= 2) {
+      const switcher = document.createElement("div");
+      switcher.className = "electrolysis-chart-switch";
+      switcher.setAttribute("role", "group");
+      switcher.setAttribute("aria-label", "Grafik turi");
+      const labels = c.key === "uniform" ? ["Koordinata", "Tezlik"] : ["Modda (mg)", "Zaryad (C)"];
+      const buttons = labels.map((label, index) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.textContent = label;
+        button.addEventListener("click", () => selectChart(index));
+        switcher.append(button);
+        return button;
+      });
+      const selectChart = (selected) => {
+        chartCards.forEach((card, index) => { card.hidden = index !== selected; });
+        buttons.forEach((button, index) => button.setAttribute("aria-pressed", String(index === selected)));
+        requestAnimationFrame(() => chart.charts[selected]?.resize());
+      };
+      chartContainer.before(switcher);
+      selectChart(0);
+    }
+  }
   const endTime = () => {
     let end = c.duration;
-    if (["fall", "projectile"].includes(c.key)) end = state.duration;
+    if (["fall", "projectile", "rutherford"].includes(c.key)) end = state.duration;
     if (["motion", "friction"].includes(c.key) && Number.isFinite(state.stop))
       end = Math.min(end, state.stop);
     if (c.key === "spring" && Number.isFinite(state.period)) {
@@ -793,23 +862,26 @@ function simPage(config, level = 0) {
       status.textContent = state.atFocus ? uz.focus : state.real ? uz.real : uz.virtual;
     if (c.key === "buoyancy" && status)
       status.textContent = uz.floating[state.status] || "";
+    if (c.key === "discharge" && status)
+      status.textContent = state.breakdown ? "Razryad bor · ionlar va elektronlar harakatda" : "Razryad yo‘q · gaz izolyator";
     const equation = document.querySelector("#live-equation");
     if (equation) equation.textContent = liveEquation(c, p, state, t);
+    if (force) comparisonResult = c.calculate(p, comparisonTime)[c.results[0]?.key];
     const changed = params.some(
         (param) =>
           Math.abs(Number(p[param.key]) - Number(guideStart.p[param.key])) >
           1e-9,
       ),
       firstResult = c.results[0]?.key,
-      startResult = Number(guideStart.result),
-      currentResult = Number(state[firstResult]),
+      startResult = guideStart.result,
+      currentResult = comparisonResult,
       resultChanged =
         changed &&
         ((Number.isFinite(startResult) &&
           Number.isFinite(currentResult) &&
           Math.abs(currentResult - startResult) > 1e-9) ||
-          state[firstResult] !== guideStart.result),
-      observed = c.static ? changed : t > 0.35;
+          comparisonResult !== guideStart.result),
+      observed = c.static ? changed : c.key === "rutherford" ? t > 0 : t > 0.35;
     document
       .querySelector('[data-guide-step="change"]')
       ?.classList.toggle("done", changed);
@@ -820,15 +892,16 @@ function simPage(config, level = 0) {
       .querySelector('[data-guide-step="compare"]')
       ?.classList.toggle("done", resultChanged);
     const insight = document.querySelector("#auto-insight");
-    if (insight && changed) {
-      const delta = currentResult - startResult,
-        tolerance = Math.max(1e-9, Math.abs(startResult) * 1e-4),
-        direction = Math.abs(delta) <= tolerance ? "o‘zgarmadi" : delta > 0 ? "oshdi" : "kamaydi",
-        percent =
-          Number.isFinite(startResult) && Math.abs(startResult) > 1e-9
-            ? ` (${format(Math.abs((delta / startResult) * 100))}%)`
-            : "";
-      insight.textContent = `${resultLabel(c, firstResult)} ${direction}${percent}.`;
+    if (insight && force) {
+      if (!changed) insight.textContent = "Bitta parametrni o‘zgartiring — xulosa shu yerda chiqadi.";
+      else if (!Number.isFinite(startResult) || !Number.isFinite(currentResult))
+        insight.textContent = "Bu holatda natija chekli son bilan ifodalanmaydi. Model shartlarini tekshiring.";
+      else {
+        const delta = currentResult - startResult;
+        const tolerance = Math.max(Number.MIN_VALUE, Math.abs(startResult), Math.abs(currentResult)) * 1e-8;
+        const direction = Math.abs(delta) <= tolerance ? "o‘zgarmadi" : delta > 0 ? "ortdi" : "kamaydi";
+        insight.textContent = resultLabel(c, firstResult) + " " + direction + ". " + (c.static ? "Dastlabki sozlamalar bilan solishtirildi." : "Ikkala holat t = " + format(comparisonTime) + " s da solishtirildi.") + " Bitta parametr ta’sirini ajratish uchun yuqoridagi taqqoslashdan foydalaning.";
+      }
     }
     const predictionFeedback = document.querySelector("#prediction-feedback"),
       predictionParamChanged = params.some(
@@ -840,17 +913,15 @@ function simPage(config, level = 0) {
     if (prediction && predictionFeedback && predictionParamChanged) {
       let predictionCurrent = NaN;
       try {
-        const referenceTime = c.static ? 0 : Math.min(1, endTime());
-        predictionCurrent = Number(
-          c.calculate(p, referenceTime)[guideResult.key],
-        );
+        const referenceTime = comparisonTime;
+        predictionCurrent = c.calculate(p, referenceTime)[guideResult.key];
       } catch {
         predictionCurrent = NaN;
       }
       const delta = predictionCurrent - predictionBaseline,
-        tolerance = Math.max(1e-9, Math.abs(predictionBaseline) * 1e-4),
+        tolerance = Math.max(Number.MIN_VALUE, Math.abs(predictionBaseline), Math.abs(predictionCurrent)) * 1e-8,
         actual = Math.abs(delta) <= tolerance ? "same" : delta > 0 ? "up" : "down";
-      if (Number.isFinite(predictionCurrent))
+      if (Number.isFinite(predictionCurrent) && Number.isFinite(predictionBaseline))
         predictionFeedback.textContent =
           actual === prediction
             ? "Taxminingiz to‘g‘ri chiqdi."
@@ -1074,12 +1145,10 @@ function simPage(config, level = 0) {
       prediction = button.dataset.prediction;
       predictionParams = { ...p };
       try {
-        const referenceTime = c.static ? 0 : Math.min(1, endTime());
-        predictionBaseline = Number(
-          c.calculate(predictionParams, referenceTime)[guideResult.key],
-        );
+        const referenceTime = comparisonTime;
+        predictionBaseline = c.calculate(predictionParams, referenceTime)[guideResult.key];
       } catch {
-        predictionBaseline = Number(state[guideResult.key]);
+        predictionBaseline = NaN;
       }
       document
         .querySelectorAll("[data-prediction]")
@@ -1158,80 +1227,25 @@ function simPage(config, level = 0) {
   const completeButton = document.querySelector("#complete");
   if (completeButton)
     completeButton.onclick = () => {
-      if (completed.has(c.id)) completed.delete(c.id);
-      else completed.add(c.id);
+      const isDone = toggleCompletion(c, completed);
       write("tt-completed", [...completed]);
       completeButton.className =
-        "button " + (completed.has(c.id) ? "completed" : "primary");
+        "button " + (isDone ? "completed" : "primary");
       completeButton.innerHTML =
-        icon("check") + (completed.has(c.id) ? uz.completed : uz.complete);
+        icon("check") + (isDone ? uz.completed : uz.complete);
       // Show insight after marking complete
       showCompletionInsight(c);
     };
   const showCompletionInsight = (c) => {
-  const insightEl = document.querySelector("#auto-insight");
-  if (!insightEl) return;
-  // Generate physics-based insight based on simulation type
-  let insightText = "";
-  switch (c.key) {
-    case "motion":
-      insightText = uz.motionInsight || "O‘zgaruvchan harakatda tezlik va asko‘l learning grafigi o‘zgaradi.";
-      break;
-    case "fall":
-    case "projectile":
-      insightText = uz.projectileInsight || "Burchak va boshlang‘ich tezlik o‘zgarganda balandlik va masofa aniq formula bo‘yicha hisoblanadi.";
-      break;
-    case "newton":
-      insightText = uz.newtonInsight || "Kuch = masa × tezlanish. Kuch ko‘zgartirganda tezlanish shu proportional bo‘ladi.";
-      break;
-    case "friction":
-      insightText = uz.frictionInsight || "Ishqalanish kuchı sirt ko‘paytiradi. Sirt kamganda jism to‘xstadi.";
-      break;
-    case "energy":
-      insightText = uz.energyInsight || "Kinetik va potensial energiya almashinadi. Rub’ish yo‘qotganda barcha energiya topish maydoni hisoblanadi.";
-      break;
-    case "spring":
-      insightText = uz.springInsight || "Tebranish davri massaga va qattiqlikka bog‘liqli. Maxsus so‘nish davrni o‘zgartirganda amalotda o‘zgaradi.";
-      break;
-    case "resonance":
-      insightText = uz.resonanceInsight || "Majburiy chastota tabiiy chastotaga yaqinlasganda amplituda oshadi. Rezonans uslubi.";
-      break;
-    case "buoyancy":
-      insightText = uz.buoyancyInsight || "Jism suvuqlikda chartsiz yoki chuqurroq bo‘lishi bu imersiya miqdori, notiqmasi va viglash tartibiga bog‘liq.";
-      break;
-    case "gas":
-      insightText = uz.gasInsight || "Harorat va hajm o‘zgarganda bosim quyidagidek proporcional bo‘ladi (Klapeyron–Mendeleyev).";
-      break;
-    case "coulomb":
-      insightText = uz.coulombInsight || "Zaryadlar va masofa o‘zgarganda kuch quyidagidek ($1/r^2$) tartibida kamayadi.";
-      break;
-    case "ohm":
-      insightText = uz.ohmInsight || "Ishlantirish U = I × R tenglig‘i. Qarshilik o‘zgartirganda tok munozara qiladi.";
-      break;
-    case "circuit":
-      insightText = uz.circuitInsight || "Tashqi va ichki qarshiliklar berilgan emf va effektiv qarshilikka ko‘paydigan formula bo‘yicha ishlaydi.";
-      break;
-    case "induction":
-      insightText = uz.inductionInsight || "Magnit oqimi o‘zgarganda EYUK hosil bo‘ladi. Sh afford: $\\varepsilon = -\\Delta\\Phi/\\Delta t$.";
-      break;
-    case "lens":
-      insightText = uz.lensInsight || "Linza formulasi $1/F = 1/d + 1/f$ ko‘ra, predmet masofasini o‘zgartirganda tasvir o‘zgaradi.";
-      break;
-    default:
-      insightText = "Yaxshi urunish! Natijalarni ko‘rib turuning.";
-  }
-  insightEl.textContent = insightText;
-  // Fade in
-  insightEl.style.opacity = "1";
-  setTimeout(() => {
-    insightEl.style.opacity = "0.6";
-  }, 5000);
-};
+    const insightEl = document.querySelector("#auto-insight");
+    if (insightEl) insightEl.textContent = (c.lesson || c.easy || c.model) + " Xulosangizni parametrlar va o‘lchov natijalari bilan asoslang.";
+  };
 
 const onboarding = () => {
-    const card = document.querySelector(".controls-card");
+    const card = optionalBody;
     document.querySelector(".onboarding")?.remove();
     if (!card) return;
+    optionalContent.open = true;
     const box = document.createElement("div");
     box.className = "onboarding";
     box.setAttribute("role", "status");
@@ -1244,7 +1258,6 @@ const onboarding = () => {
   };
   const helpButton = document.querySelector(".help-button");
   if (helpButton) helpButton.onclick = onboarding;
-  if (!read("tt-onboarded", false)) onboarding();
   const loop = (now) => {
     if (disposed) return;
     if (last && playing && !c.static && !document.hidden) {
@@ -1276,6 +1289,14 @@ const onboarding = () => {
     if (playing && !c.static) frame = requestAnimationFrame(loop);
     else frame = null;
   };
+  // Daraja almashtirilganda tekis harakat grafigi bitta yakuniy nuqtaga aylanmasin.
+  if (c.key === "uniform" && chart && t > 0) {
+    const sampleCount = Math.min(120, Math.max(2, Math.ceil(t / 0.1)));
+    for (let i = 0; i < sampleCount; i++) {
+      const sampleTime = (t * i) / sampleCount;
+      chart.add(sampleTime, c.calculate(p, sampleTime), true);
+    }
+  }
   update(true);
   renderSnapshots();
   if (playing && !c.static) frame = requestAnimationFrame(loop);
@@ -1298,12 +1319,13 @@ const onboarding = () => {
     energyBar?.destroy();
     challengeMode?.destroy();
     reportExport?.destroy();
+    coach?.destroy();
     chart?.destroy();
     canvas.destroy();
   };
 }
 function progress() {
-  const done = allConfigs.filter((c) => completed.has(c.id));
+  const done = allConfigs.filter((c) => isConfigCompleted(c, completed));
   shell(
     `<section class="container page-heading"><span class="eyebrow orange">${uz.personalLab}</span><h1>${uz.progressTitle}</h1><p>${uz.progressText}</p></section><section class="container progress-content"><div class="progress-summary"><div><strong>${done.length}<small> / ${allConfigs.length}</small></strong><p>tajriba o‘rganildi</p></div><div class="progress-track"><span style="width:${(done.length / allConfigs.length) * 100}%"></span></div><b>${Math.round((done.length / allConfigs.length) * 100)}%</b></div>${done.length ? `<div class="sim-grid">${done.map(card).join("")}</div>` : `<div class="empty-state">${icon("book")}<h2>${uz.progressEmpty}</h2><a class="button primary" href="${simLink(allConfigs[2])}">${uz.start}${icon("arrow")}</a></div>`}</section>`,
     "progress",
@@ -1369,7 +1391,7 @@ async function route() {
     document.title = `${uz.catalogError} — TT Physics Lab`;
     return;
   }
-  if (path === "/") home();
+  if (path === "/") await home(generation);
   else if (path === "/topics") catalog(query);
   else if (path === "/sections")
     shell(
@@ -1396,6 +1418,7 @@ async function route() {
       }
     } else planned(-1);
   } else planned(-1);
+  if (generation !== routeGeneration) return;
   setTimeout(() => {
     if (generation !== routeGeneration) return;
     document.querySelectorAll('.sim-card, .section-card, .learning-card, .result-card').forEach((el) => {

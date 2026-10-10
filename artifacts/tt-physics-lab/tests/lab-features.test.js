@@ -48,6 +48,7 @@ test("ko‘chma asboblar modelning haqiqiy birliklariga bog‘langan", () => {
 });
 
 test("sahnadagi chizg‘ich fizik masshtabdan foydalanadi", () => {
+  close(sceneMetresPerPixel("uniform", {}, {}).x * 4, 1);
   close(sceneMetresPerPixel("lever", { arm1: 1, arm2: 0.5 }, {}).x * 220, 1);
   close(sceneMetresPerPixel("spring", {}, {}).y * 105, 1);
   close(sceneMetresPerPixel("lens", { object: 1.2 }, { image: 0.86 }).x * 110, 1);

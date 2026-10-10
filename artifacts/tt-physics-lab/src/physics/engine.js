@@ -835,6 +835,15 @@ export function photoelectric(p) {
 /** E = mc² — massa va energiya o‘zaro aylantirilishi. */
 export function massEnergy(p) {
   const grams = Number.isFinite(p.mass) ? p.mass : 0;
+  if (grams < 0) {
+    return {
+      joules: null,
+      tnt: null,
+      mass: grams,
+      energyPerGram: 8.98755179e13,
+      warning: "Massa manfiy bo‘lishi mumkin emas.",
+    };
+  }
   const kg = grams / 1000;
   return {
     joules: Number.isFinite(kg * LIGHT * LIGHT) ? kg * LIGHT * LIGHT : 0,

@@ -4448,6 +4448,10 @@ body.home-dark {
   pointer-events: auto;
 }
 
+.safeguard-banner[hidden] {
+  display: none;
+}
+
 @keyframes safeguardPulse {
   0%, 100% {
     border-color: rgba(239, 68, 68, 0.45);

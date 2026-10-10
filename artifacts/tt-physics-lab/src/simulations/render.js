@@ -2,6 +2,7 @@ import { clamp, projectile, resonance } from "../physics/engine.js";
 import { renderCatalog } from "./catalog-render.js";
 import { uz } from "../i18n/uz.js";
 import { format } from "../components/ResultCard.js";
+import { liveEquation } from "../components/LiveEquation.js";
 
 /**
  * Canvas is drawn imperatively, so its palette cannot come from a stylesheet
@@ -24,7 +25,9 @@ const theme = {
 let ink = theme.ink;
 let muted = theme.muted;
 
-export function readCanvasTheme(root = document.documentElement) {
+export function readCanvasTheme(
+  root = typeof document !== "undefined" ? document.documentElement : null,
+) {
   if (typeof getComputedStyle === "function" && root) {
     const styles = getComputedStyle(root);
     const read = (name, fallback) => {
@@ -87,6 +90,28 @@ function circle(c, x, y, r, color) {
   c.fillStyle = color;
   c.arc(x, y, r, 0, Math.PI * 2);
   c.fill();
+}
+// Jonli formula chipi: vizual tajribalarda animatsiya ostida formula o‘rniga
+// jonli sonlar yozilgan chiziq chiziladi (uzun matn markazda kesiladi).
+function equationChip(c, config, p, s, t, palette = theme) {
+  let eq = "";
+  try {
+    eq = String(liveEquation(config, p, s, t));
+  } catch {
+    return;
+  }
+  if (!eq) return;
+  const max = 96;
+  if (eq.length > max) eq = eq.slice(0, max - 1) + "…";
+  c.save();
+  rect(c, 20, 420, 760, 30, palette.floor ?? "#151f29", 8);
+  c.fillStyle = orange;
+  c.fillRect(20, 420, 5, 30);
+  c.fillStyle = ink;
+  c.font = "500 14px Inter, Segoe UI, sans-serif";
+  c.textAlign = "center";
+  c.fillText(eq, 400, 440);
+  c.restore();
 }
 function arrow(c, x, y, dx, dy, color = red, label = "") {
   if (Math.hypot(dx, dy) < 1) return;
@@ -719,6 +744,7 @@ export function renderSimulation(ctx, state) {
   if (config.visual) {
     renderCatalog(ctx, state, palette);
     ctx.restore();
+    if (config.key !== "electrolysis") equationChip(ctx, config, p, s, t, palette);
     return;
   }
   switch (config.key) {

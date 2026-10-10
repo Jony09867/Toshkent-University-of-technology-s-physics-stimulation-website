@@ -1343,8 +1343,8 @@ footer .footer-bottom { color: #6a7a88; border-top: 0; }
   --type-page-title: clamp(44px, 5vw, 68px);
   --type-section-title: clamp(30px, 3.4vw, 44px);
   --type-reading: clamp(17px, 1.55vw, 21px);
-  --type-body: 14px;
-  --type-small: 12px;
+  --type-body: 15px;
+  --type-small: 13px;
 }
 
 body {
@@ -1452,8 +1452,8 @@ footer .footer-top > div > a:not(.brand) {
     --type-page-title: clamp(36px, 11vw, 48px);
     --type-section-title: clamp(28px, 8vw, 36px);
     --type-reading: 16px;
-    --type-body: 12px;
-    --type-small: 10px;
+    --type-body: 14px;
+    --type-small: 12px;
   }
 
   .page-heading h1,
@@ -2427,5 +2427,461 @@ footer .footer-top > div > a:not(.brand) {
   .report-printable-sheet {
     padding: 0;
   }
+}
+
+/* Tajriba sahifasida asosiy natija va boshqaruvlar ravshan ko‘rinsin. */
+.sim-page .panel-header h2 { font-size: 14px; }
+.sim-page .telemetry-heading { margin-bottom: 12px; }
+.sim-page .telemetry-heading > span { color: var(--ink); font-size: 16px; letter-spacing: -0.01em; }
+.sim-page .telemetry-results > div > span { font-size: 12px; }
+.sim-page .telemetry-results strong { font-size: 16px; }
+.sim-page .telemetry-results small { font-size: 12px; }
+.sim-page .parameter-top { font-size: 13px; }
+.sim-page .time-step,
+.sim-page .time-display,
+.sim-page .time-scrubber { font-size: 12px; }
+.sim-page .controls-card .experiment-guide p { font-size: 14px; line-height: 1.5; }
+.sim-page .controls-card .experiment-guide li { font-size: 12px; }
+.sim-page .controls-card .controls-note { display: none; }
+
+.sim-page .live-calculation {
+  display: block;
+  margin-top: 8px;
+  padding: 0;
+  border: 0;
+  background: none;
+}
+.sim-page .live-calculation summary {
+  width: fit-content;
+  padding: 6px 0;
+  color: var(--ink-soft);
+  cursor: pointer;
+  font-size: 13px;
+}
+.sim-page .live-calculation summary:hover { color: var(--brand); }
+.sim-page .live-calculation strong {
+  display: block;
+  margin-top: 5px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  font-size: 13px;
+  white-space: normal;
+}
+
+.sim-page .stage-caption {
+  margin: 0;
+  padding: 11px 18px;
+  border-top: 1px solid var(--line);
+  color: var(--ink-soft);
+  font-size: 14px;
+  line-height: 1.45;
+}
+.sim-page .chart-inspector:empty { display: none; }
+.sim-page .chart-inspector:not(:empty) {
+  min-height: 0;
+  margin: 4px 2px 0;
+  font-size: 12px;
+  line-height: 1.4;
+}
+.sim-page.electrolysis-page .vector-legend { display: none; }
+.sim-page .telemetry-panel.single-chart .chart-wrap { height: 320px; }
+.sim-page .electrolysis-chart-switch {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+  margin: 0 0 12px;
+  padding: 4px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+}
+.sim-page .electrolysis-chart-switch button {
+  min-height: 36px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--ink-soft);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+.sim-page .electrolysis-chart-switch button[aria-pressed="true"] {
+  background: var(--surface-soft);
+  color: var(--ink);
+  font-weight: 650;
+}
+.sim-page .electrolysis-chart-switch button:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+}
+.sim-page .telemetry-charts .chart-wrap[hidden] { display: none; }
+
+/* Tajriba maydoni va unga tegishli parametrlar bir qarashda ko‘rinsin. */
+.sim-page .experiment-layout {
+  grid-template-columns: minmax(0, 1fr) minmax(270px, 310px);
+  align-items: start;
+  gap: 16px;
+}
+.sim-page .controls-card {
+  position: sticky;
+  top: 88px;
+  align-self: start;
+  max-height: calc(100vh - 104px);
+  overflow: auto;
+}
+.sim-page .controls-card .parameter-stack {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  padding: 5px 18px 10px;
+}
+.sim-page .controls-card .parameter {
+  padding-block: 17px;
+}
+.sim-page .controls-card .parameter-top label {
+  max-width: 170px;
+}
+.sim-page .controls-card .value-wrap input {
+  min-height: 38px;
+  font-size: 13px;
+}
+.sim-page .controls-card input[type="range"] {
+  min-height: 36px;
+}
+
+.sim-page .experiment-extras {
+  margin-top: 18px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--surface);
+}
+.sim-page .experiment-extras > summary {
+  padding: 17px 20px;
+  color: var(--ink-soft);
+  font-size: 14px;
+  font-weight: 650;
+  cursor: pointer;
+}
+.sim-page .experiment-extras[open] > summary {
+  border-bottom: 1px solid var(--line);
+  color: var(--ink);
+}
+.sim-page .experiment-extras-body {
+  display: grid;
+  gap: 18px;
+  padding: 18px;
+}
+.sim-page .experiment-extras-body .challenge-card {
+  margin: 0;
+}
+
+/* Qidiruv maydonining o‘zi fokusni ko‘rsatadi; ichki input ikki ramka chizmaydi. */
+.catalog-tools .search-field:focus-within {
+  border-color: #526171;
+  box-shadow: 0 0 0 2px rgba(148, 163, 184, 0.14);
+}
+.catalog-tools .search-field input:focus-visible {
+  outline: none;
+}
+
+@media (max-width: 960px) {
+  .sim-page .experiment-layout { grid-template-columns: minmax(0, 1fr); }
+  .sim-page .controls-card {
+    order: -1;
+    position: static;
+    max-height: none;
+    overflow: hidden;
+  }
+  .sim-page .controls-card .parameter-stack {
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 0 22px;
+  }
+}
+
+@media (max-width: 680px) {
+  .sim-page .controls-card {
+    position: static;
+    max-height: none;
+    overflow: visible;
+  }
+  .sim-page .controls-card .parameter-stack { grid-template-columns: minmax(0, 1fr); }
+  .sim-page .experiment-extras-body { padding: 12px; }
+}
+
+/* Simulyatsiya asosiy ish maydoni: grafiklar sahnaning kengligini tortib olmasin. */
+.sim-page.container {
+  width: min(1640px, calc(100% - 88px));
+}
+.sim-page .experiment-layout {
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 360px);
+  grid-template-areas: "stage controls" "stage telemetry";
+  grid-template-rows: auto 1fr;
+}
+.sim-page .engineering-console { grid-area: stage; }
+.sim-page .controls-card {
+  grid-area: controls;
+  position: static;
+  max-height: clamp(380px, 54vh, 520px);
+  overflow: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #46515e transparent;
+}
+.sim-page .engineering-console-grid {
+  grid-template-columns: minmax(0, 1fr);
+}
+.sim-page .simulation-stage canvas#sim-canvas {
+  width: min(100%, 1100px);
+  margin-inline: auto;
+}
+.sim-page .telemetry-panel {
+  display: flex;
+  grid-area: telemetry;
+  flex-direction: column;
+  gap: 12px;
+  align-self: start;
+  min-width: 0;
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--surface);
+}
+.sim-page .telemetry-heading { margin: 0; }
+.sim-page .telemetry-charts {
+  grid-template-columns: minmax(0, 1fr);
+}
+.sim-page .telemetry-panel.single-chart .chart-wrap { height: 240px; }
+.sim-page .telemetry-summary {
+  display: grid;
+  align-content: start;
+  gap: 12px;
+}
+.sim-page .telemetry-results,
+.sim-page .telemetry-panel .report-export-toolbar { margin: 0; }
+
+@media (max-width: 960px) {
+  .sim-page .experiment-layout {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: "controls" "stage" "telemetry";
+    grid-template-rows: auto;
+  }
+  .sim-page .controls-card {
+    max-height: none;
+    overflow: visible;
+  }
+}
+
+@media (max-width: 680px) {
+  .sim-page.container { width: calc(100% - 32px); }
+}
+
+/* Bosh sahifadagi Linear ritmi barcha ichki sahifalarda ham davom etadi. */
+.home-dark:not(.is-home) main {
+  background:
+    radial-gradient(ellipse 48rem 24rem at 50% 0, rgba(241, 89, 42, .035), transparent 75%),
+    #080a0c;
+}
+
+.home-dark:not(.is-home) .page-heading {
+  margin-bottom: 34px;
+  padding-top: clamp(48px, 6vw, 76px);
+  padding-bottom: clamp(34px, 4vw, 48px);
+  border-bottom: 1px solid rgba(255, 255, 255, .07);
+}
+.home-dark:not(.is-home) .page-heading::after { display: none; }
+.home-dark:not(.is-home) .page-heading h1 {
+  max-width: 1000px;
+  font-size: clamp(40px, 4.9vw, 68px);
+  font-weight: 620;
+  line-height: 1.04;
+  letter-spacing: -.057em;
+  text-wrap: balance;
+}
+.home-dark:not(.is-home) .page-heading p {
+  max-width: 670px;
+  margin-top: 18px;
+  color: #a2a9b1;
+  font-size: clamp(15px, 1.3vw, 17px);
+  line-height: 1.6;
+}
+.home-dark:not(.is-home) .page-heading .eyebrow,
+.home-dark:not(.is-home) .sim-title-row .eyebrow {
+  color: #f5784f;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .12em;
+}
+
+.home-dark:not(.is-home) .section-card,
+.home-dark:not(.is-home) .sim-card,
+.home-dark:not(.is-home) .catalog-sidebar,
+.home-dark:not(.is-home) .topic-list,
+.home-dark:not(.is-home) .progress-summary,
+.home-dark:not(.is-home) .learning-card,
+.home-dark:not(.is-home) .empty-state,
+.home-dark:not(.is-home) .experiment-card,
+.home-dark:not(.is-home) .controls-card,
+.home-dark:not(.is-home) .telemetry-panel,
+.home-dark:not(.is-home) .formula-banner {
+  border: 1px solid rgba(255, 255, 255, .09);
+  border-radius: 12px;
+  background: #0e1115;
+  box-shadow: inset 0 1px rgba(255, 255, 255, .025);
+}
+.home-dark:not(.is-home) .section-card:hover,
+.home-dark:not(.is-home) .sim-card:hover,
+.home-dark:not(.is-home) .learning-card:hover {
+  border-color: rgba(241, 89, 42, .38);
+  background: #12161a;
+  box-shadow: 0 18px 45px rgba(0, 0, 0, .25);
+  transform: translateY(-2px);
+}
+.home-dark:not(.is-home) .section-icon,
+.home-dark:not(.is-home) .topic-row-icon {
+  border-color: rgba(255, 255, 255, .08);
+  border-radius: 9px;
+  background: #171c22;
+  color: #9ca9b5;
+}
+.home-dark:not(.is-home) .section-card h3 {
+  color: #f0f2f4;
+  font-size: 16px;
+  font-weight: 610;
+  letter-spacing: -.02em;
+}
+.home-dark:not(.is-home) .section-card p {
+  color: #929ca6;
+  font-size: 12px;
+}
+.home-dark:not(.is-home) .section-card {
+  display: flex;
+  align-items: center;
+  min-height: 102px;
+  padding: 19px;
+}
+.home-dark:not(.is-home) .standalone-sections {
+  padding-top: 0;
+  gap: 12px;
+}
+
+.home-dark:not(.is-home) .catalog-sidebar { background: #0e1115; }
+.home-dark:not(.is-home) .catalog-sidebar h3,
+.home-dark:not(.is-home) .catalog-sub h2 {
+  font-size: 16px;
+  font-weight: 620;
+}
+.home-dark:not(.is-home) .catalog-sidebar > a,
+.home-dark:not(.is-home) .catalog-sidebar summary {
+  font-size: 12px;
+}
+.home-dark:not(.is-home) .catalog-sidebar details > div a {
+  font-size: 11px;
+  line-height: 1.5;
+}
+.home-dark:not(.is-home) .catalog-tools .search-field,
+.home-dark:not(.is-home) .ready-filter {
+  border: 1px solid rgba(255, 255, 255, .1);
+  border-radius: 10px;
+  background: #10151a;
+  box-shadow: none;
+}
+.home-dark:not(.is-home) .catalog-tools .search-field:focus-within {
+  border-color: rgba(241, 89, 42, .65);
+  box-shadow: 0 0 0 3px rgba(241, 89, 42, .12);
+}
+.home-dark:not(.is-home) .catalog-tools .search-field input { font-size: 14px; }
+.home-dark:not(.is-home) .ready-filter { color: #b4bcc4; font-size: 12px; }
+.home-dark:not(.is-home) .topic-row {
+  min-height: 82px;
+  border-bottom-color: rgba(255, 255, 255, .07);
+}
+.home-dark:not(.is-home) .topic-row h3 {
+  color: #e9ecef;
+  font-size: 15px;
+  font-weight: 580;
+}
+.home-dark:not(.is-home) .topic-row .card-category {
+  color: #8c98a4;
+  font-size: 10px;
+}
+.home-dark:not(.is-home) .topic-number { font-size: 11px; }
+.home-dark:not(.is-home) .status { font-size: 10px; }
+
+.home-dark:not(.is-home) .progress-summary {
+  min-height: 126px;
+  margin-bottom: 20px;
+  background: linear-gradient(105deg, rgba(241, 89, 42, .055), transparent 45%), #0e1115;
+}
+.home-dark:not(.is-home) .progress-summary p { color: #a3abb3; font-size: 13px; }
+.home-dark:not(.is-home) .progress-summary strong { font-weight: 630; }
+.home-dark:not(.is-home) .empty-state { border-style: solid; }
+.home-dark:not(.is-home) .empty-state h2 { font-size: 21px; }
+.home-dark:not(.is-home) .about-grid .learning-card { min-height: 230px; padding: 32px; }
+.home-dark:not(.is-home) .about-grid .learning-card h2 { font-size: 22px; }
+.home-dark:not(.is-home) .about-grid .learning-card p { color: #a9b1ba; font-size: 15px; line-height: 1.65; }
+.home-dark:not(.is-home) .sim-title-row .model-note {
+  display: block;
+  width: fit-content;
+  margin-top: 10px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  color: #909aa4;
+  font-size: 13px;
+  font-weight: 450;
+}
+
+.home-dark:not(.is-home) .button.primary {
+  border-color: #f1592a;
+  border-radius: 9px;
+  background: #f1592a;
+  box-shadow: 0 10px 28px rgba(241, 89, 42, .18);
+}
+.home-dark:not(.is-home) .button.secondary {
+  border-radius: 9px;
+  background: #13171b;
+  box-shadow: none;
+}
+.home-dark:not(.is-home) .button:hover { transform: translateY(-1px); }
+.home-dark:not(.is-home) .sim-navigation .button[aria-disabled="true"] {
+  color: #737c85;
+  border-color: rgba(255, 255, 255, .06);
+  background: #101317;
+  cursor: default;
+  opacity: .65;
+}
+
+@media (max-width: 760px) {
+  .home-dark:not(.is-home) .page-heading {
+    margin-bottom: 24px;
+    padding-top: 36px;
+    padding-bottom: 30px;
+  }
+  .home-dark:not(.is-home) .page-heading h1 { font-size: clamp(34px, 9vw, 48px); }
+  .home-dark:not(.is-home) .section-card h3 { font-size: 15px; }
+  .home-dark:not(.is-home) .section-card p { font-size: 12px; }
+  .home-dark:not(.is-home) .topic-row h3 { font-size: 14px; }
+  .home-dark:not(.is-home) .topic-row .card-category { font-size: 9px; }
+  .home-dark:not(.is-home) .catalog-sidebar { position: static; }
+  .home-dark:not(.is-home) .about-grid .learning-card { min-height: 0; padding: 24px; }
+}
+
+/* Namlik tajribasida to‘rtta natija yorlig‘i va qiymati to‘liq o‘qilsin. */
+.sim-page:has(#n-waterContent) .telemetry-results > div,
+.sim-page:has(#n-meterResistance) .telemetry-results > div,
+.sim-page:has(#n-count) .telemetry-results > div,
+.sim-page:has([data-telemetry-result="p1"]) .telemetry-results > div {
+  display: block;
+  min-width: 0;
+  padding: 10px;
+}
+.sim-page:has(#n-waterContent) .telemetry-results > div > span,
+.sim-page:has(#n-meterResistance) .telemetry-results > div > span,
+.sim-page:has(#n-count) .telemetry-results > div > span,
+.sim-page:has([data-telemetry-result="p1"]) .telemetry-results > div > span {
+  margin-bottom: 5px;
 }
 

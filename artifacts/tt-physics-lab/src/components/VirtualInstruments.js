@@ -1,6 +1,12 @@
 const SPATIAL = new Set(["m", "cm", "mm", "km"]);
 const ELECTRIC = new Set(["A", "mA", "μA", "V", "mV", "kV", "Ω", "W", "C", "μC", "nC"]);
 const FORCE = new Set(["N", "mN", "μN", "pN"]);
+const ICONS = {
+  "Chizg‘ich": '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="10" rx="2"/><path d="M7 7v4m4-4v3m4-3v4m4-4v3"/></svg>',
+  "Sekundomer": '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"/><path d="M12 13l3-3M9 2h6m-3 0v3"/></svg>',
+  "Multimetr": '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M7 7h10v5H7zm1 10h2m4 0h2"/></svg>',
+  "Dinamometr": '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v3m0 12v3M7 6h10v12H7zM9 11l3-3 3 3m-3-3v6"/></svg>',
+};
 const number = (value) => Number.isFinite(value)
   ? Number(value.toPrecision(5)).toLocaleString("uz-UZ") : "—";
 
@@ -13,8 +19,9 @@ export function instrumentReadings(config, kind) {
     .map((p) => ({ ...p, source: "param", scale: 1 }))];
 }
 
-const MEASURABLE_SCENES = new Set(["lever", "lens", "spring", "pendulum", "fall", "projectile", "energy"]);
+const MEASURABLE_SCENES = new Set(["uniform", "lever", "lens", "spring", "pendulum", "fall", "projectile", "energy"]);
 export function sceneMetresPerPixel(key, p, state, trailStates = []) {
+  if (key === "uniform") return { x: 1 / 4, y: 0 };
   if (key === "lever") return { x: Math.max(p.arm1, p.arm2) / 220, y: 0 };
   if (key === "lens") {
     const extent = Math.max(3, p.object, Number.isFinite(state.image) ? Math.min(10, Math.abs(state.image)) : 3);
@@ -41,7 +48,7 @@ function card(layer, id, title, icon, x, y, body) {
   el.id = id;
   el.style.left = `${x}px`;
   el.style.top = `${y}px`;
-  el.innerHTML = `<div class="vi-header" tabindex="0" aria-label="${title} asbobini ko‘chirish"><span class="vi-icon">${icon}</span><span class="vi-title">${title}</span><button type="button" class="vi-close" aria-label="${title}ni yashirish">×</button></div><div class="vi-body">${body}</div>`;
+  el.innerHTML = `<div class="vi-header" tabindex="0" aria-label="${title} asbobini ko‘chirish"><span class="vi-icon" aria-hidden="true">${ICONS[title] || icon}</span><span class="vi-title">${title}</span><button type="button" class="vi-close" aria-label="${title}ni yashirish">×</button></div><div class="vi-body">${body}</div>`;
   layer.append(el);
   const header = el.querySelector(".vi-header");
   let drag = null;
@@ -219,7 +226,7 @@ export function mountVirtualInstruments(stage, config, getState) {
       marker.setAttribute("cy", point.y);
       const line = measureOverlay.querySelector("line");
       for (const [name, value] of Object.entries({ x1: first.x, y1: first.y, x2: point.x, y2: point.y })) line.setAttribute(name, value);
-      const axis = ["lever", "lens"].includes(config.key) ? "Gorizontal " : config.key === "spring" ? "Vertikal " : "";
+      const axis = ["uniform", "lever", "lens"].includes(config.key) ? "Gorizontal " : config.key === "spring" ? "Vertikal " : "";
       result.textContent = `Sahnadagi ${axis}A–B: ${number(distance)} m`;
       measureOverlay.classList.add("is-finished");
       button.textContent = "Sahnada qayta o‘lchash";
@@ -233,21 +240,51 @@ export function mountVirtualInstruments(stage, config, getState) {
   if (forces.length) instruments.push(quantityProbe(layer, "vi-dynamometer", "Dinamometr", "↗", forces, 20, 360));
   const toolbar = document.createElement("div");
   toolbar.className = "vi-toolbar";
+  toolbar.setAttribute("role", "toolbar");
   toolbar.setAttribute("aria-label", "Virtual asboblar paneli");
-  for (const instrument of instruments) {
+  const toolbarLabel = document.createElement("span");
+  toolbarLabel.className = "vi-toolbar-label";
+  toolbarLabel.textContent = "Asboblar";
+  toolbar.append(toolbarLabel);
+  for (const [index, instrument] of instruments.entries()) {
     const button = document.createElement("button");
     button.type = "button";
     button.className = "vi-toolbar-btn";
-    button.textContent = `${instrument.el.querySelector(".vi-icon").textContent} ${instrument.el.querySelector(".vi-title").textContent}`;
+    button.setAttribute("aria-pressed", "false");
+    button.setAttribute("aria-controls", instrument.el.id);
+    const icon = instrument.el.querySelector(".vi-icon").cloneNode(true);
+    icon.className = "vi-tool-icon";
+    const label = document.createElement("span");
+    label.textContent = instrument.el.querySelector(".vi-title").textContent;
+    button.append(icon, label);
     button.onclick = () => {
       instrument.el.classList.toggle("vi-hidden");
       const opened = !instrument.el.classList.contains("vi-hidden");
       button.classList.toggle("active", opened);
+      button.setAttribute("aria-pressed", String(opened));
       if (opened) {
-        const top = Math.max(8, toolbar.offsetTop - instrument.el.offsetHeight - 12);
-        instrument.el.style.top = `${top}px`;
+        if (window.matchMedia("(max-width: 680px)").matches) {
+          instrument.el.scrollIntoView({ block: "nearest", behavior: "instant" });
+          return;
+        }
+        // Bir nechta asbob ochilganda ular bir-birining ustiga tushmasin.
+        const nextLeft = 20 + index * (instrument.el.offsetWidth + 12);
+        instrument.el.style.left = `${Math.max(8, Math.min(nextLeft, layer.clientWidth - instrument.el.offsetWidth - 8))}px`;
+        const stageTop = stage.getBoundingClientRect().top;
+        // Asbob vaqt tugmalari va asboblar panelini yopib qo‘ymasligi kerak.
+        const controls = stage.querySelector(".transport") || toolbar;
+        const aboveControls = controls.getBoundingClientRect().top - stageTop - instrument.el.offsetHeight - 12;
+        const belowHeader = 96 - stageTop;
+        const maxTop = Math.max(8, layer.clientHeight - instrument.el.offsetHeight - 8);
+        instrument.el.style.top = `${Math.max(8, Math.min(belowHeader, aboveControls, maxTop))}px`;
+        const visibleTop = instrument.el.getBoundingClientRect().top;
+        if (visibleTop < 88) window.scrollBy({ top: visibleTop - 96, behavior: "instant" });
       }
     };
+    instrument.el.querySelector(".vi-close").addEventListener("click", () => {
+      button.classList.remove("active");
+      button.setAttribute("aria-pressed", "false");
+    });
     toolbar.append(button);
   }
   if (instruments.length) stage.append(toolbar);

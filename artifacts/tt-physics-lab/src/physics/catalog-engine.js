@@ -242,16 +242,50 @@ export const models = {
     current: p.voltage / p.resistance,
     heat: (p.voltage ** 2 / p.resistance) * sec(t),
   }),
-  meter: (p) => ({
-    shunt: p.meterResistance / (p.factor - 1),
-    series: p.meterResistance * (p.factor - 1),
-    currentLimit: p.current * p.factor,
-  }),
+  meter: (p) => {
+    const { meterResistance: resistance, factor, current } = p;
+    if (![resistance, factor, current].every(Number.isFinite) || resistance <= 0 || factor <= 1 || current <= 0) {
+      return {
+        shunt: null, series: null, currentLimit: null, voltageLimit: null,
+        shuntCurrent: null, meterVoltage: null, seriesVoltage: null,
+        warning: "Asbob qarshiligi va nominal toki musbat, kengaytirish koeffitsiyenti 1 dan katta bo‘lishi kerak.",
+      };
+    }
+    const shunt = resistance / (factor - 1);
+    const series = resistance * (factor - 1);
+    const meterVoltage = current * resistance;
+    return {
+      shunt,
+      series,
+      currentLimit: current * factor,
+      voltageLimit: current * (resistance + series),
+      shuntCurrent: current * (factor - 1),
+      meterVoltage,
+      seriesVoltage: current * series,
+      warning: "",
+    };
+  },
   batteries: (p) => {
+    if (![p.count, p.emf, p.internal, p.resistance].every(Number.isFinite) ||
+        !Number.isInteger(p.count) || p.count < 1 || ![0, 1].includes(p.mode) ||
+        p.emf <= 0 || p.internal < 0 || p.resistance <= 0) {
+      return {
+        emf: null, internal: null, current: null, voltage: null,
+        branchCurrent: null, loadPower: null, internalLoss: null, sourcePower: null,
+        warning: "Manbalar soni butun va musbat, EYuK hamda yuk qarshiligi musbat bo‘lishi kerak.",
+      };
+    }
     const E = p.mode === 0 ? p.emf * p.count : p.emf,
       r = p.mode === 0 ? p.internal * p.count : p.internal / p.count,
       I = E / (p.resistance + r);
-    return { emf: E, internal: r, current: I, voltage: I * p.resistance };
+    return {
+      emf: E, internal: r, current: I, voltage: I * p.resistance,
+      branchCurrent: p.mode === 0 ? I : I / p.count,
+      loadPower: I * I * p.resistance,
+      internalLoss: I * I * r,
+      sourcePower: E * I,
+      warning: "",
+    };
   },
   metal: (p) => {
     const R = p.r0 * (1 + p.alpha * 1e-3 * p.deltaT);
@@ -268,12 +302,17 @@ export const models = {
           : "",
     };
   },
-  thermionic: (p) => ({
-    density:
+  thermionic: (p, t = 0) => {
+    const density =
       1.2e6 *
       p.temperature ** 2 *
-      Math.exp((-p.work * ELEMENTARY) / (kb * p.temperature)),
-  }),
+      Math.exp((-p.work * ELEMENTARY) / (kb * p.temperature));
+    return {
+      density,
+      // Emissiya chegaralagan doimiy tokda birlik yuzadan o‘tgan zaryad.
+      charge: density * sec(t),
+    };
+  },
   electrolysis: (p, t = 0) => ({
     mass:
       ((p.molarMass / 1000) * p.current * sec(t)) / (p.valence * 96485.33212),
@@ -281,10 +320,11 @@ export const models = {
   }),
   discharge: (p) => {
     const E = (p.voltage * 1000) / (p.gap / 1000);
+    const thresholdVoltage = 3 * p.gap;
     return {
       field: E,
+      thresholdVoltage,
       breakdown: E >= 3e6 ? 1 : 0,
-      warning: E >= 3e6 ? "Havoning taxminiy teshilish chegarasi oshdi." : "",
     };
   },
   magnetic: (p) => ({
@@ -369,24 +409,44 @@ export const models = {
           : null,
     };
   },
-  polarization: (p) => ({
-    intensity: p.intensity * Math.cos(rad(p.angle)) ** 2,
-    fraction: Math.cos(rad(p.angle)) ** 2,
-  }),
+  polarization: (p) => {
+    if (!Number.isFinite(p.angle) || !Number.isFinite(p.intensity) || p.intensity < 0) {
+      return { intensity: null, fraction: null, warning: "Intensivlik manfiy bo‘lmasligi, burchak esa chekli son bo‘lishi kerak." };
+    }
+    const cosine = Math.cos(rad(p.angle));
+    const fraction = Math.abs(cosine) < 1e-14 ? 0 : cosine ** 2;
+    return { intensity: p.intensity * fraction, fraction };
+  },
   relativity: (p) => {
+    if (![p.beta, p.interval, p.length, p.m].every(Number.isFinite) || Math.abs(p.beta) >= 1 || p.interval < 0 || p.length <= 0 || p.m <= 0) {
+      return { gamma: null, time: null, length: null, kinetic: null, warning: "Massali jism uchun |v| < c, massa va uzunlik musbat, vaqt oralig‘i manfiy bo‘lmasligi kerak." };
+    }
     const gamma = 1 / Math.sqrt(1 - p.beta ** 2);
     return {
       gamma,
       time: p.interval * gamma,
       length: p.length / gamma,
-      kinetic: (gamma - 1) * p.m * LIGHT ** 2,
+      // Kichik tezliklarda gamma - 1 ayirmasidagi aniqlik yo‘qolishini chetlab o‘tamiz.
+      kinetic: (p.beta ** 2 * gamma ** 2 / (gamma + 1)) * p.m * LIGHT ** 2,
     };
   },
-  photon: (p) => ({
-    energy: (PLANCK * LIGHT) / (p.wavelength * 1e-9),
-    frequency: LIGHT / (p.wavelength * 1e-9),
-    momentum: PLANCK / (p.wavelength * 1e-9),
-  }),
+  photon: (p) => {
+    if (!Number.isFinite(p.wavelength) || p.wavelength <= 0) {
+      return {
+        energy: null,
+        frequency: null,
+        momentum: null,
+        warning: "Fotonning to‘lqin uzunligi noldan katta bo‘lishi kerak.",
+      };
+    }
+    const wavelength = p.wavelength * 1e-9;
+    return {
+      energy: (PLANCK * LIGHT) / wavelength,
+      frequency: LIGHT / wavelength,
+      momentum: PLANCK / wavelength,
+      warning: "",
+    };
+  },
   xray: (p) => ({
     wavelength: (PLANCK * LIGHT) / (ELEMENTARY * p.voltage * 1000),
     energy: ELEMENTARY * p.voltage * 1000,

@@ -44,6 +44,14 @@ const CHALLENGES = {
     eval: (s, p) => Number(s.efficiency ?? 0) >= 85,
     current: (s) => `${Number(s.efficiency ?? 0).toFixed(1)}%`,
   },
+  electrolysis: {
+    title: "Katodda 10 mg modda ajrating",
+    desc: "Tok kuchi, molyar massa va valentlikni shunday sozlangki, 10 soniyada katodda 10 mg modda ajralsin.",
+    target: "t = 10 s da m = 10 ± 0,6 mg",
+    hint: "m = MIt/(zF). M = 63 g/mol va z = 2 bo‘lsa, taxminan I = 3,1 A kerak.",
+    eval: (_s, p) => Math.abs((p.molarMass * p.current * 10 * 1000) / (p.valence * 96485.33212) - 10) <= 0.6,
+    current: (_s, p) => `${((p.molarMass * p.current * 10 * 1000) / (p.valence * 96485.33212)).toFixed(2)} mg (10 s da)`,
+  },
   energy: {
     title: "🎢 Kinetik energiya cho‘qqisi",
     desc: "Eng quyi nuqtada kinetik energiyani Ek = 80 J ga yetkazing.",

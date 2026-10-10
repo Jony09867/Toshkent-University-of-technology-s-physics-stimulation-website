@@ -1140,7 +1140,7 @@
         "title":  "Yadro reaksiyalari",
         "kind":  "MATN",
         "priority":  false,
-        "notes":  "- Reaksiya balansi: `Σ(massa/zaryad) chapda = Σ(massa/zaryad) o\u0027ngda` — saqlanish qonunlari",
+        "notes":  "- Reaksiyada nuklon soni A va zaryad soni Z saqlanadi. Massalar farqi Q = Δmc² energiyaga aylanadi.",
         "page":  null
     }
 ]

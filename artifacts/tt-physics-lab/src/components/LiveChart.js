@@ -32,6 +32,7 @@ const phaseMap = {
 export class LiveChart {
   constructor(container, config, p, onInspect = null) {
     this.config = config;
+    this.currentParams = p;
     this.charts = [];
     this.last = -1;
     this.destroyed = false;
@@ -69,7 +70,7 @@ export class LiveChart {
       return;
     }
     const grouped =
-      config.key === "energy" || config.key === "buoyancy"
+      config.key === "energy" || config.key === "buoyancy" || config.visual === "transformerInduction"
         ? [config.series]
         : config.series.map((s) => [s]);
     for (const series of grouped) {
@@ -85,11 +86,12 @@ export class LiveChart {
       const inspector = document.createElement("output");
       inspector.className = "chart-inspector";
       inspector.setAttribute("aria-live", "off");
-      inspector.textContent = "Grafikdagi nuqtaga boring: aniq qiymat ko‘rinadi.";
+      inspector.textContent = "";
       wrap.append(inspector);
       container.append(wrap);
       canvas.addEventListener("mouseleave", () => {
         if (ch) { ch.$inspectorPoint = null; ch.draw(); }
+        inspector.textContent = "";
       });
       const axisMuted = muted();
       const gridColor = grid();
@@ -171,12 +173,17 @@ export class LiveChart {
             scales: {
               x: {
                 type: "linear",
-                title: { display: true, text: uz.unitTime, color: axisMuted },
+                title: { display: true, text: config.key === "rutherford" ? "Vaqt (×10⁻²⁰ s)" : uz.unitTime, color: axisMuted },
                 grid: { color: gridColor },
-                ticks: { maxTicksLimit: 6, color: axisMuted },
+                ticks: {
+                  maxTicksLimit: 6,
+                  color: axisMuted,
+                  ...(config.key === "rutherford" ? { callback: value => Number((value / 1e-20).toFixed(2)) } : {}),
+                },
                 border: { color: lineColor },
               },
               y: {
+                ...(config.visual === "airHumidity" ? { min: 0, max: 100 } : {}),
                 title: {
                   display: true,
                   text:
@@ -199,7 +206,7 @@ export class LiveChart {
       }
       this.charts.push(ch);
     }
-    if (this.static) this.curve(p);
+    if (this.static || config.visual === "transformerInduction") this.curve(p);
     if (config.key === "heatEngine") this.initCarnot(container, p);
   }
   initCarnot(container, p) {
@@ -252,6 +259,7 @@ export class LiveChart {
     });
     if (!selected) {
       if (chart.$inspectorPoint) { chart.$inspectorPoint = null; chart.draw(); }
+      output.textContent = "";
       return;
     }
     const dataset = chart.data.datasets[selected.datasetIndex];
@@ -302,9 +310,50 @@ export class LiveChart {
       });
     }
   }
+  setTransformerCursor(chart, t, state) {
+    chart.data.datasets = chart.data.datasets.filter(ds => !ds.currentMarker);
+    const phaseTime = t % (2 / this.currentParams.frequency);
+    for (const [index, source] of chart.data.datasets.filter(ds => ds.key && !ds.snapshot).entries()) {
+      const raw = state[source.key];
+      if (!Number.isFinite(raw)) continue;
+      chart.data.datasets.push({
+        label: uz.currentValue,
+        currentMarker: true,
+        data: [{ x: phaseTime, y: raw * source.scale }],
+        pointRadius: 4,
+        pointHoverRadius: 6,
+        pointBackgroundColor: source.borderColor || colors[index],
+        pointBorderColor: "#fff",
+        pointBorderWidth: 1.5,
+        showLine: false,
+        fill: false,
+      });
+    }
+  }
   curve(p) {
     if (this.destroyed) return;
+    this.currentParams = p;
     const key = this.config.key;
+    if (this.config.visual === "transformerInduction") {
+      const windowDuration = 2 / p.frequency;
+      for (const chart of this.charts) {
+        const snapshots = chart.data.datasets.filter(item => item.snapshot);
+        const sources = chart.data.datasets.filter(item => item.key && !item.snapshot && !item.currentMarker);
+        for (const ds of sources) {
+          ds.data = Array.from({ length: 241 }, (_, i) => {
+            const x = windowDuration * i / 240;
+            const state = this.config.calculate(p, x);
+            return { x, y: Number.isFinite(state[ds.key]) ? state[ds.key] * ds.scale : null };
+          });
+        }
+        chart.data.datasets = [...sources, ...snapshots];
+        chart.options.scales.x.title.text = "Vaqt (s) · 2 davr";
+        chart.options.scales.y.title.text = "Kuchlanish (V)";
+        this.setTransformerCursor(chart, 0, this.config.calculate(p, 0));
+        this.updateChart(chart);
+      }
+      return;
+    }
     let param, min, max, label;
     if (this.config.sweep) {
       const definition = this.config.params.find(
@@ -313,7 +362,7 @@ export class LiveChart {
       param = definition.key;
       min = definition.min;
       max = definition.max;
-      label = `${definition.label} (${definition.unit})`;
+      label = definition.unit ? `${definition.label} (${definition.unit})` : definition.label;
     } else if (key === "coulomb") {
       param = "r";
       min = 0.1;
@@ -358,8 +407,14 @@ export class LiveChart {
         );
       chart.data.datasets = [...sources, ...snapshots];
       for (const ds of sources) {
-        ds.data = Array.from({ length: 181 }, (_, i) => {
-          const x = min + ((max - min) * i) / 180,
+        const discreteSources = ["batteryCircuit", "atomSpectra"].includes(this.config.visual);
+        const sampleCount = discreteSources ? Math.round(max - min) + 1 : 181;
+        if (discreteSources) {
+          ds.pointRadius = 3;
+          ds.tension = 0;
+        }
+        ds.data = Array.from({ length: sampleCount }, (_, i) => {
+          const x = discreteSources ? min + i : min + ((max - min) * i) / 180,
             q = { ...p, [param]: x },
             r = this.safeCalculate(q);
           if (!r) return { x, y: null };
@@ -450,7 +505,16 @@ export class LiveChart {
   }
   add(t, state, force = false) {
     if (this.static || this.destroyed || !state) return;
-    const sampleInterval = Math.min(0.09, this.config.duration / 240);
+    if (this.config.visual === "transformerInduction") {
+      for (const chart of this.charts) {
+        this.setTransformerCursor(chart, t, state);
+        this.updateChart(chart);
+      }
+      return;
+    }
+    const sampleInterval = this.config.key === "rutherford" && Number.isFinite(state.duration)
+      ? state.duration / 160
+      : Math.min(0.09, this.config.duration / 240);
     if (!force && t - this.last < sampleInterval) return;
     this.last = t;
 
@@ -502,6 +566,13 @@ export class LiveChart {
   seek(t, state) {
     if (this.static || this.destroyed || !state) return;
     this.last = t;
+    if (this.config.visual === "transformerInduction") {
+      for (const chart of this.charts) {
+        this.setTransformerCursor(chart, t, state);
+        this.updateChart(chart);
+      }
+      return;
+    }
     for (const ch of this.charts) {
       const snapshots = ch.data.datasets.filter((ds) => ds.snapshot);
       const sources = ch.data.datasets.filter(
@@ -517,6 +588,10 @@ export class LiveChart {
   reset(p) {
     if (this.destroyed) return;
     this.last = -1;
+    if (this.config.visual === "transformerInduction") {
+      this.curve(p);
+      return;
+    }
     if (this.phaseMode && this.charts[0]) {
       const ds = this.charts[0].data.datasets.find((d) => d.isPhase);
       if (ds) ds.data = [];
