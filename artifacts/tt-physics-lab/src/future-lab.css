@@ -2920,10 +2920,12 @@ footer .footer-top > div > a:not(.brand) {
 .fall-lab-page .fall-readout span:nth-child(3) b,
 .fall-lab-page .fall-readout span:nth-child(4) b { color: #78adff; }
 .fall-lab-page .telemetry-panel.single-chart .chart-wrap { height: 230px; }
-.fall-lab-page .transport .icon-button,
-.fall-lab-page .transport .time-step,
-.fall-lab-page .speed-control select { min-width: 44px; min-height: 44px; }
-.fall-lab-page .controls-card .value-wrap input { min-height: 44px; }
+.sim-page .transport .icon-button,
+.sim-page .transport .time-step,
+.sim-page .speed-control select { min-width: 44px; min-height: 44px; }
+.sim-page .controls-card .value-wrap input,
+.sim-page .vi-toolbar button,
+.sim-page .level-tab { min-height: 44px; }
 
 @media (max-width: 960px) {
   .fall-lab-page .experiment-layout {
