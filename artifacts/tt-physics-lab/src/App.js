@@ -27,7 +27,9 @@ import { levelTabs } from "./components/LevelTabs.js";
 import { format, formatResult, NO_VALUE } from "./components/ResultCard.js";
 import { SimulationCanvas } from "./components/SimulationCanvas.js";
 import { LiveChart } from "./components/LiveChart.js";
+import { attachBorderGlow } from "./components/BorderGlow.js";
 import { attachMagnet } from "./components/Magnet.jsx";
+import "./components/BorderGlow.css";
 import "./components/FloatingLines.css";
 import { mountVirtualInstruments } from "./components/VirtualInstruments.js";
 import "./components/VirtualInstruments.css";
@@ -1417,6 +1419,21 @@ async function route() {
     } else planned(-1);
   } else planned(-1);
   if (generation !== routeGeneration) return;
+  setTimeout(() => {
+    if (generation !== routeGeneration) return;
+    document.querySelectorAll('.sim-card, .section-card, .learning-card, .result-card').forEach((el) => {
+      const isSection = el.classList.contains('section-card');
+      attachBorderGlow(el, {
+        edgeSensitivity: 30,
+        glowColor: "14 88 55",
+        backgroundColor: "#111820",
+        borderRadius: isSection ? 16 : 18,
+        glowRadius: 35,
+        glowIntensity: 1.0,
+        colors: ['#F1592A', '#3883d9', '#19a378'],
+      });
+    });
+  }, 50);
   window.scrollTo(0, 0);
   document.title =
     (path === "/"
