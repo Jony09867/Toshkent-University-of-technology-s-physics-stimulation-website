@@ -499,20 +499,42 @@ export function renderCatalog(c, { config, p, s, t }, theme) {
       break;
     }
     case "relative": {
-      box(95, 100, 610, 230, B + "18");
-      for (let i = 0; i < 5; i++)
-        arrow(130 + i * 110, 140, 130 + i * 110, 180, B);
-      const x = 150 + s.x * 12,
-        y = 260 - s.y * 12;
-      ball(clamp(x, 120, 660), clamp(y, 120, 310), 18, O);
-      arrow(150, 260, clamp(x, 120, 660), clamp(y, 120, 310), O);
-      txt(
-        "Qayiq + oqim → qirg‘oqqa nisbatan harakat",
-        400,
-        365,
-        theme.muted,
-        15,
-      );
+      const originX = 152, originY = 233;
+      const scale = Math.min(480 / Math.max(1, p.v1 * config.duration),
+        95 / Math.max(1, Math.abs(p.v2) * config.duration));
+      const x = originX + s.x * scale;
+      const y = originY - s.y * scale;
+      box(96, 105, 610, 256, B + "13");
+      line(96, 105, 706, 105, "#6b8393", 3);
+      line(96, 361, 706, 361, "#6b8393", 3);
+      for (let i = 0; i < 4; i++) {
+        const streamX = 235 + i * 112;
+        if (Math.abs(p.v2) > 1e-9)
+          arrow(streamX, 246, streamX, 246 - Math.sign(p.v2) * 28, B);
+      }
+      line(originX, originY, x, originY, G, 2, [5, 6]);
+      line(x, originY, x, y, B, 2, [5, 6]);
+      if (Math.hypot(s.x, s.y) > 1e-8)
+        arrow(originX, originY, x, y, O);
+      c.save();
+      c.translate(x, y);
+      c.fillStyle = "#7590a3";
+      c.beginPath();
+      c.moveTo(-34, -13);
+      c.lineTo(22, -13);
+      c.lineTo(37, 0);
+      c.lineTo(22, 13);
+      c.lineTo(-34, 13);
+      c.closePath();
+      c.fill();
+      c.fillStyle = O;
+      c.fillRect(-29, -11, 53, 3);
+      c.restore();
+      txt(`v₁ = ${format(p.v1)} m/s`, 168, 395, G, 16);
+      txt(`v₂ = ${format(p.v2)} m/s`, 400, 395, B, 16);
+      txt(`|v| = ${format(s.speed)} m/s`, 630, 395, O, 16);
+      txt("Qirg‘oqqa nisbatan yo‘l · strelkalar tezlik yo‘nalishini bildiradi",
+        400, 430, theme.muted, 13);
       break;
     }
     case "meeting":

@@ -25,7 +25,7 @@ const catalogEquations = {
   massEnergy: (p, s, n, r) => `E = mc² → E = ${r("joules")} ≈ ${r("tnt")} (TNT ekvivalenti)`,
   decay: (p, s, n, r) => `N = N₀·e^(−λt) → N = ${r("remaining")} · ${r("percent")} qoldi · A = ${r("activity")}`,
   uniform: (p, s, n, r) => `x = x₀ + v·t → x = ${r("x")} · v = ${r("v")} · yo‘l = ${r("distance")}`,
-  relative: (p, s, n, r) => `v⃗ = v⃗₁ + v⃗₂ → |v| = ${r("speed")}`,
+  relative: (p, s, n, r) => `|v| = √(v1² + v2²) → |v| = ${r("speed")}`,
   meeting: (p, s, n, r) => `x₁ = v₁t, x₂ = d + v₂t → t = ${r("meeting")}`,
   circular: (p, s, n, r) => `aₙ = ω²R, aₜ = αR → v = ${r("velocity")} · aₙ = ${r("normal")} · aₜ = ${r("tangent")}`,
   gears: (p, s, n, r) => `R₁ω₁ = −R₂ω₂ → ω₂ = ${r("omega2")} · v = ${r("velocity")}`,
