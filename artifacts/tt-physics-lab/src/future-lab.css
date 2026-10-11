@@ -2487,9 +2487,9 @@ footer .footer-top > div > a:not(.brand) {
 }
 .sim-page.electrolysis-page .vector-legend { display: none; }
 .sim-page .telemetry-panel.single-chart .chart-wrap { height: 320px; }
-.sim-page .electrolysis-chart-switch {
+.sim-page .chart-series-switch {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(92px, 1fr));
   gap: 6px;
   margin: 0 0 12px;
   padding: 4px;
@@ -2497,22 +2497,23 @@ footer .footer-top > div > a:not(.brand) {
   border-radius: 10px;
   background: var(--surface);
 }
-.sim-page .electrolysis-chart-switch button {
-  min-height: 36px;
+.sim-page .chart-series-switch button {
+  min-height: 44px;
   border: 0;
   border-radius: 7px;
   background: transparent;
   color: var(--ink-soft);
   font: inherit;
-  font-size: 12px;
+  font-size: 13px;
+  line-height: 1.2;
   cursor: pointer;
 }
-.sim-page .electrolysis-chart-switch button[aria-pressed="true"] {
+.sim-page .chart-series-switch button[aria-pressed="true"] {
   background: var(--surface-soft);
   color: var(--ink);
   font-weight: 650;
 }
-.sim-page .electrolysis-chart-switch button:focus-visible {
+.sim-page .chart-series-switch button:focus-visible {
   outline: 2px solid var(--brand);
   outline-offset: 2px;
 }

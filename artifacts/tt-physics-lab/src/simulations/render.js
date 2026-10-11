@@ -1,6 +1,7 @@
 import { clamp, projectile, resonance } from "../physics/engine.js";
 import { renderCatalog } from "./catalog-render.js";
 import { renderFallScene } from "./fall-scene.js";
+import { renderCartScene } from "./cart-scene.js";
 import { uz } from "../i18n/uz.js";
 import { format } from "../components/ResultCard.js";
 import { liveEquation } from "../components/LiveEquation.js";
@@ -137,25 +138,26 @@ function arrow(c, x, y, dx, dy, color = red, label = "") {
 }
 function ball(c, x, y, r = 17) {
   c.save();
-  c.shadowBlur = 16;
-  c.shadowColor = "#F1592A35";
-  c.shadowOffsetY = 6;
-  const g = c.createRadialGradient(x - r / 3, y - r / 3, 1, x, y, r);
-  g.addColorStop(0, "#ffad72");
-  g.addColorStop(0.55, orange);
-  g.addColorStop(1, "#c83a1b");
-  circle(c, x, y, r, g);
+  const g = c.createRadialGradient?.(x - r / 3, y - r / 3, 1, x, y, r);
+  g?.addColorStop(0, "#e9f0f3");
+  g?.addColorStop(0.55, "#9caeba");
+  g?.addColorStop(1, "#506574");
+  circle(c, x, y, r, g || "#93a6b4");
+  c.beginPath();
+  c.arc(x, y, r, 0, Math.PI * 2);
+  c.strokeStyle = orange;
+  c.lineWidth = 1.5;
+  c.stroke();
   c.restore();
-  circle(c, x - r / 3, y - r / 3, r / 5, "#ffffff75");
 }
 function block(c, x, y, size, label) {
   c.save();
-  c.shadowBlur = 16;
-  c.shadowOffsetY = 8;
-  c.shadowColor = "#26344417";
-  rect(c, x - size / 2, y - size, size, size, orange, 6);
+  const metal = c.createLinearGradient?.(x - size / 2, y - size, x + size / 2, y);
+  metal?.addColorStop(0, "#8fa1ae");
+  metal?.addColorStop(1, "#43596a");
+  rect(c, x - size / 2, y - size, size, size, metal || "#5d7281", 6);
   c.restore();
-  rect(c, x - size / 2 + 4, y - size + 4, size - 8, 7, "#ffac8055", 3);
+  rect(c, x - size / 2 + 2, y - size + 2, size - 4, 5, orange, 2);
   text(c, label, x, y - size / 2 + 5, "white", 15, "center");
 }
 function grid(c, palette = theme) {
@@ -385,22 +387,39 @@ function springDraw(c, p, s) {
   const x = 285,
     top = 60,
     bottom = 240 + s.x * 105;
-  line(c, 195, top, 375, top, ink, 7);
+  line(c, 195, top, 375, top, "#a8b8c3", 6);
   line(c, x, top, x, top + 20, muted, 2);
   c.beginPath();
-  c.strokeStyle = "#748b9d";
+  c.strokeStyle = "#9bafbc";
   c.lineWidth = 3;
   c.moveTo(x, top + 20);
-  for (let i = 0; i < 22; i++)
-    c.lineTo(x + (i % 2 ? 17 : -17), top + 25 + ((bottom - top - 30) * i) / 21);
+  for (let i = 0; i <= 120; i++) {
+    const u = i / 120;
+    c.lineTo(x + Math.sin(u * Math.PI * 20) * 18,
+      top + 24 + (bottom - top - 28) * u);
+  }
   c.lineTo(x, bottom);
   c.stroke();
   block(c, x, bottom + 55, 55, `${p.m} kg`);
-  line(c, 370, 265, 570, 265, "#bbc8d3", 1, [4, 4]);
-  text(c, "x = 0", 590, 269);
-  arrow(c, 435, 265, 0, s.x * 105, blue, "x");
-  text(c, `T = ${format(s.period)} s`, 610, 130, ink, 25, "center");
-  text(c, `x = ${format(s.x)} m`, 610, 170, blue, 18, "center");
+  const equilibriumY = 267.5;
+  line(c, 407, 165, 407, 367, theme.line, 1);
+  for (const displacement of [-0.8, -0.4, 0, 0.4, 0.8]) {
+    const tickY = equilibriumY + displacement * 105;
+    line(c, 400, tickY, 416, tickY, theme.line, 1);
+    if (!c.compactMode)
+      text(c, `${displacement.toFixed(1)} m`, 425, tickY + 4, muted, 11);
+  }
+  line(c, 368, equilibriumY, 560, equilibriumY, "#9cb1be", 1, [5, 5]);
+  text(c, "x = 0", 578, equilibriumY + 4, muted, 12);
+  const massY = equilibriumY + s.x * 105;
+  arrow(c, 490, equilibriumY, 0, s.x * 105, blue,
+    c.compactMode ? "" : `x = ${format(s.x)} m`);
+  const springForce = -p.k * s.x;
+  arrow(c, 382, massY, 0,
+    springForce * 72 / Math.max(p.k * p.amplitude, 1), green,
+    c.compactMode ? "" : `F = ${format(springForce)} N`);
+  text(c, `T = ${format(s.period)} s`, 610, 130, ink, 23, "center");
+  text(c, `v = ${format(s.v)} m/s`, 610, 170, blue, 17, "center");
 }
 function bridge(c, p, s, t) {
   const rawDisp = s.x * 55,
@@ -739,10 +758,17 @@ function optics(c, p, s) {
 export function renderSimulation(ctx, state) {
   const { config, p, s, t, trails = [], hero = false } = state;
   ctx.compactMode = Boolean(state.compact);
-  if (config.key === "fall") {
+  if (config.key === "fall" || config.key === "projectile") {
     ctx.save();
     renderFallScene(ctx, state);
     ctx.restore();
+    return;
+  }
+  if (["motion", "newton", "friction", "uniform"].includes(config.key)) {
+    ctx.save();
+    renderCartScene(ctx, state);
+    ctx.restore();
+    if (config.key === "uniform") equationChip(ctx, config, p, s, t);
     return;
   }
   const palette = readCanvasTheme();

@@ -28,6 +28,18 @@ export function fallHeightAt(y, min, max) {
   return min + Math.max(0, Math.min(1, ratio)) * (max - min);
 }
 
+export function projectileAngleHandle(p, state) {
+  const scale = scaleFor(state, p);
+  const angle = (p.angle ?? 0) * Math.PI / 180;
+  const launchY = GROUND_Y - p.h * scale;
+  return { x: ORIGIN_X + 52 * Math.cos(angle), y: launchY - 52 * Math.sin(angle) };
+}
+
+export function projectileAngleAt(x, y, p, state) {
+  const launchY = GROUND_Y - p.h * scaleFor(state, p);
+  return Math.atan2(launchY - y, x - ORIGIN_X) * 180 / Math.PI;
+}
+
 function scaleFor(state, p) {
   const range = Math.max(1, state.range);
   const height = Math.max(1, p.h, state.height);
@@ -36,7 +48,7 @@ function scaleFor(state, p) {
 }
 
 function pathFor(p, duration) {
-  const key = [p.h, p.v0, p.g, p.m, p.drag, duration].join("|");
+  const key = [p.h, p.v0, p.g, p.m, p.drag, p.angle ?? 0, duration].join("|");
   if (cachedPath?.key === key) return cachedPath.points;
   const points = Array.from({ length: 121 }, (_, index) => {
     const time = duration * index / 120;
@@ -151,10 +163,25 @@ export function renderFallScene(ctx, { p, s, t, config, level, compact }) {
   ctx.fillRect(0, 0, W, H);
   const scale = scaleFor(s, p);
   axes(ctx, p, s, scale, compact);
-  const heightParam = config.params.find((item) => item.key === "h");
-  ruler(ctx, p, heightParam, compact);
+  const isProjectile = config.key === "projectile";
+  if (!isProjectile) {
+    const heightParam = config.params.find((item) => item.key === "h");
+    ruler(ctx, p, heightParam, compact);
+  }
 
   const launchY = GROUND_Y - p.h * scale;
+  if (isProjectile) {
+    const knob = projectileAngleHandle(p, s);
+    segment(ctx, ORIGIN_X, launchY, knob.x, knob.y, orange, 2);
+    ctx.beginPath();
+    ctx.arc(knob.x, knob.y, compact ? 17 : 9, 0, Math.PI * 2);
+    ctx.fillStyle = orange;
+    ctx.fill();
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = "#fff";
+    ctx.stroke();
+    label(ctx, `${p.angle}°`, knob.x + 12, knob.y - 12, "#f3a384", compact ? 22 : 13);
+  }
   segment(ctx, ORIGIN_X, launchY, RIGHT_X, launchY, "rgba(241,89,42,.13)", 1, [4, 7]);
   const points = pathFor(p, s.duration);
   const currentIndex = Math.min(120, Math.max(0, Math.round(t / Math.max(s.duration, 1e-9) * 120)));
@@ -185,7 +212,7 @@ export function renderFallScene(ctx, { p, s, t, config, level, compact }) {
   ctx.fillStyle = orange;
   ctx.fill();
   if (!compact) {
-    label(ctx, s.landed ? "Yerga tegdi" : "Gorizontal otilgan jism", ORIGIN_X, 47,
+    label(ctx, s.landed ? "Yerga tegdi" : isProjectile ? "Burchak ostida otilgan jism" : "Gorizontal otilgan jism", ORIGIN_X, 47,
       s.landed ? green : "#d8e1e8", 14);
     label(ctx, `Uchish masofasi ${Number(s.range.toFixed(2))} m`, RIGHT_X, 438,
       "#d8e1e8", 13, "right");

@@ -698,12 +698,12 @@ function simPage(config, level = 0) {
   const canvas = new SimulationCanvas(
       document.querySelector("#sim-canvas"),
       (key, val) => {
-        if (c.key === "fall") setPlayState(false);
+        setPlayState(false);
         sync(key, val);
       }
     ),
     chart = chartVisible
-      ? new LiveChart(document.querySelector("#charts"), level === 0 && ["electrolysis", "uniform", "fall"].includes(c.key) ? { ...c, series: c.series.slice(0, 1) } : c, p, (time) => {
+      ? new LiveChart(document.querySelector("#charts"), c, p, (time) => {
           setPlayState(false);
           t = Math.max(0, Math.min(c.duration, time));
           update(true, "seek");
@@ -755,23 +755,22 @@ function simPage(config, level = 0) {
     ? Object.fromEntries(["x", "y", "vx", "vy"].map((key) => [key, fallReadout.querySelector(`[data-fall-value="${key}"]`)]))
     : null;
   let lastFallReadoutAt = -Infinity;
-  const focusedCharts = ["electrolysis", "uniform", "fall"].includes(c.key);
-  telemetryPanel?.classList.toggle("single-chart", focusedCharts);
-  if (focusedCharts && level > 0 && chart) {
+  const chartCards = chart ? [...telemetryPanel.querySelectorAll("#charts > .chart-wrap")] : [];
+  telemetryPanel?.classList.toggle("single-chart", chartCards.length > 1);
+  if (chartCards.length > 1) {
     const chartContainer = telemetryPanel.querySelector("#charts");
-    const chartCards = [...chartContainer.querySelectorAll(".chart-wrap")];
-    if (chartCards.length >= 2) {
       const switcher = document.createElement("div");
-      switcher.className = "electrolysis-chart-switch";
+      switcher.className = "chart-series-switch";
       switcher.setAttribute("role", "group");
       switcher.setAttribute("aria-label", "Grafik turi");
-      const labels = c.key === "uniform" ? ["Koordinata", "Tezlik"]
-        : c.key === "fall" ? ["Balandlik", "Vertikal tezlik"]
-          : ["Modda (mg)", "Zaryad (C)"];
+      const labels = chartCards.map((card, index) => card.classList.contains("carnot-chart")
+        ? "Karno p–V"
+        : resultLabel(c, c.series[index]?.[0]) || `Grafik ${index + 1}`);
       const buttons = labels.map((label, index) => {
         const button = document.createElement("button");
         button.type = "button";
         button.textContent = label;
+        button.setAttribute("aria-label", `${label} grafigi`);
         button.addEventListener("click", () => selectChart(index));
         switcher.append(button);
         return button;
@@ -779,11 +778,14 @@ function simPage(config, level = 0) {
       const selectChart = (selected) => {
         chartCards.forEach((card, index) => { card.hidden = index !== selected; });
         buttons.forEach((button, index) => button.setAttribute("aria-pressed", String(index === selected)));
-        requestAnimationFrame(() => chart.charts[selected]?.resize());
+        requestAnimationFrame(() => {
+          const selectedChart = chart.charts[selected] || chart.carnotChart;
+          selectedChart?.resize();
+          selectedChart?.update("none");
+        });
       };
       chartContainer.before(switcher);
       selectChart(0);
-    }
   }
   const endTime = () => {
     let end = c.duration;

@@ -522,14 +522,19 @@ models.hydraulic = (p) => {
     workOut: p.force * l,
   };
 };
+let pendulumCache = null;
+
 // RK4 mayatnik tenglamasini sin(theta) bilan integrallaydi; katta burchakda ham ishlaydi.
 models.pendulum = (p, t = 0) => {
   const a = rad(p.amplitude),
     time = Math.min(sec(t), 120),
-    steps = Math.ceil(time / 0.005),
-    dt = steps ? time / steps : 0;
-  let q = a,
-    w = 0;
+    key = `${p.length}|${p.amplitude}|${p.damping}`,
+    reusable = pendulumCache?.key === key && pendulumCache.time <= time,
+    from = reusable ? pendulumCache.time : 0,
+    steps = Math.ceil((time - from) / 0.005),
+    dt = steps ? (time - from) / steps : 0;
+  let q = reusable ? pendulumCache.q : a,
+    w = reusable ? pendulumCache.w : 0;
   const acc = (x, v) => (-G / p.length) * Math.sin(x) - 2 * p.damping * v;
   for (let i = 0; i < steps; i++) {
     const k1 = acc(q, w),
@@ -545,6 +550,7 @@ models.pendulum = (p, t = 0) => {
     q += (dt * (w + 2 * w2 + 2 * w3 + w4)) / 6;
     w += (dt * (k1 + 2 * k2 + 2 * k3 + k4)) / 6;
   }
+  pendulumCache = { key, time, q, w };
   const potential = G * p.length * (1 - Math.cos(q)),
     kinetic = (p.length ** 2 * w * w) / 2,
     initial = G * p.length * (1 - Math.cos(a));

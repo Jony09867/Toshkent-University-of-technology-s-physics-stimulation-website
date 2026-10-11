@@ -1,5 +1,6 @@
 import { renderSimulation } from "../simulations/render.js";
-import { fallHeightAt, fallHeightHandle } from "../simulations/fall-scene.js";
+import { fallHeightAt, fallHeightHandle, projectileAngleAt, projectileAngleHandle } from "../simulations/fall-scene.js";
+import { cartSceneGeometry } from "../simulations/cart-scene.js";
 
 /** Logical drawing space; mirrors `aspect-ratio: 800 / 460` in styles.css. */
 const BASE_WIDTH = 800;
@@ -9,24 +10,6 @@ const MAX_DPR = 2;
 /** Below this CSS width renderers switch to their compact layout. */
 const COMPACT_WIDTH = 520;
 const LEVELS = ["easy", "medium", "hard"];
-
-const FOCUS_PARAMS = {
-  motion: "v0",
-  fall: "h",
-  newton: "force",
-  friction: "mu",
-  projectile: "angle",
-  energy: "h",
-  spring: "m",
-  resonance: "frequency",
-  buoyancy: "rho",
-  gas: "temperature",
-  coulomb: "r",
-  ohm: "voltage",
-  circuit: "resistance",
-  induction: "speed",
-  lens: "object",
-};
 
 export class SimulationCanvas {
   constructor(canvas, onDrag = null) {
@@ -52,7 +35,7 @@ export class SimulationCanvas {
   setupInteractivity() {
     if (!this.canvas) return;
 
-    this.canvas.style.cursor = "grab";
+    this.canvas.style.cursor = "default";
 
     const getPos = (e) => {
       const rect = this.canvas.getBoundingClientRect();
@@ -71,9 +54,11 @@ export class SimulationCanvas {
       const key = this.state.config.key;
       const x = pos.x * BASE_WIDTH / pos.width;
       const y = pos.y * BASE_HEIGHT / pos.height;
-      const near = (cx, cy, radius = 38) => Math.hypot(x - cx, y - cy) < radius;
+      const touchRadius = Math.max(38, 22 * BASE_WIDTH / pos.width);
+      const near = (cx, cy, radius = touchRadius) => Math.hypot(x - cx, y - cy) < radius;
       const named = (name, vertical, valueAt) => {
-        const param = this.state.config.params.find((item) => item.key === name);
+        const param = this.state.config.params.find((item) =>
+          item.key === name && (item.level ?? 0) <= (this.state.level ?? 0));
         return param ? { param, isVertical: vertical, valueAt } : null;
       };
       const p = this.state.p;
@@ -86,14 +71,40 @@ export class SimulationCanvas {
         if (!near(handle.x, handle.y, touchRadius)) return null;
         return named("h", true, (_px, py) => fallHeightAt(py, height.min, height.max));
       }
+      if (key === "projectile") {
+        const handle = projectileAngleHandle(p, s);
+        const touchRadius = Math.max(29, 22 * BASE_WIDTH / pos.width);
+        if (!near(handle.x, handle.y, touchRadius)) return null;
+        return named("angle", false,
+          (px, py) => projectileAngleAt(px, py, this.state.p, this.state.s));
+      }
+      if (key === "uniform" || key === "motion" || key === "newton") {
+        const geometry = cartSceneGeometry(this.state.config, p, s);
+        if ((key === "uniform" || key === "motion") &&
+          near(geometry.position, 292, 50)) {
+          return named("x0", false,
+            (px) => geometry.camera + (px - 400) / geometry.pixelsPerMetre);
+        }
+        if (key === "newton" && !p.slope) {
+          const scale = 75 / Math.max(1, p.force, s.friction, p.m * 9.81);
+          if (near(geometry.position + 44 + p.force * scale, 284))
+            return named("force", false,
+              (px) => (px - geometry.position - 44) / scale);
+        }
+        return null;
+      }
+      if (key === "energy") {
+        if (!near(400 + s.q * 40, 345 - s.height * 40 - 18)) return null;
+        return named("h", true);
+      }
       if (key === "pendulum") {
         const length = Math.max(70, Math.min(180, p.length * 100));
         if (!near(400 + length * Math.sin(s.theta), 100 + length * Math.cos(s.theta), 44)) return null;
         return named("amplitude", false, (px, py) => Math.abs(Math.atan2(px - 400, py - 100) * 180 / Math.PI));
       }
       if (key === "spring") {
-        if (!near(285, 295 + s.x * 105, 48)) return null;
-        return named("amplitude", true, (_px, py) => Math.abs((py - 295) / 105));
+        if (!near(285, 267.5 + s.x * 105, 48)) return null;
+        return named("amplitude", true, (_px, py) => Math.abs((py - 267.5) / 105));
       }
       if (key === "lever") {
         const scale = 220 / Math.max(p.arm1, p.arm2);
@@ -110,12 +121,20 @@ export class SimulationCanvas {
           return named("focal", false, (px) => (px - 400) / scale);
         return null;
       }
-      const focusKey = FOCUS_PARAMS[key] || this.state.config.params[0].key;
-      const param = (
-        this.state.config.params.find((p) => p.key === focusKey) ||
-        this.state.config.params[0]
-      );
-      return { param, isVertical: ["fall", "energy", "buoyancy"].includes(key) };
+      if (key === "coulomb") {
+        const d = 80 + p.r * 135;
+        if (near(400 + d / 2, 235, 48))
+          return named("r", false, (px) => (2 * (px - 400) - 80) / 135);
+        if (near(400 - d / 2, 235, 48))
+          return named("r", false, (px) => (2 * (400 - px) - 80) / 135);
+      }
+      if (key === "gas") {
+        const width = 230 + 270 * (p.volume - 5) / 45;
+        if (near(400 + width / 2, 220, 39))
+          return named("volume", false,
+            (px) => 5 + (2 * (px - 400) - 230) * 45 / 270);
+      }
+      return null;
     };
 
     const onPointerDown = (e) => {
@@ -173,13 +192,12 @@ export class SimulationCanvas {
       this.dragState.val = nextVal;
 
       this.onDrag(param.key, nextVal);
-      if (this.state?.config?.key !== "fall") this.draw();
     };
 
     const onPointerUp = () => {
       if (!this.dragState) return;
       this.dragState = null;
-      if (this.canvas) this.canvas.style.cursor = this.state?.config?.key === "fall" ? "default" : "grab";
+      if (this.canvas) this.canvas.style.cursor = "default";
       window.removeEventListener("mousemove", onPointerMove);
       window.removeEventListener("mouseup", onPointerUp);
       window.removeEventListener("touchmove", onPointerMove);
@@ -190,7 +208,7 @@ export class SimulationCanvas {
     this.canvas.addEventListener("mousedown", onPointerDown);
     this.canvas.addEventListener("touchstart", onPointerDown, { passive: false });
     const onHover = (e) => {
-      if (this.dragState || this.state?.config?.key !== "fall") return;
+      if (this.dragState) return;
       this.canvas.style.cursor = findTargetParam(getPos(e)) ? "grab" : "default";
     };
     this.canvas.addEventListener("mousemove", onHover);
@@ -209,7 +227,6 @@ export class SimulationCanvas {
   update(state) {
     if (!this.canvas?.isConnected) return;
     this.state = state;
-    if (state.config?.key === "fall" && !this.dragState) this.canvas.style.cursor = "default";
     this.draw();
   }
 

@@ -283,6 +283,8 @@ export class LiveChart {
   }
   updateChart(chart) {
     try {
+      // Yashirin grafik ma'lumot yig'adi; chizish faqat u tanlanganda bajariladi.
+      if (chart?.canvas?.closest?.(".chart-wrap")?.hidden) return;
       chart?.update("none");
     } catch (error) {
       console.warn("Graph update failed:", error);
