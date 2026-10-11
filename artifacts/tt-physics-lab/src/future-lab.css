@@ -2885,3 +2885,61 @@ footer .footer-top > div > a:not(.brand) {
   margin-bottom: 5px;
 }
 
+/* Erkin tushish namunasi: sahna va o'lchovlar bir qarashda ko'rinsin. */
+.fall-lab-page .simulation-stage { position: relative; }
+.fall-lab-page .simulation-stage canvas#sim-canvas { display: block; }
+.fall-lab-page .fall-readout {
+  position: absolute;
+  z-index: 2;
+  top: 18px;
+  right: 18px;
+  width: 228px;
+  padding: 13px 15px;
+  border: 1px solid #344451;
+  border-radius: 10px;
+  background: rgba(11, 17, 24, .94);
+  color: #e9eff3;
+  pointer-events: none;
+  font-variant-numeric: tabular-nums;
+}
+.fall-lab-page .fall-readout > strong {
+  display: block;
+  margin-bottom: 9px;
+  color: #a9b8c6;
+  font-size: 12px;
+  font-weight: 650;
+}
+.fall-lab-page .fall-readout > div {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px 12px;
+}
+.fall-lab-page .fall-readout span { color: #a9b8c6; font-size: 12px; white-space: nowrap; }
+.fall-lab-page .fall-readout b { color: #f3f6f8; font-size: 14px; }
+.fall-lab-page .fall-readout span:nth-child(3) b,
+.fall-lab-page .fall-readout span:nth-child(4) b { color: #78adff; }
+.fall-lab-page .telemetry-panel.single-chart .chart-wrap { height: 230px; }
+.fall-lab-page .transport .icon-button,
+.fall-lab-page .transport .time-step,
+.fall-lab-page .speed-control select { min-width: 44px; min-height: 44px; }
+.fall-lab-page .controls-card .value-wrap input { min-height: 44px; }
+
+@media (max-width: 960px) {
+  .fall-lab-page .experiment-layout {
+    grid-template-areas: "stage" "controls" "telemetry";
+  }
+}
+
+@media (max-width: 680px) {
+  .fall-lab-page .sim-title-row h1 { font-size: 27px; line-height: 1.15; }
+  .fall-lab-page .fall-readout {
+    position: static;
+    width: auto;
+    margin: 0 12px 12px;
+    pointer-events: auto;
+  }
+  .fall-lab-page .fall-readout > div { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .fall-lab-page .fall-readout span { display: grid; gap: 3px; font-size: 11px; }
+  .fall-lab-page .fall-readout b { font-size: 13px; }
+}
+

@@ -697,10 +697,13 @@ function simPage(config, level = 0) {
   );
   const canvas = new SimulationCanvas(
       document.querySelector("#sim-canvas"),
-      (key, val) => sync(key, val)
+      (key, val) => {
+        if (c.key === "fall") setPlayState(false);
+        sync(key, val);
+      }
     ),
     chart = chartVisible
-      ? new LiveChart(document.querySelector("#charts"), level === 0 && ["electrolysis", "uniform"].includes(c.key) ? { ...c, series: c.series.slice(0, 1) } : c, p, (time) => {
+      ? new LiveChart(document.querySelector("#charts"), level === 0 && ["electrolysis", "uniform", "fall"].includes(c.key) ? { ...c, series: c.series.slice(0, 1) } : c, p, (time) => {
           setPlayState(false);
           t = Math.max(0, Math.min(c.duration, time));
           update(true, "seek");
@@ -739,7 +742,20 @@ function simPage(config, level = 0) {
   controlsCard.querySelector(".experiment-guide")?.remove();
   controlsCard.querySelector(".controls-note")?.remove();
   document.querySelector(".sim-page")?.classList.toggle("electrolysis-page", c.key === "electrolysis");
-  const focusedCharts = ["electrolysis", "uniform"].includes(c.key);
+  document.querySelector(".sim-page")?.classList.toggle("fall-lab-page", c.key === "fall");
+  const fallReadout = c.key === "fall" ? document.createElement("div") : null;
+  if (fallReadout) {
+    fallReadout.className = "fall-readout";
+    fallReadout.setAttribute("role", "group");
+    fallReadout.setAttribute("aria-label", "Jismning joriy holati");
+    fallReadout.innerHTML = '<strong>Joriy holat</strong><div><span>x <b data-fall-value="x">0</b> m</span><span>y <b data-fall-value="y">0</b> m</span><span>vₓ <b data-fall-value="vx">0</b> m/s</span><span>vᵧ <b data-fall-value="vy">0</b> m/s</span></div>';
+    stageEl.querySelector("#sim-canvas")?.after(fallReadout);
+  }
+  const fallReadoutValues = fallReadout
+    ? Object.fromEntries(["x", "y", "vx", "vy"].map((key) => [key, fallReadout.querySelector(`[data-fall-value="${key}"]`)]))
+    : null;
+  let lastFallReadoutAt = -Infinity;
+  const focusedCharts = ["electrolysis", "uniform", "fall"].includes(c.key);
   telemetryPanel?.classList.toggle("single-chart", focusedCharts);
   if (focusedCharts && level > 0 && chart) {
     const chartContainer = telemetryPanel.querySelector("#charts");
@@ -749,7 +765,9 @@ function simPage(config, level = 0) {
       switcher.className = "electrolysis-chart-switch";
       switcher.setAttribute("role", "group");
       switcher.setAttribute("aria-label", "Grafik turi");
-      const labels = c.key === "uniform" ? ["Koordinata", "Tezlik"] : ["Modda (mg)", "Zaryad (C)"];
+      const labels = c.key === "uniform" ? ["Koordinata", "Tezlik"]
+        : c.key === "fall" ? ["Balandlik", "Vertikal tezlik"]
+          : ["Modda (mg)", "Zaryad (C)"];
       const buttons = labels.map((label, index) => {
         const button = document.createElement("button");
         button.type = "button";
@@ -810,6 +828,12 @@ function simPage(config, level = 0) {
       return;
     }
     canvas.update({ config: c, p, s: state, t, trails, level });
+    if (fallReadoutValues && (force || performance.now() - lastFallReadoutAt >= 80)) {
+      for (const key of ["x", "y", "vx", "vy"]) {
+        fallReadoutValues[key].textContent = Number(state[key] || 0).toFixed(2);
+      }
+      lastFallReadoutAt = performance.now();
+    }
     virtualInstruments?.update(state, t, p);
     energyBar?.update(state, p);
     challengeMode?.update(state, p);
@@ -1015,6 +1039,10 @@ function simPage(config, level = 0) {
         ? usable
         : 0;
     p[key] = normalized;
+    if (c.key === "fall" && key === "drag") {
+      const banner = document.querySelector("#main-formula");
+      if (banner) banner.innerHTML = mainFormula();
+    }
     if (range) {
       range.value = normalized;
       range.style.setProperty(

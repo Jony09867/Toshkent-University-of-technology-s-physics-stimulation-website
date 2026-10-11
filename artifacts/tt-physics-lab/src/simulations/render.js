@@ -1,5 +1,6 @@
 import { clamp, projectile, resonance } from "../physics/engine.js";
 import { renderCatalog } from "./catalog-render.js";
+import { renderFallScene } from "./fall-scene.js";
 import { uz } from "../i18n/uz.js";
 import { format } from "../components/ResultCard.js";
 import { liveEquation } from "../components/LiveEquation.js";
@@ -737,9 +738,15 @@ function optics(c, p, s) {
 }
 export function renderSimulation(ctx, state) {
   const { config, p, s, t, trails = [], hero = false } = state;
+  ctx.compactMode = Boolean(state.compact);
+  if (config.key === "fall") {
+    ctx.save();
+    renderFallScene(ctx, state);
+    ctx.restore();
+    return;
+  }
   const palette = readCanvasTheme();
   grid(ctx, palette);
-  ctx.compactMode = Boolean(state.compact);
   ctx.save();
   if (config.visual) {
     renderCatalog(ctx, state, palette);
@@ -753,7 +760,6 @@ export function renderSimulation(ctx, state) {
     case "friction":
       cart(ctx, p, { ...s, t }, config.key, hero);
       break;
-    case "fall":
     case "projectile":
       flight(ctx, p, s, config.key, trails);
       break;

@@ -1,4 +1,5 @@
 import { renderSimulation } from "../simulations/render.js";
+import { fallHeightAt, fallHeightHandle } from "../simulations/fall-scene.js";
 
 /** Logical drawing space; mirrors `aspect-ratio: 800 / 460` in styles.css. */
 const BASE_WIDTH = 800;
@@ -77,6 +78,14 @@ export class SimulationCanvas {
       };
       const p = this.state.p;
       const s = this.state.s;
+      if (key === "fall") {
+        const height = this.state.config.params.find((item) => item.key === "h");
+        if (!height) return null;
+        const handle = fallHeightHandle(p.h, height.min, height.max);
+        const touchRadius = Math.max(30, 22 * BASE_WIDTH / pos.width);
+        if (!near(handle.x, handle.y, touchRadius)) return null;
+        return named("h", true, (_px, py) => fallHeightAt(py, height.min, height.max));
+      }
       if (key === "pendulum") {
         const length = Math.max(70, Math.min(180, p.length * 100));
         if (!near(400 + length * Math.sin(s.theta), 100 + length * Math.cos(s.theta), 44)) return null;
@@ -164,13 +173,13 @@ export class SimulationCanvas {
       this.dragState.val = nextVal;
 
       this.onDrag(param.key, nextVal);
-      this.draw();
+      if (this.state?.config?.key !== "fall") this.draw();
     };
 
     const onPointerUp = () => {
       if (!this.dragState) return;
       this.dragState = null;
-      if (this.canvas) this.canvas.style.cursor = "grab";
+      if (this.canvas) this.canvas.style.cursor = this.state?.config?.key === "fall" ? "default" : "grab";
       window.removeEventListener("mousemove", onPointerMove);
       window.removeEventListener("mouseup", onPointerUp);
       window.removeEventListener("touchmove", onPointerMove);
@@ -180,10 +189,16 @@ export class SimulationCanvas {
 
     this.canvas.addEventListener("mousedown", onPointerDown);
     this.canvas.addEventListener("touchstart", onPointerDown, { passive: false });
+    const onHover = (e) => {
+      if (this.dragState || this.state?.config?.key !== "fall") return;
+      this.canvas.style.cursor = findTargetParam(getPos(e)) ? "grab" : "default";
+    };
+    this.canvas.addEventListener("mousemove", onHover);
 
     this._cleanupInteractivity = () => {
       this.canvas?.removeEventListener("mousedown", onPointerDown);
       this.canvas?.removeEventListener("touchstart", onPointerDown);
+      this.canvas?.removeEventListener("mousemove", onHover);
       window.removeEventListener("mousemove", onPointerMove);
       window.removeEventListener("mouseup", onPointerUp);
       window.removeEventListener("touchmove", onPointerMove);
@@ -194,6 +209,7 @@ export class SimulationCanvas {
   update(state) {
     if (!this.canvas?.isConnected) return;
     this.state = state;
+    if (state.config?.key === "fall" && !this.dragState) this.canvas.style.cursor = "default";
     this.draw();
   }
 
