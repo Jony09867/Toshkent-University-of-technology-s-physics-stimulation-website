@@ -70,7 +70,7 @@ function FeatureWindow({ feature }) {
           {feature.params.map((param, index) => (
             <div key={param}><small>{param}</small><i><em style={{ width: `${36 + index * 19}%` }} /></i></div>
           ))}
-          <div className="feature-levels"><b>Oson</b><span>O‘rta</span><span>Qiyin</span></div>
+          <div className="feature-levels"><b>Barcha parametrlar</b></div>
         </aside>
         <div className="feature-canvas">
           <div className="feature-formula"><span>ASOSIY FORMULA</span><Markup html={feature.formula} /></div>

@@ -123,7 +123,7 @@ export const uz = {
   completed: "O‘rganildi",
   unitTime: "Vaqt (s)",
   onboarding:
-    "Birinchi tajribangiz: slayderni suring va natija qanday o‘zgarishini kuzating. Darajalarni almashtirib, yangi parametrlarni oching.",
+    "Birinchi tajribangiz: slayderni suring va natija qanday o‘zgarishini kuzating. Oson, o‘rta va qiyin darajalardagi barcha parametrlar endi bitta bo‘limda.",
   gotIt: "Tushunarli",
   help: "Yo‘riqnoma",
   all: "Barchasi",

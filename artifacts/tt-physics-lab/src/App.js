@@ -23,7 +23,6 @@ import { sections, sectionFor } from "./data/sections.js";
 import { icon } from "./components/icons.js";
 import { formula } from "./components/FormulaDisplay.js";
 import { parameterSlider } from "./components/ParameterSlider.js";
-import { levelTabs } from "./components/LevelTabs.js";
 import { format, formatResult, NO_VALUE } from "./components/ResultCard.js";
 import { SimulationCanvas } from "./components/SimulationCanvas.js";
 import { LiveChart } from "./components/LiveChart.js";
@@ -476,7 +475,7 @@ async function home(generation) {
       [String(allConfigs.length), uz.simulations],
       ["143", uz.topics],
       ["15", uz.sections],
-      ["3", uz.learningLevels],
+      ["1", uz.learningLevels],
     ],
     features: stories,
     featuredCardsHtml: featuredKeys
@@ -613,7 +612,7 @@ const experimentTools = (c, params) => {
   return `<section class="lab-tools" aria-label="Tajriba yordamchilari"><div class="lab-tool preset-tool"><div><span class="eyebrow orange">TAYYOR HOLATLAR</span><p>${focus ? `${focus.label} uchun tez sozlamalar` : "Tayyor sozlamalar"}</p></div><div class="tool-actions">${presets.map(([label, value]) => `<button type="button" class="tool-chip" data-preset-key="${focus.key}" data-preset-value="${value}">${label}</button>`).join("")}</div></div><div class="lab-tool prediction-tool"><div><span class="eyebrow">AVVAL TAXMIN QILING</span><p>${resultLabel(c, c.results[0]?.key)} qanday o‘zgaradi?</p></div><div class="tool-actions"><button type="button" class="tool-chip" data-prediction="up">Ortadi</button><button type="button" class="tool-chip" data-prediction="down">Kamayadi</button><button type="button" class="tool-chip" data-prediction="same">O‘zgarmaydi</button></div><strong id="prediction-feedback" class="tool-feedback" aria-live="polite"></strong>${predictionInsight}</div><div class="lab-tool compare-tool"><div><span class="eyebrow">SOLISHTIRISH</span><p>Joriy natija va grafikni saqlang</p></div><div class="tool-actions"><button type="button" class="tool-chip active" id="save-snapshot">+ Natijani saqlash</button><button type="button" class="tool-chip" id="clear-snapshots">Tozalash</button></div><div id="snapshot-list" class="snapshot-list" aria-live="polite"></div></div><div class="lab-tool real-example"><span class="eyebrow">REAL HAYOTDA</span><p>${(c.visual === "lampCircuit" ? c.example : everydayExamples[c.key] || c.example)}</p><strong id="auto-insight" class="tool-feedback" aria-live="polite">Parametrni o‘zgartiring — xulosa shu yerda chiqadi.</strong></div></section>`;
 };
 
-function simPage(config, level = 0) {
+function simPage(config, level = 2) {
   const sessionKey = config.id + (config.topicNumber ? ':' + config.topicNumber : '');
   const restored = simSessions.get(sessionKey);
   let p = { ...defaults(config, level), ...(restored?.p || {}) },
@@ -641,8 +640,7 @@ function simPage(config, level = 0) {
       ? restored.snapshots.map((snapshot) => ({ ...snapshot }))
       : [],
     milestonePaused = false,
-    disposed = false,
-    levelSwitching = false;
+    disposed = false;
   const c = config,
     params = c.params.filter((p) => p.level <= level);
   const navigation = topicNavigation(c, topics, allConfigs);
@@ -692,7 +690,7 @@ function simPage(config, level = 0) {
       true,
     );
   shell(
-    `<div class="container sim-page"><div class="breadcrumb"><a href="#/topics">${uz.nav[1]}</a><span>/</span><a href="#/topics?section=${c.section}">${sectionName(c.section)}</a><span>/</span><span>${escape(navigation.title)}</span></div><div class="sim-title-row"><div><span class="eyebrow orange">${navigation.label} / ${sectionName(c.section).toUpperCase()}</span><h1>${escape(navigation.title)}</h1><p>${c.key === "electrolysis" ? "Tok kuchi va vaqt ajralgan modda miqdoriga qanday ta’sir qilishini kuzating." : c.key === "uniform" ? "Tezlikni o‘zgartirib, aravachaning o‘rni va bosib o‘tgan yo‘lini solishtiring." : c.description}</p>${c.topicTitle && c.topicTitle !== c.title ? `<p class="model-note">Umumiy laboratoriya: ${c.title}</p>` : ""}</div><button type="button" class="icon-button help-button" aria-label="${uz.help}">${icon("help")}</button></div><div class="formula-banner"><div id="main-formula">${mainFormula()}</div><span>SI · ${uz.levels[level]}</span></div><details class="live-calculation"><summary>Hisobni ko‘rish</summary><strong id="live-equation">${liveEquation(c, p, state, t)}</strong></details>${levelTabs(level)}<div id="experiment-panel" role="tabpanel" aria-labelledby="level-${level}"><div class="experiment-layout"><section class="experiment-card engineering-console"><div class="panel-header"><h2>${icon("grid")}${uz.experiment}</h2><span class="live-label"><i></i>${["airHumidity", "waterVapor", "meterRange", "lampCircuit", "batteryCircuit", "centerOfMass"].includes(c.visual) ? "INTERAKTIV MODEL" : uz.live}</span></div><div class="engineering-console-grid"><div class="simulation-stage"><div id="safeguard-banner" class="safeguard-banner" hidden role="alert"></div><canvas id="sim-canvas" role="img" aria-label="${uz.canvasLabel}: ${c.title}"></canvas>${c.key === "electrolysis" ? '<p class="stage-caption">Musbat ionlar katodga boradi; qoplama miqdori tok va vaqt bilan ortadi. Chizma sxematik.</p>' : ""}${transport}<div class="vector-legend">${legendFor(c)}<span id="sim-notice" role="status"></span></div></div><aside class="telemetry-panel"><div class="telemetry-heading"><span>${c.visual === "batteryCircuit" ? "Manbalar toki" : c.visual === "lampCircuit" ? "Lampalar quvvati" : c.visual === "meterRange" ? "Shunt grafigi" : ["airHumidity", "waterVapor"].includes(c.visual) ? "Harorat grafigi" : uz.chart}</span></div><div id="charts" class="charts-grid telemetry-charts"></div><div class="telemetry-results">${c.results.map((r) => `<div><span>${resultLabel(c, r.key)}</span><p><strong data-telemetry-result="${r.key}">${formatResult(r, state[r.key])}</strong><small data-telemetry-unit${formatResult(r, state[r.key]) === NO_VALUE ? " hidden" : ""}>${r.unit}</small></p></div>`).join("")}<p id="result-status" class="result-status telemetry-status" role="status"></p></div></aside></div></section><aside class="controls-card"><div class="panel-header"><h2>${uz.parameters}</h2><span>${params.length}</span></div><section class="experiment-guide"><div><span class="eyebrow orange">${uz.experimentTask}</span><p>${(experimentTasks[c.key] || c.task)}</p></div><ol><li data-guide-step="change"><i></i>${guideParam.label || paramNames[guideParam.key] || guideParam.key}: ${uz.changeParameter}</li><li data-guide-step="observe"><i></i>${uz.observeMotion}</li><li data-guide-step="compare"><i></i>${resultLabel(c, guideResult.key)}: ${uz.compareResult}</li></ol></section>${extras}<div class="parameter-stack">${params.map((param) => parameterSlider(param, p[param.key])).join("")}</div><div class="controls-note">${icon("help")}<span>${(experimentTasks[c.key] || c.task)}</span></div></aside></div>${coachMarkup(c, params)}${experimentTools(c, params)}<div class="learning-grid"><section class="learning-card"><span class="section-icon">${icon("book")}</span><h2>${level === 2 ? uz.derivation : uz.explanation}</h2>${level === 2 ? `<ol class="derivation">${c.hard.map((s) => `<li>${formula(s, true)}</li>`).join("")}</ol>` : `<p>${level === 0 ? c.easy : c.medium}</p>`}</section><section class="learning-card engineering"><span class="section-icon">${icon("force")}</span><span class="eyebrow">${uz.engineeringLabel}</span><h2>${uz.engineering}</h2><p>${c.visual === "lampCircuit" ? c.engineering : engineeringUses[c.key] || c.engineering}</p></section></div><details class="model-note"><summary>${uz.model}</summary><p>${c.model}</p></details></div><div class="sim-navigation">${previousControl}<button type="button" id="complete" class="button ${isCurrentCompleted(c, completed) ? "completed" : "primary"}">${icon("check")}${isCurrentCompleted(c, completed) ? uz.completed : uz.complete}</button>${nextControl}</div><a class="text-link back-link" href="#/topics">${icon("grid")}${uz.back}</a></div>`,
+    `<div class="container sim-page"><div class="breadcrumb"><a href="#/topics">${uz.nav[1]}</a><span>/</span><a href="#/topics?section=${c.section}">${sectionName(c.section)}</a><span>/</span><span>${escape(navigation.title)}</span></div><div class="sim-title-row"><div><span class="eyebrow orange">${navigation.label} / ${sectionName(c.section).toUpperCase()}</span><h1>${escape(navigation.title)}</h1><p>${c.key === "electrolysis" ? "Tok kuchi va vaqt ajralgan modda miqdoriga qanday ta’sir qilishini kuzating." : c.key === "uniform" ? "Tezlikni o‘zgartirib, aravachaning o‘rni va bosib o‘tgan yo‘lini solishtiring." : c.description}</p>${c.topicTitle && c.topicTitle !== c.title ? `<p class="model-note">Umumiy laboratoriya: ${c.title}</p>` : ""}</div><button type="button" class="icon-button help-button" aria-label="${uz.help}">${icon("help")}</button></div><div class="formula-banner"><div id="main-formula">${mainFormula()}</div><span>SI · ${uz.all}</span></div><details class="live-calculation"><summary>Hisobni ko‘rish</summary><strong id="live-equation">${liveEquation(c, p, state, t)}</strong></details><div id="experiment-panel"><div class="experiment-layout"><section class="experiment-card engineering-console"><div class="panel-header"><h2>${icon("grid")}${uz.experiment}</h2><span class="live-label"><i></i>${["airHumidity", "waterVapor", "meterRange", "lampCircuit", "batteryCircuit", "centerOfMass"].includes(c.visual) ? "INTERAKTIV MODEL" : uz.live}</span></div><div class="engineering-console-grid"><div class="simulation-stage"><div id="safeguard-banner" class="safeguard-banner" hidden role="alert"></div><canvas id="sim-canvas" role="img" aria-label="${uz.canvasLabel}: ${c.title}"></canvas>${c.key === "electrolysis" ? '<p class="stage-caption">Musbat ionlar katodga boradi; qoplama miqdori tok va vaqt bilan ortadi. Chizma sxematik.</p>' : ""}${transport}<div class="vector-legend">${legendFor(c)}<span id="sim-notice" role="status"></span></div></div><aside class="telemetry-panel"><div class="telemetry-heading"><span>${c.visual === "batteryCircuit" ? "Manbalar toki" : c.visual === "lampCircuit" ? "Lampalar quvvati" : c.visual === "meterRange" ? "Shunt grafigi" : ["airHumidity", "waterVapor"].includes(c.visual) ? "Harorat grafigi" : uz.chart}</span></div><div id="charts" class="charts-grid telemetry-charts"></div><div class="telemetry-results">${c.results.map((r) => `<div><span>${resultLabel(c, r.key)}</span><p><strong data-telemetry-result="${r.key}">${formatResult(r, state[r.key])}</strong><small data-telemetry-unit${formatResult(r, state[r.key]) === NO_VALUE ? " hidden" : ""}>${r.unit}</small></p></div>`).join("")}<p id="result-status" class="result-status telemetry-status" role="status"></p></div></aside></div></section><aside class="controls-card"><div class="panel-header"><h2>${uz.parameters}</h2><span>${params.length}</span></div><section class="experiment-guide"><div><span class="eyebrow orange">${uz.experimentTask}</span><p>${(experimentTasks[c.key] || c.task)}</p></div><ol><li data-guide-step="change"><i></i>${guideParam.label || paramNames[guideParam.key] || guideParam.key}: ${uz.changeParameter}</li><li data-guide-step="observe"><i></i>${uz.observeMotion}</li><li data-guide-step="compare"><i></i>${resultLabel(c, guideResult.key)}: ${uz.compareResult}</li></ol></section>${extras}<div class="parameter-stack">${params.map((param) => parameterSlider(param, p[param.key])).join("")}</div><div class="controls-note">${icon("help")}<span>${(experimentTasks[c.key] || c.task)}</span></div></aside></div>${coachMarkup(c, params)}${experimentTools(c, params)}<div class="learning-grid"><section class="learning-card"><span class="section-icon">${icon("book")}</span><h2>${uz.explanation}</h2><p>${c.easy}</p>${c.medium && c.medium !== c.easy ? `<p>${c.medium}</p>` : ""}${Array.isArray(c.hard) && c.hard.length ? `<h3>${uz.derivation}</h3><ol class="derivation">${c.hard.map((s) => `<li>${formula(s, true)}</li>`).join("")}</ol>` : ""}</section><section class="learning-card engineering"><span class="section-icon">${icon("force")}</span><span class="eyebrow">${uz.engineeringLabel}</span><h2>${uz.engineering}</h2><p>${c.visual === "lampCircuit" ? c.engineering : engineeringUses[c.key] || c.engineering}</p></section></div><details class="model-note"><summary>${uz.model}</summary><p>${c.model}</p></details></div><div class="sim-navigation">${previousControl}<button type="button" id="complete" class="button ${isCurrentCompleted(c, completed) ? "completed" : "primary"}">${icon("check")}${isCurrentCompleted(c, completed) ? uz.completed : uz.complete}</button>${nextControl}</div><a class="text-link back-link" href="#/topics">${icon("grid")}${uz.back}</a></div>`,
     "topics",
   );
   const canvas = new SimulationCanvas(
@@ -1227,33 +1225,6 @@ function simPage(config, level = 0) {
     chart?.clearSnapshots();
     renderSnapshots();
   });
-  document.querySelectorAll("[data-level]").forEach(
-    (button) =>
-      (button.onclick = () => {
-        if (levelSwitching || Number(button.dataset.level) === level) return;
-        levelSwitching = true;
-        const scroll = window.scrollY;
-        cleanup();
-        simPage(c, Number(button.dataset.level));
-        window.scrollTo(0, scroll);
-        document
-          .querySelector(`[data-level="${button.dataset.level}"]`)
-          ?.focus({ preventScroll: true });
-      }),
-  );
-  const levelTabsEl = document.querySelector(".level-tabs");
-  if (levelTabsEl)
-    levelTabsEl.onkeydown = (e) => {
-      if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(e.key)) return;
-      e.preventDefault();
-      const next =
-        e.key === "Home"
-          ? 0
-          : e.key === "End"
-            ? 2
-            : (level + (e.key === "ArrowRight" ? 1 : 2)) % 3;
-      document.querySelector(`[data-level="${next}"]`)?.click();
-    };
   const completeButton = document.querySelector("#complete");
   if (completeButton)
     completeButton.onclick = () => {
