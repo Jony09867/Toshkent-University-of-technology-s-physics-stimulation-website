@@ -687,16 +687,23 @@ export function lorentz(p) {
     v = Number.isFinite(p.velocity) ? p.velocity : 0,
     B = p.field ?? 0,
     alpha = ((Number.isFinite(p.angle) ? p.angle : 90) * Math.PI) / 180,
-    force = q * v * B * Math.sin(alpha);
+    // Maydon bilan burchak: faqat ko‘ndalang (perpendikulyar) komponent
+    // lentali burchakka aylantiradi, parallel komponent to‘g‘ri chiziq bo‘ylab
+    // qoladi — shuning uchun spiral radius sin α, qadam esa cos α ga bog‘liq.
+    vPerp = v * Math.sin(alpha),
+    vParallel = v * Math.cos(alpha),
+    force = q * v * B * Math.sin(alpha),
+    omega = B > 0 && q !== 0 ? Math.abs((q * B) / p.mass) : 0;
   return {
     force: Number.isFinite(force) ? force : 0,
     charge: q,
     velocity: v,
     field: B,
     angle: (alpha * 180) / Math.PI,
-    spiralRadius: B > 0 && v > 0 ? (p.mass * v) / (Math.abs(q) * B) : 0,
-    // Rizoq radiusi: R = mv/(qB). Katta B → kichik doira.
-    helixPitch: Number.isFinite(v) && B > 0 ? (TAU * p.mass * v) / (Math.abs(q) * B) : 0,
+    spiralRadius: omega > 0 ? (p.mass * vPerp) / (Math.abs(q) * B) : 0,
+    // Rizoq radiusi: R = m·v·sinα/(qB). Katta B → kichik doira.
+    helixPitch: omega > 0 ? (TAU * vParallel) / omega : 0,
+    // Aylanish davri T = 2πm/(qB); qadam = v_parallel·T.
   };
 }
 
