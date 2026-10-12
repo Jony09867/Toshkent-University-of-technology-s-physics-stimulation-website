@@ -10,6 +10,13 @@ const MAX_DPR = 2;
 /** Below this CSS width renderers switch to their compact layout. */
 const COMPACT_WIDTH = 520;
 const LEVELS = ["easy", "medium", "hard"];
+const TOUCH_FOCUS_PARAMS = {
+  motion: "v0", fall: "h", newton: "force", friction: "mu",
+  projectile: "angle", energy: "h", spring: "m", resonance: "frequency",
+  buoyancy: "rho", gas: "temperature", coulomb: "r", ohm: "voltage",
+  circuit: "resistance", induction: "speed", lens: "object",
+};
+const VERTICAL_TOUCH_MODELS = new Set(["fall", "energy", "buoyancy"]);
 
 export class SimulationCanvas {
   constructor(canvas, onDrag = null) {
@@ -37,10 +44,14 @@ export class SimulationCanvas {
 
     this.canvas.style.cursor = "default";
 
-    const getPos = (e) => {
+    const getPos = (e, touchId = null) => {
       const rect = this.canvas.getBoundingClientRect();
-      const cx = e.touches && e.touches.length ? e.touches[0].clientX : e.clientX;
-      const cy = e.touches && e.touches.length ? e.touches[0].clientY : e.clientY;
+      const touch = touchId === null
+        ? e.changedTouches?.[0]
+        : [...(e.touches || [])].find((item) => item.identifier === touchId);
+      if (touchId !== null && !touch) return null;
+      const cx = touch?.clientX ?? e.clientX;
+      const cy = touch?.clientY ?? e.clientY;
       return {
         x: Math.max(0, Math.min(rect.width, cx - rect.left)),
         y: Math.max(0, Math.min(rect.height, cy - rect.top)),
@@ -138,9 +149,17 @@ export class SimulationCanvas {
     };
 
     const onPointerDown = (e) => {
-      if (!this.onDrag || !this.state) return;
+      if (!this.onDrag || !this.state || this.dragState) return;
       const pos = getPos(e);
-      const target = findTargetParam(pos);
+      let target = findTargetParam(pos);
+      // Barmoq bilan sahnaning bo‘sh joyidan boshqarish eski usuldagidek ishlaydi.
+      if (!target && e.changedTouches) {
+        const available = this.state.config.params.filter((item) =>
+          (item.level ?? 0) <= (this.state.level ?? 0));
+        const key = TOUCH_FOCUS_PARAMS[this.state.config.key];
+        const param = available.find((item) => item.key === key) || available[0];
+        if (param) target = { param, isVertical: VERTICAL_TOUCH_MODELS.has(this.state.config.key) };
+      }
       if (!target) return;
       if (e.cancelable) e.preventDefault();
       const { param: targetParam, isVertical, valueAt } = target;
@@ -156,6 +175,7 @@ export class SimulationCanvas {
         currentX: pos.x,
         currentY: pos.y,
         val: startVal,
+        touchId: e.changedTouches?.[0]?.identifier ?? null,
       };
 
       this.canvas.style.cursor = "grabbing";
@@ -163,13 +183,15 @@ export class SimulationCanvas {
       window.addEventListener("mouseup", onPointerUp);
       window.addEventListener("touchmove", onPointerMove, { passive: false });
       window.addEventListener("touchend", onPointerUp);
+      window.addEventListener("touchcancel", onPointerUp);
     };
 
     const onPointerMove = (e) => {
       if (!this.dragState) return;
+      if ((this.dragState.touchId !== null) !== Boolean(e.changedTouches)) return;
+      const pos = getPos(e, this.dragState.touchId);
+      if (!pos) return;
       if (e.cancelable) e.preventDefault();
-
-      const pos = getPos(e);
       const { param, isVertical, startX, startY, startVal, valueAt } = this.dragState;
       const span = param.max - param.min;
       let nextVal;
@@ -194,14 +216,18 @@ export class SimulationCanvas {
       this.onDrag(param.key, nextVal);
     };
 
-    const onPointerUp = () => {
+    const onPointerUp = (e) => {
       if (!this.dragState) return;
+      if ((this.dragState.touchId !== null) !== Boolean(e?.changedTouches)) return;
+      if (this.dragState.touchId !== null &&
+          ![...e.changedTouches].some((item) => item.identifier === this.dragState.touchId)) return;
       this.dragState = null;
       if (this.canvas) this.canvas.style.cursor = "default";
       window.removeEventListener("mousemove", onPointerMove);
       window.removeEventListener("mouseup", onPointerUp);
       window.removeEventListener("touchmove", onPointerMove);
       window.removeEventListener("touchend", onPointerUp);
+      window.removeEventListener("touchcancel", onPointerUp);
       this.draw();
     };
 
@@ -221,6 +247,7 @@ export class SimulationCanvas {
       window.removeEventListener("mouseup", onPointerUp);
       window.removeEventListener("touchmove", onPointerMove);
       window.removeEventListener("touchend", onPointerUp);
+      window.removeEventListener("touchcancel", onPointerUp);
     };
   }
 
